@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
           title: Text('캡스톤디자인'),
         ),
         body: Container(
-          child: Text('우리팀 파이팅'),
+          child: Text('우리팀 파이팅!'),
         ),
         bottomNavigationBar: BottomAppBar(
           child: Container(
