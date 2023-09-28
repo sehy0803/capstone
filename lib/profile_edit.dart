@@ -51,7 +51,6 @@ class ProfileEdit extends StatelessWidget {
           IconButton(onPressed: (){}, icon: Icon(Icons.chat)),
           IconButton(onPressed: (){}, icon: Icon(Icons.favorite)),
           IconButton(onPressed: (){}, icon: Icon(Icons.person)),
-
         ],
       ),
       ),
