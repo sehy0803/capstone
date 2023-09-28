@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key});
+class Community_Screen extends StatelessWidget {
+  const Community_Screen({Key? key});
 
   @override
   Widget build(BuildContext context) {
