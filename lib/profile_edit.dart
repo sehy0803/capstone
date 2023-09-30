@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-void main() {
-  runApp(const ProfileEdit());
-}
+// void main() {
+//   runApp(const ProfileEdit());
+// }
 
 class ProfileEdit extends StatelessWidget {
   const ProfileEdit({super.key});
@@ -33,7 +33,7 @@ class ProfileEdit extends StatelessWidget {
                         FilteringTextInputFormatter.allow(RegExp(r'[가-힣]')),] // 이름은 한글만 입력 가능
                         , decoration: InputDecoration(labelText: '이름'),),
                       TextField(style: TextStyle(fontSize: 15, height: 3), obscureText: true, decoration: InputDecoration(labelText: '비밀번호'),),
-                      TextField(style: TextStyle(fontSize: 15, height: 3), errorText: _emailIsValid ? null : '올바른 이메일 주소를 입력하세요.', decoration: InputDecoration(labelText: '이메일'),),
+                      TextField(style: TextStyle(fontSize: 15, height: 3), decoration: InputDecoration(labelText: '이메일'),),
                       TextField(
                         style: TextStyle(fontSize: 15, height: 3),
                         decoration: InputDecoration(labelText: '휴대폰 번호'),

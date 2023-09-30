@@ -1,13 +1,14 @@
+import 'package:capstone/tshirts_category.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-// void main() {
-//   runApp(const CategoryScreen());
-// }
+void main() {
+  runApp(const CategoryScreen());
+}
 // 테스트 코드
 
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key});
+class CategoryScreen extends StatelessWidget {
+  const CategoryScreen({Key? key});
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +26,7 @@ class MyApp extends StatelessWidget {
           centerTitle: false,
           titleSpacing: 0.0,
         ),
-        body: CategoryScreen(),
+        body: Category(),
         bottomNavigationBar: BottomAppBar(
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -43,12 +44,12 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class CategoryScreen extends StatefulWidget {
+class Category extends StatefulWidget {
   @override
-  _CategoryScreenState createState() => _CategoryScreenState();
+  _CategoryState createState() => _CategoryState();
 }
 
-class _CategoryScreenState extends State<CategoryScreen> {
+class _CategoryState extends State<Category> {
   List<String> clothingCategories = [
     '의류', '신발', '가방', '디지털', '쥬얼리', '뷰티', '가구', '기타'
   ];
@@ -131,6 +132,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                             child: TextButton(
                               onPressed: () {
                                 // 의류
+                                Navigator.push(context, MaterialPageRoute(builder: (context) => TshirtsCategory()));
                               },
                               child: Text(
                                 upperCategory,
