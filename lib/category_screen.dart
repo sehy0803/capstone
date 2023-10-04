@@ -2,10 +2,10 @@ import 'package:capstone/tshirts_category.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(const CategoryScreen());
-}
-// 테스트 코드
+// void main() {
+//   runApp(const CategoryScreen());
+// }
+// // 테스트 코드
 
 class CategoryScreen extends StatelessWidget {
   const CategoryScreen({Key? key});
