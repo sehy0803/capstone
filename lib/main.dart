@@ -47,29 +47,29 @@ class MainScreen extends StatelessWidget {
                         MaterialPageRoute(builder: (context) => LoginScreen()),
                       );
                     },
-                    child: Text("로그인", style: TextStyle(color: Colors.black, fontSize: 15)),
+                    child: Text("로그인", style: TextStyle(color: Colors.black, fontSize: 18, fontWeight: FontWeight.bold)),
                     style: ButtonStyle(
                       backgroundColor : MaterialStateProperty.all(Colors.white),
                       minimumSize: MaterialStateProperty.all(Size(300, 60)),
                     ),
                   ),
-                  SizedBox( height: 20),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => TermsScreen()),
-                      );
-                    },
-                    child: Text("회원가입", style: TextStyle(color: Colors.white, fontSize: 15)),
-                    style: ButtonStyle(
-                      backgroundColor : MaterialStateProperty.all(Colors.black),
-                      minimumSize: MaterialStateProperty.all(Size(300, 60)),
-                    ),
-                  ),
+                  SizedBox(height: 10),
                 ],
               ),
             ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text("Logo가 처음이신가요?", style: TextStyle(fontSize: 16)),
+                TextButton(onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => TermsScreen()),
+                  );
+                }, child: Text("회원가입", style: TextStyle(color: Colors.white, fontSize: 18))
+                )
+              ]
+            )
           ],
         ),
       ),
