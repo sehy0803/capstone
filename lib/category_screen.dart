@@ -1,32 +1,197 @@
-import 'package:capstone/tshirts_category.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-// void main() {
-//   runApp(const CategoryScreen());
-// }
-// // 테스트 코드
+void main() {
+  runApp(CategoryScreen());
+}
+
 
 class CategoryScreen extends StatelessWidget {
-  const CategoryScreen({Key? key});
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
-          title: Padding(
-            padding: const EdgeInsets.only(left: 15),
-            child: Text(
-              '카테고리',
-              style: TextStyle(color: Colors.black),
-            ),
+          title: Text(
+            '카테고리',
+            style: TextStyle(color: Colors.black, fontSize: 25),
           ),
           backgroundColor: Colors.white,
           centerTitle: false,
           titleSpacing: 0.0,
         ),
-        body: Category(),
+        body: Container(
+          child: Row(
+            // crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Flexible(
+                child: Container(
+                  width: 100,
+                  color: Colors.black12,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TextButton(
+                        onPressed: () {},
+                        child: Text('의류', style: TextStyle(color: Colors.black, fontSize: 20)),
+                      ),
+                      TextButton(
+                        onPressed: () {},
+                        child: Text('신발', style: TextStyle(color: Colors.black, fontSize: 20)),
+                      ),
+                      TextButton(
+                        onPressed: () {},
+                        child: Text('가방', style: TextStyle(color: Colors.black, fontSize: 20)),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          //
+                        },
+
+                        child: Text('디지털', style: TextStyle(color: Colors.black, fontSize: 20)),
+                      ),
+
+                      TextButton(
+                        onPressed: () {},
+                        child: Text('쥬얼리', style: TextStyle(color: Colors.black, fontSize: 20)),
+                      ),
+                      TextButton(
+                        onPressed: () {},
+                        child: Text('뷰티', style: TextStyle(color: Colors.black, fontSize: 20)),
+                      ),
+                      TextButton(
+                        onPressed: () {},
+                        child: Text('가구', style: TextStyle(color: Colors.black, fontSize: 20)),
+                      ),
+                      TextButton(
+                        onPressed: () {},
+                        child: Text(
+                          '기타',
+                          style: TextStyle(color: Colors.black, fontSize: 20),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                flex: 3,
+              ),
+              Flexible(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 400.0),
+                  child: Wrap(
+                    spacing: 10.0, // 각 버튼 간격 조절
+                    runSpacing: 20.0, // 각 줄 간격 조절
+                    children: [
+                      Container(child: Padding(padding: EdgeInsets.only(top: 20))),
+                      TextButton(
+                        onPressed: () {},
+                        child: Text(
+                          '휴대폰',
+                          style: TextStyle(color: Colors.black, fontSize: 15),
+                        ),
+                        style: ButtonStyle(
+                          minimumSize: MaterialStateProperty.all<Size>(
+                            Size(70, 60), // 버튼의 최소 크기 조절
+                          ),
+                          shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(25.0),
+                            ),
+                          ),
+                          backgroundColor: MaterialStateProperty.all<Color>(Colors.black12),
+                        ),
+                      ),
+
+                      Container(child: Padding(padding: EdgeInsets.only(top: 20))),
+                      TextButton(
+                        onPressed: () {},
+                        child: Text(
+                          '노트북',
+                          style: TextStyle(color: Colors.black, fontSize: 15),
+                        ),
+                        style: ButtonStyle(
+                          minimumSize: MaterialStateProperty.all<Size>(
+                            Size(70, 60), // 버튼의 최소 크기 조절
+                          ),
+                          shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(25.0),
+                            ),
+                          ),
+                          backgroundColor: MaterialStateProperty.all<Color>(Colors.black12),
+                        ),
+                      ),
+
+                      Padding(padding: EdgeInsets.only(top: 20)),
+                      TextButton(
+                        onPressed: () {},
+                        child: Text(
+                          '데스크탑',
+                          style: TextStyle(color: Colors.black, fontSize: 15),
+                        ),
+                        style: ButtonStyle(
+                          minimumSize: MaterialStateProperty.all<Size>(
+                            Size(70, 60), // 버튼의 최소 크기 조절
+                          ),
+                          shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(25.0),
+                            ),
+                          ),
+                          backgroundColor: MaterialStateProperty.all<Color>(Colors.black12),
+                        ),
+                      ),
+
+                      Padding(
+                        padding: const EdgeInsets.only(left: 8.0),
+                        child: TextButton(
+                          onPressed: () {},
+                          child: Text(
+                            '보조\n배터리',
+                            textAlign: TextAlign.center, // 텍스트 가운데 정렬
+                            style: TextStyle(color: Colors.black, fontSize: 15),
+                          ),
+                          style: ButtonStyle(
+                            minimumSize: MaterialStateProperty.all<Size>(
+                              Size(70, 60), // 버튼의 최소 크기 조절
+                            ),
+                            shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                              RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(25.0),
+                              ),
+                            ),
+                            backgroundColor: MaterialStateProperty.all<Color>(Colors.black12),
+                          ),
+                        ),
+                      ),
+
+                      Padding(padding: EdgeInsets.only(top: 20)),
+                      TextButton(
+                        onPressed: () {},
+                        child: Text(
+                          '충전기',
+                          style: TextStyle(color: Colors.black, fontSize: 15),
+                        ),
+                        style: ButtonStyle(
+                          minimumSize: MaterialStateProperty.all<Size>(
+                            Size(70, 60), // 버튼의 최소 크기 조절
+                          ),
+                          shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(25.0),
+                            ),
+                          ),
+                          backgroundColor: MaterialStateProperty.all<Color>(Colors.black12),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                flex: 7,
+              ),
+            ],
+          ),
+        ),
         bottomNavigationBar: BottomAppBar(
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -40,307 +205,6 @@ class CategoryScreen extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class Category extends StatefulWidget {
-  @override
-  _CategoryState createState() => _CategoryState();
-}
-
-class _CategoryState extends State<Category> {
-  List<String> clothingCategories = [
-    '의류', '신발', '가방', '디지털', '쥬얼리', '뷰티', '가구', '기타'
-  ];
-  List<String> upperWearCategories = ['티셔츠', '셔츠'];
-
-  String selectedCategory = '';
-  bool isCategorySelected = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Positioned(
-          left: 0,
-          top: 0,
-          bottom: 0,
-          child: Container(
-            color: Colors.black12,
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  for (String category in clothingCategories)
-                    Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20.0),
-                        ),
-                        child: TextButton(
-                          onPressed: () {
-                            setState(() {
-                              selectedCategory = category;
-                              isCategorySelected = true;
-                            });
-                          },
-                          child: Text(
-                            category,
-                            style: TextStyle(color: Colors.black),
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ),
-        ),
-        if (isCategorySelected)
-          Positioned(
-            right: 40,
-            top: 0,
-            bottom: 420,
-            child: Container(
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      selectedCategory,
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 24.0,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(height: 20.0),
-
-                    if (selectedCategory == '의류')
-                      ...upperWearCategories.map((upperCategory) {
-                        return Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Container(
-                            width: 70,
-                            height: 70,
-                            decoration: BoxDecoration(
-                              color: Colors.black12,
-                              borderRadius: BorderRadius.circular(25.0),
-                            ),
-                            child: TextButton(
-                              onPressed: () {
-                                // 의류
-                                Navigator.push(context, MaterialPageRoute(builder: (context) => TshirtsCategory()));
-                              },
-                              child: Text(
-                                upperCategory,
-                                style: TextStyle(color: Colors.black),
-                              ),
-                            ),
-                          ),
-                        );
-                      }),
-
-                    if (selectedCategory == '신발')
-                      ...[
-                        '구두', '운동화',
-                      ].map((shoeCategory) {
-                        return Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Container(
-                            width: 70,
-                            height: 70,
-                            decoration: BoxDecoration(
-                              color: Colors.black12,
-                              borderRadius: BorderRadius.circular(25.0),
-                            ),
-                            child: TextButton(
-                              onPressed: () {
-                                // 신발
-                              },
-                              child: Text(
-                                shoeCategory,
-                                style: TextStyle(color: Colors.black),
-                              ),
-                            ),
-                          ),
-                        );
-                      }),
-
-                    if (selectedCategory == '가방')
-                      ...[
-                        '백팩',
-                        '토트백',
-                      ].map((bagCategory) {
-                        return Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Container(
-                            width: 70,
-                            height: 70,
-                            decoration: BoxDecoration(
-                              color: Colors.black12,
-                              borderRadius: BorderRadius.circular(25.0),
-                            ),
-                            child: TextButton(
-                              onPressed: () {
-                                // 가방
-                              },
-                              child: Text(
-                                bagCategory,
-                                style: TextStyle(color: Colors.black),
-                              ),
-                            ),
-                          ),
-                        );
-                      }),
-
-                    if (selectedCategory == '디지털')
-                      ...[
-                        ['휴대폰', '노트북', '데스크탑'],
-                        ['보조배터리','충전기']
-                      ].asMap().entries.map((entry) {
-                        int index = entry.key;
-                        List<String> categoryGroup = entry.value;
-                        return Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: categoryGroup.map((category) {
-                            return Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Container(
-                                width: 70,
-                                height: 70,
-                                decoration: BoxDecoration(
-                                  color: Colors.black12,
-                                  borderRadius: BorderRadius.circular(25.0),
-                                ),
-                                child: TextButton(
-                                  onPressed: () {
-                                    // 디지털
-                                  },
-                                  child: Text(
-                                    category,
-                                    style: TextStyle(color: Colors.black),
-                                  ),
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                        );
-                      }),
-
-                    if (selectedCategory == '쥬얼리')
-                      ...[
-                        '반지',
-                        '목걸이',
-                      ].map((shoeCategory) {
-                        return Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Container(
-                            width: 70,
-                            height: 70,
-                            decoration: BoxDecoration(
-                              color: Colors.black12,
-                              borderRadius: BorderRadius.circular(25.0),
-                            ),
-                            child: TextButton(
-                              onPressed: () {
-                                // 쥬얼리
-                              },
-                              child: Text(
-                                shoeCategory,
-                                style: TextStyle(color: Colors.black),
-                              ),
-                            ),
-                          ),
-                        );
-                      }),
-
-                    if (selectedCategory == '뷰티')
-                      ...[
-                        '화장품',
-                      ].map((shoeCategory) {
-                        return Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Container(
-                            width: 70,
-                            height: 70,
-                            decoration: BoxDecoration(
-                              color: Colors.black12,
-                              borderRadius: BorderRadius.circular(25.0),
-                            ),
-                            child: TextButton(
-                              onPressed: () {
-                                // 뷰티
-                              },
-                              child: Text(
-                                shoeCategory,
-                                style: TextStyle(color: Colors.black),
-                              ),
-                            ),
-                          ),
-                        );
-                      }),
-
-                    if (selectedCategory == '가구')
-                      ...[
-                        '책상',
-                        '의자',
-                      ].map((shoeCategory) {
-                        return Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Container(
-                            width: 70,
-                            height: 70,
-                            decoration: BoxDecoration(
-                              color: Colors.black12,
-                              borderRadius: BorderRadius.circular(25.0),
-                            ),
-                            child: TextButton(
-                              onPressed: () {
-                                // 가구
-                              },
-                              child: Text(
-                                shoeCategory,
-                                style: TextStyle(color: Colors.black),
-                              ),
-                            ),
-                          ),
-                        );
-                      }),
-
-                    if (selectedCategory == '기타')
-                      ...[
-                        '기타',
-                      ].map((shoeCategory) {
-                        return Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Container(
-                            width: 70,
-                            height: 70,
-                            decoration: BoxDecoration(
-                              color: Colors.black12,
-                              borderRadius: BorderRadius.circular(25.0),
-                            ),
-                            child: TextButton(
-                              onPressed: () {
-                                // 기타
-                              },
-                              child: Text(
-                                shoeCategory,
-                                style: TextStyle(color: Colors.black),
-                              ),
-                            ),
-                          ),
-                        );
-                      }),
-                  ],
-                ),
-              ),
-            ),
-          ),
-      ],
     );
   }
 }
