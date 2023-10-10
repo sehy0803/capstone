@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'register_screen.dart';
 
+void main() {
+  runApp(TermsScreen());
+}
+
 class TermsScreen extends StatefulWidget {
   const TermsScreen({Key? key}) : super(key: key);
 
@@ -18,17 +22,33 @@ class _TermsScreenState extends State<TermsScreen> {
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
-          title: Text("약관동의"),
+          backgroundColor: Colors.white,
           leading: IconButton(
-            icon: Icon(Icons.arrow_back),
-            onPressed: () {
-              Navigator.pop(context);
-            },
+              onPressed: () {Navigator.pop(context);},
+              icon: Icon(Icons.clear),
+              iconSize: 30,
+              color: Colors.black
           ),
         ),
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+
+            Padding(padding: EdgeInsets.fromLTRB(30, 60, 0, 10),
+              child: Text('Logo',
+                  style: TextStyle(color: Colors.black, fontSize: 80, fontWeight: FontWeight.bold)),
+            ),
+            Padding(padding: EdgeInsets.fromLTRB(30, 0, 0, 5),
+              child: Text('환영합니다!',
+                  style: TextStyle(color: Colors.black, fontSize: 25)),
+            ),
+            Padding(padding: EdgeInsets.fromLTRB(30, 0, 0, 0),
+              child: Text('서비스 이용을 위하여 \n약관 동의가 필요합니다.',
+                  style: TextStyle(color: Colors.grey, fontSize: 16)),
+            ),
+            SizedBox(height: 225),
+
+            // 약관 전체동의
             Row(
               children: [
                 Checkbox(
@@ -47,13 +67,11 @@ class _TermsScreenState extends State<TermsScreen> {
                 ),
               ],
             ),
-            Center(
-              child: Container(
-                width: 400,
-                height: 1,
-                color: Colors.grey,
-              ),
-            ),
+
+            // 구분선
+            Line(),
+
+            // 첫번째 약관
             Row(
               children: [
                 Checkbox(
@@ -72,6 +90,8 @@ class _TermsScreenState extends State<TermsScreen> {
                 ),
               ],
             ),
+
+            // 두번째 약관
             Row(
               children: [
                 Checkbox(
@@ -109,7 +129,7 @@ class _TermsScreenState extends State<TermsScreen> {
                 ));
               }
             },
-            child: Text("다음", style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w600)),
+            child: Text("다음", style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
             style: ButtonStyle(
               backgroundColor: MaterialStateProperty.all(Color(0xff18a4f0)),
               minimumSize: MaterialStateProperty.all(Size(400, 60)),
@@ -121,6 +141,20 @@ class _TermsScreenState extends State<TermsScreen> {
   }
 }
 
-void main() {
-  runApp(TermsScreen());
+// 구분선
+class Line extends StatelessWidget {
+  const Line({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+        width: 400,
+        height: 1,
+        color: Colors.grey,
+      ),
+    );
+  }
 }
+
+
