@@ -150,8 +150,8 @@ class Line extends StatelessWidget {
     return Center(
       child: Container(
         width: 400,
-        height: 1,
-        color: Colors.grey,
+        height: 2,
+        color: Colors.black12,
       ),
     );
   }
