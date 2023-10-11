@@ -1,3 +1,7 @@
+import 'package:capstone/category_screen.dart';
+import 'package:capstone/community_screen.dart';
+import 'package:capstone/favorite_list_screen.dart';
+import 'package:capstone/my_page_screen.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -173,11 +177,46 @@ class HomeBottomAppBar extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          IconButton(onPressed: (){}, icon: Icon(Icons.home), iconSize: 40),
-          IconButton(onPressed: (){}, icon: Icon(Icons.launch), iconSize: 40),
-          IconButton(onPressed: (){}, icon: Icon(Icons.chat), iconSize: 40),
-          IconButton(onPressed: (){}, icon: Icon(Icons.favorite), iconSize: 40),
-          IconButton(onPressed: (){}, icon: Icon(Icons.person), iconSize: 40),
+          IconButton(
+              onPressed: () {
+                Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
+                Navigator.push(
+                  context, MaterialPageRoute(builder: (context) => HomeScreen()),
+                  );
+                },
+              icon: Icon(Icons.home), iconSize: 40),
+          IconButton(
+              onPressed: () {
+                Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
+                Navigator.push(
+                  context, MaterialPageRoute(builder: (context) => CategoryScreen()),
+                  );
+                },
+              icon: Icon(Icons.launch), iconSize: 40),
+          IconButton(
+              onPressed: () {
+                Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
+                Navigator.push(
+                  context, MaterialPageRoute(builder: (context) => Community_Screen()),
+                  );
+                },
+              icon: Icon(Icons.chat), iconSize: 40),
+          IconButton(
+              onPressed: () {
+                  Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
+                  Navigator.push(
+                    context, MaterialPageRoute(builder: (context) => FavoriteListScreen()),
+                  );
+                },
+              icon: Icon(Icons.favorite), iconSize: 40),
+          IconButton(
+              onPressed: () {
+                  Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
+                  Navigator.push(
+                    context, MaterialPageRoute(builder: (context) => MyPageScreen()),
+                  );
+                },
+              icon: Icon(Icons.person), iconSize: 40),
         ],
       ),
     );

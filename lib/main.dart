@@ -61,12 +61,14 @@ class MainScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text("Logo가 처음이신가요?", style: TextStyle(fontSize: 16)),
-                TextButton(onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => TermsScreen()),
-                  );
-                }, child: Text("회원가입", style: TextStyle(color: Colors.white, fontSize: 18))
+                TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => TermsScreen()),
+                      );
+                      },
+                    child: Text("회원가입", style: TextStyle(color: Colors.white, fontSize: 18))
                 )
               ]
             )
