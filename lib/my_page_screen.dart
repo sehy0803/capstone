@@ -134,15 +134,27 @@ class ProductListItemInfo extends StatelessWidget {
                 Text('경매일 2023-09-31', style: TextStyle(fontSize: 14, color: Colors.grey)),
               ],
             ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('시작가', style: TextStyle(fontSize: 14)),
-                Text('150,000원', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xff18a4f0)))
-              ],
+            Container(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('시작가', style: TextStyle(fontSize: 14)),
+                      Text('150,000원', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xff18a4f0))),
+                    ],
+                  ),
+                  Container(
+                      height: 40,
+                      child: IconButton(onPressed: (){}, icon: Icon(Icons.favorite), iconSize: 25)),
+                    ],
+                  ),
             )
-
           ],
+
+
         ),
       ),
     );
