@@ -149,6 +149,7 @@ class Line extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Container(
+        width: 400,
         height: 2,
         color: Colors.black12,
       ),
