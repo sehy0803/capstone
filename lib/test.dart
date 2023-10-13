@@ -1,23 +1,49 @@
 import 'package:flutter/material.dart';
 
+void main() {
+  runApp(const Test());
+}
+
 class Test extends StatelessWidget {
   const Test({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: TextFormField(
-        obscureText: false, // true 인 경우 값이 * 로 보임
-        keyboardType: TextInputType.text, // email, password, number 등의 inputType
-        textInputAction: TextInputAction.next, // next, done 과 같이 keyboard enter의 속성
-        decoration: InputDecoration(
-          hintText: "ddd"
-        ),
-        validator: (value) {
-          if (value!.length < 12) {
-            return "오류입니다";
-          }
-        },
+    return MaterialApp(
+      home: GridView.count(
+          crossAxisCount : 3, //grid 수
+          children : <Widget> [
+            Container(
+              color : Colors.red,
+              width : 100,
+              height : 100,
+            ),
+            Container(
+              color : Colors.blueGrey,
+              width : 100,
+              height : 100,
+            ),
+            Container(
+              color : Colors.lime,
+              width : 100,
+              height : 100,
+            ),
+            Container(
+              color : Colors.teal,
+              width : 100,
+              height : 100,
+            ),
+            Container(
+              color : Colors.blue,
+              width : 100,
+              height : 100,
+            ),
+            Container(
+              color : Colors.indigo,
+              width : 100,
+              height : 100,
+            ),
+          ]
       ),
     );
   }
