@@ -1,9 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(CategoryScreen());
-}
+// void main() {
+//   runApp(CategoryScreen());
+// }
 
 
 class CategoryScreen extends StatelessWidget {
@@ -22,7 +22,6 @@ class CategoryScreen extends StatelessWidget {
         ),
         body: Container(
           child: Row(
-            // crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Flexible(
                 child: Container(
@@ -44,10 +43,7 @@ class CategoryScreen extends StatelessWidget {
                         child: Text('가방', style: TextStyle(color: Colors.black, fontSize: 20)),
                       ),
                       TextButton(
-                        onPressed: () {
-                          //
-                        },
-
+                        onPressed: () => {},
                         child: Text('디지털', style: TextStyle(color: Colors.black, fontSize: 20)),
                       ),
 
