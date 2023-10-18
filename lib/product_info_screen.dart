@@ -47,8 +47,6 @@ class ProductInfo extends StatelessWidget {
               )
             ]
         ),
-
-        bottomNavigationBar: HomeBottomAppBar(),
       ),
     );
   }

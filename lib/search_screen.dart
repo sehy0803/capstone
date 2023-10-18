@@ -22,17 +22,7 @@ class SearchScreen extends StatelessWidget {
             padding: EdgeInsets.all(20),
             child: Column(
               children: [
-                AuctionProductList(),
-                SizedBox(height: 20),
-                AuctionProductList(),
-                SizedBox(height: 20),
-                AuctionProductList(),
-                SizedBox(height: 20),
-                AuctionProductList(),
-                SizedBox(height: 20),
-                AuctionProductList(),
-                SizedBox(height: 20),
-                AuctionProductList(),
+
 
               ],
             ),
@@ -44,7 +34,6 @@ class SearchScreen extends StatelessWidget {
 
 
         ),
-        bottomNavigationBar: HomeBottomAppBar(),
       ),
     );
   }

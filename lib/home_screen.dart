@@ -1,224 +1,256 @@
-import 'package:capstone/category_screen.dart';
-import 'package:capstone/community_screen.dart';
-import 'package:capstone/favorite_list_screen.dart';
-import 'package:capstone/my_page_screen.dart';
+import 'package:capstone/auction_regist_screen.dart';
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(const HomeScreen());
-}
-
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({Key? key});
+  const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        body: CustomScrollView(
-          slivers: [
-            SliverAppBar(
-              title: Text("Logo",
-                  style: TextStyle(color: Colors.black, fontSize: 25, fontWeight: FontWeight.bold)
+        appBar: AppBar(
+            title: Text('홈',
+                style: TextStyle(color: Colors.black, fontSize: 20)),
+            backgroundColor: Colors.white,
+            actions: [
+              IconButton(
+                onPressed: (){},
+                icon: Icon(Icons.search),
+                iconSize: 30,
+                color: Colors.black,
               ),
-              backgroundColor: Colors.white,
-              floating: true,
-              pinned: false,
-              actions: [
-                IconButton(
-                    icon: Icon(Icons.search),
-                    color: Colors.black,
-                    iconSize: 30,
-                    onPressed: () {
-                      print('click');
-                    }
-                ),
-              ],
-            ),
-            SliverList(
-              delegate: SliverChildListDelegate(
-                [
-                  Container(
-                    height: 160,
-                    color: Colors.black12,
+            ]
+        ),
+        body: SingleChildScrollView(
+          child: Column(
+            children: [
+              // 위젯 추가
+              TopImageBox(),
+              Container(
+                color: Colors.white,
+                child: Padding(
+                    padding: const EdgeInsets.all(20),
                     child: Column(
                       children: [
-                        Text('실시간 인기 경매 Image',
-                          style: TextStyle(),
-                          textAlign: TextAlign.center,
-                        ),
-                        Align(
-                          alignment: Alignment.bottomRight, // 우측 하단으로 정렬
-                          child: TextButton(
-                            onPressed: () {},
-                            child: Text('이미지 개수'),
-                          ),
-                        ),
+                        CategoryNavigation(), // 카테고리 이동 버튼
+                        RecentAuctionList(),
                       ],
                     )
-                  ),
-                  // ====================위젯 추가 자리====================
-                  CategoryIcons(),
-                  CategoryIcons(),
-                  RecentAuctionResults(),
-                  ItemList(),
-                  ItemList(),
-                  ItemList(),
-
-
-                ],
-              )
-            )
-          ]
+                ),
+              ),
+            ],
+          )
         ),
-
-        bottomNavigationBar: HomeBottomAppBar(),
+        floatingActionButton: FloatingActionButton.extended(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => AuctionRegistScreen()),
+            );
+          },
+          icon: Icon(Icons.add),
+          label: Text('경매 글쓰기', style: TextStyle(fontSize: 18)),
+          backgroundColor: Colors.lightBlue,
+        ),
       ),
     );
   }
 }
 
-// ======================================================= 커스텀 위젯 =======================================================
+// ========================================== 커스텀 위젯 ==========================================
 
-// 최근 경매 결과에 표시할 상품 리스트
-class ItemList extends StatelessWidget {
-  const ItemList({super.key});
+// IconButton(
+// onPressed: (){},
+// icon: Icon(Icons.favorite),
+// iconSize: 35,
+// color: Colors.black
+// ),
 
-  @override
-  Widget build(BuildContext context) {
-    return Padding(padding: EdgeInsets.fromLTRB(20, 10, 20, 10),
-        child: Row(
-          children: [
-            //Image.asset('assets/Tshirts.jpeg', width: 120, height: 120),
-            Container(width: 120, height: 120, color: Colors.black12),
-            Container(
-                width: 210,
-                height: 120,
-                margin: EdgeInsets.fromLTRB(20, 0, 0, 0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("괜찮은 의자", style: TextStyle(fontSize: 18)),
-                    Text("2023-09-02", style: TextStyle(fontSize: 18, color: Colors.grey)),
-                    SizedBox(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text("시작가", style: TextStyle(fontSize: 18)),
-                        Text("150,000원", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                      ],
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text("낙찰가", style: TextStyle(fontSize: 18)),
-                        Text("210,000원", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.amber)),
-                      ],
-                    )
-                  ],
-                )
-            )
-          ],
-        )
-    );
-  }
-}
-
-
-// 카테고리로 이동할 수 있는 아이콘버튼들
-class CategoryIcons extends StatelessWidget {
-  const CategoryIcons({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(padding: EdgeInsets.fromLTRB(10, 15, 10, 15),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            IconButton(onPressed: (){}, icon: Icon(Icons.home), iconSize: 60),
-            IconButton(onPressed: (){}, icon: Icon(Icons.home), iconSize: 60),
-            IconButton(onPressed: (){}, icon: Icon(Icons.home), iconSize: 60),
-            IconButton(onPressed: (){}, icon: Icon(Icons.home), iconSize: 60),
-          ],
-        )
-    );
-  }
-}
-
-// 최근 경매 결과 글씨 부분
-class RecentAuctionResults extends StatelessWidget {
-  const RecentAuctionResults({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-        padding: EdgeInsets.fromLTRB(20, 0, 20, 0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text("최근 경매 결과",
-                style: TextStyle(fontSize: 24)),
-            TextButton(onPressed: (){}, child: Text("더보기", style: TextStyle(fontSize: 20, color: Colors.grey))),
-          ],
-        )
-    );
-  }
-}
-
-// BottomAppBar
-class HomeBottomAppBar extends StatelessWidget {
-  const HomeBottomAppBar({super.key});
+// 상단 이미지
+class TopImageBox extends StatelessWidget {
+  const TopImageBox({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: double.infinity,
-      height: 80,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          IconButton(
-              onPressed: () {
-                Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
-                Navigator.push(
-                  context, MaterialPageRoute(builder: (context) => HomeScreen()),
-                  );
-                },
-              icon: Icon(Icons.home), iconSize: 40),
-          IconButton(
-              onPressed: () {
-                Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
-                Navigator.push(
-                  context, MaterialPageRoute(builder: (context) => CategoryScreen()),
-                  );
-                },
-              icon: Icon(Icons.launch), iconSize: 40),
-          IconButton(
-              onPressed: () {
-                Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
-                Navigator.push(
-                  context, MaterialPageRoute(builder: (context) => Community_Screen()),
-                  );
-                },
-              icon: Icon(Icons.chat), iconSize: 40),
-          IconButton(
-              onPressed: () {
-                  Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
-                  Navigator.push(
-                    context, MaterialPageRoute(builder: (context) => FavoriteListScreen()),
-                  );
-                },
-              icon: Icon(Icons.favorite), iconSize: 40),
-          IconButton(
-              onPressed: () {
-                  Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
-                  Navigator.push(
-                    context, MaterialPageRoute(builder: (context) => MyPageScreen()),
-                  );
-                },
-              icon: Icon(Icons.person), iconSize: 40),
-        ],
-      ),
+      height: 150,
+      color: Colors.lightBlue,
+    );
+  }
+}
+
+
+// 카테고리 이동 버튼
+class CategoryNavigation extends StatelessWidget {
+  const CategoryNavigation({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            IconButton(
+              onPressed: (){},
+              icon: Icon(Icons.add),
+              iconSize: 50,
+              padding: EdgeInsets.zero, // 패딩 설정
+              constraints: BoxConstraints(), // 패딩 설정
+            ),
+            IconButton(
+              onPressed: (){},
+              icon: Icon(Icons.add),
+              iconSize: 50,
+              padding: EdgeInsets.zero, // 패딩 설정
+              constraints: BoxConstraints(), // 패딩 설정
+            ),
+            IconButton(
+              onPressed: (){},
+              icon: Icon(Icons.add),
+              iconSize: 50,
+              padding: EdgeInsets.zero, // 패딩 설정
+              constraints: BoxConstraints(), // 패딩 설정
+            ),
+            IconButton(
+              onPressed: (){},
+              icon: Icon(Icons.add),
+              iconSize: 50,
+              padding: EdgeInsets.zero, // 패딩 설정
+              constraints: BoxConstraints(), // 패딩 설정
+            ),
+          ],
+        ),
+        SizedBox(height: 20),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            IconButton(
+              onPressed: (){},
+              icon: Icon(Icons.add),
+              iconSize: 50,
+              padding: EdgeInsets.zero, // 패딩 설정
+              constraints: BoxConstraints(), // 패딩 설정
+            ),
+            IconButton(
+              onPressed: (){},
+              icon: Icon(Icons.add),
+              iconSize: 50,
+              padding: EdgeInsets.zero, // 패딩 설정
+              constraints: BoxConstraints(), // 패딩 설정
+            ),
+            IconButton(
+              onPressed: (){},
+              icon: Icon(Icons.add),
+              iconSize: 50,
+              padding: EdgeInsets.zero, // 패딩 설정
+              constraints: BoxConstraints(), // 패딩 설정
+            ),
+            IconButton(
+              onPressed: (){},
+              icon: Icon(Icons.add),
+              iconSize: 50,
+              padding: EdgeInsets.zero, // 패딩 설정
+              constraints: BoxConstraints(), // 패딩 설정
+            ),
+          ],
+        ),
+        SizedBox(height: 20)
+      ],
+    );
+  }
+}
+
+// 최근 경매 결과 - 경매 정보 아이템
+class RecentAuctionItem extends StatelessWidget {
+  const RecentAuctionItem({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 120,
+          height: 120,
+          decoration: BoxDecoration(
+            color: Colors.white, // 배경색
+            border: Border.all(
+              color: Colors.black, // 테두리 색상
+              width: 1.0, // 테두리 두께
+            ),
+          ),
+        ),
+        Expanded(
+            child: Container(
+              height: 120,
+              color: Colors.white,
+              child: Padding(
+                padding: const EdgeInsets.all(5),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          child: Text("경매 제목", style: TextStyle(fontSize: 18)),
+                        ),
+                        IconButton(
+                          onPressed: (){},
+                          icon: Icon(Icons.favorite),
+                          iconSize: 30,
+                          padding: EdgeInsets.zero, // 패딩 설정
+                          constraints: BoxConstraints(), // 패딩 설정
+                        ),
+                      ],
+                    ),
+                    Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text("즉시거래가", style: TextStyle(fontSize: 18)),
+                            Text("100,000원", style: TextStyle(fontSize: 18))
+                          ],
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text("낙찰가", style: TextStyle(fontSize: 18)),
+                            Text("100,000원", style: TextStyle(fontSize: 18, color: Colors.lightBlue))
+                          ],
+                        )
+                      ],
+                    )
+                  ],
+                ),
+              ),
+            )
+        )
+      ],
+    );
+  }
+}
+
+// 최근 경매 결과 - 경매 정보 리스트
+class RecentAuctionList extends StatelessWidget {
+  const RecentAuctionList({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        SizedBox(
+            width: double.infinity,
+            child: Text("최근 경매 결과", style: TextStyle(fontSize: 20))
+        ),
+        SizedBox(height: 10),
+        RecentAuctionItem(), // 최근 경매 결과 - 경매 정보
+        RecentAuctionItem(),
+        RecentAuctionItem()
+      ],
     );
   }
 }

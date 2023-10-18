@@ -1,6 +1,4 @@
-import 'package:capstone/register_screen.dart';
 import 'package:flutter/material.dart';
-import 'terms_screen.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -43,7 +41,12 @@ class LoginScreen extends StatelessWidget {
                   ),
                 ),
                 ElevatedButton(
-                  onPressed: () { }, // 로그인 성공, 실패
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => LoginScreen()),
+                      );
+                      }, // 로그인 성공, 실패
                   child: Text("로그인", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                   style: ButtonStyle(
                     backgroundColor : MaterialStateProperty.all(Color(0xff18a4f0)),
@@ -58,7 +61,7 @@ class LoginScreen extends StatelessWidget {
                       TextButton(onPressed: (){}, child: Text("비밀번호 찾기", style: TextStyle(fontSize: 16)))
                     ]
                 ),
-                SizedBox(height: 165,)
+                SizedBox(height: 165)
               ]
           ),
         )

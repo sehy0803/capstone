@@ -1,8 +1,8 @@
 // === 스크롤 기본 ===
 import 'package:flutter/material.dart';
 
-class CategoryScreen extends StatelessWidget {
-  const CategoryScreen({super.key});
+class FavoriteScreen extends StatelessWidget {
+  const FavoriteScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -11,17 +11,24 @@ class CategoryScreen extends StatelessWidget {
         body: CustomScrollView(
             slivers: [
               SliverAppBar(
-                  title: Text('카테고리',
+                  title: Text('관심목록',
                       style: TextStyle(color: Colors.black, fontSize: 20)),
                   backgroundColor: Colors.white,
                   floating: true,
                   pinned: false,
+                  actions: [
+                    IconButton(
+                        onPressed: (){},
+                        icon: Icon(Icons.search),
+                        iconSize: 30,
+                        color: Colors.black
+                    ),
+                  ]
               ),
               SliverList(
                   delegate: SliverChildListDelegate(
                       [
                         // 위젯 추가
-
 
 
 

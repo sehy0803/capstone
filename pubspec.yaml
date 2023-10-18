@@ -30,6 +30,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations: # 날짜, 시간 패키지
+    sdk: flutter
+  intl: ^0.18.1 # intl 패키지(날짜, 시간을 원하는 형식으로 포맷)
+
 
 
   # The following adds the Cupertino Icons font to your application.
