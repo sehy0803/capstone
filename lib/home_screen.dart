@@ -174,6 +174,7 @@ class RecentAuctionItem extends StatelessWidget {
           height: 120,
           decoration: BoxDecoration(
             color: Colors.white, // 배경색
+            borderRadius: BorderRadius.circular(10), // 모서리 둥글게
             border: Border.all(
               color: Colors.black, // 테두리 색상
               width: 1.0, // 테두리 두께
@@ -183,7 +184,14 @@ class RecentAuctionItem extends StatelessWidget {
         Expanded(
             child: Container(
               height: 120,
-              color: Colors.white,
+              decoration: BoxDecoration(
+                color: Colors.white, // 배경색
+                borderRadius: BorderRadius.circular(10), // 모서리 둥글게
+                border: Border.all(
+                  color: Colors.black12, // 테두리 색상
+                  width: 1.0, // 테두리 두께
+                ),
+              ),
               child: Padding(
                 padding: const EdgeInsets.all(5),
                 child: Column(
@@ -199,7 +207,7 @@ class RecentAuctionItem extends StatelessWidget {
                         ),
                         IconButton(
                           onPressed: (){},
-                          icon: Icon(Icons.favorite),
+                          icon: Icon(Icons.favorite, color: Colors.redAccent),
                           iconSize: 30,
                           padding: EdgeInsets.zero, // 패딩 설정
                           constraints: BoxConstraints(), // 패딩 설정
@@ -211,15 +219,15 @@ class RecentAuctionItem extends StatelessWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text("즉시거래가", style: TextStyle(fontSize: 18)),
-                            Text("100,000원", style: TextStyle(fontSize: 18))
+                            Text("즉시거래가", style: TextStyle(fontSize: 16)),
+                            Text("100,000원", style: TextStyle(fontSize: 16))
                           ],
                         ),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text("낙찰가", style: TextStyle(fontSize: 18)),
-                            Text("100,000원", style: TextStyle(fontSize: 18, color: Colors.lightBlue))
+                            Text("낙찰가", style: TextStyle(fontSize: 16)),
+                            Text("100,000원", style: TextStyle(fontSize: 16, color: Colors.lightBlue))
                           ],
                         )
                       ],

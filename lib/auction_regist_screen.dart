@@ -85,11 +85,11 @@ class _AuctionRegistScreenState extends State<AuctionRegistScreen> {
                 ProductName(),
                 Line(),
 
-                // 4. 시작가/즉시낙찰가
+                // 4. 즉시낙찰가
                 StartAndNowPrice(),
                 Line(),
 
-                // 5. 경매 종료 시간
+                // 5. 경매 종료시간
                 AuctionClosingTime(
                   initialDate: selectedDate,
                   initialTime: selectedTime,
@@ -179,14 +179,15 @@ class ImageUploadWidget extends StatelessWidget {
                   ),
                 ),
               ),
-              ElevatedButton(
+              OutlinedButton(
                 onPressed: onImageUpload,
-                child: Text(
-                  "사진 업로드",
-                  style: TextStyle(color: Colors.white, fontSize: 18),
+                child: Text( "사진 업로드",
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16),
                 ),
                 style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all(Colors.grey),
+                  backgroundColor: MaterialStateProperty.all(Color(0xffbbbbbb)),
                   minimumSize: MaterialStateProperty.all(Size(150, 40)),
                 ),
               ),
@@ -328,7 +329,7 @@ class ProductName extends StatelessWidget {
   }
 }
 
-// 4. 시작가/즉시낙찰가
+// 4. 즉시낙찰가
 class StartAndNowPrice extends StatelessWidget {
   const StartAndNowPrice({super.key});
 
@@ -337,18 +338,7 @@ class StartAndNowPrice extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('4. 시작가/즉시낙찰가', style: TextStyle(fontSize: 18)),
-        TextField(
-          decoration: InputDecoration(
-            hintText: '시작가를 입력하세요',
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.all(Radius.circular(10.0)),
-            ),
-          ),
-          keyboardType: TextInputType.multiline,
-          maxLines: null,
-          maxLength: 10,
-        ),
+        Text('4. 즉시낙찰가', style: TextStyle(fontSize: 18)),
         TextField(
           decoration: InputDecoration(
             hintText: '즉시낙찰가를 입력하세요',
@@ -365,7 +355,7 @@ class StartAndNowPrice extends StatelessWidget {
   }
 }
 
-// 5. 경매 종료 시간
+// 5. 경매 종료시간
 class AuctionClosingTime extends StatefulWidget {
   final DateTime initialDate;
   final TimeOfDay initialTime;
@@ -397,7 +387,7 @@ class _AuctionClosingTimeState extends State<AuctionClosingTime> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('5. 경매종료시간', style: TextStyle(fontSize: 18)),
+        Text('5. 경매 종료시간', style: TextStyle(fontSize: 18)),
         Row(
           children: [
             ElevatedButton(

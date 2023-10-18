@@ -11,7 +11,7 @@ class LoginScreen extends StatelessWidget {
         appBar: AppBar(
           title: Text("로그인"),
             leading: IconButton(
-                icon: Icon(Icons.arrow_back),
+                icon: Icon(Icons.arrow_back_ios_rounded),
                 onPressed: () {
                   Navigator.pop(context);
                 }

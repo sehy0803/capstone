@@ -1,4 +1,3 @@
-// 스크롤 없이 기본
 import 'package:flutter/material.dart';
 
 class CommunityScreen extends StatelessWidget {
@@ -82,7 +81,7 @@ class CommunityPostItem extends StatelessWidget {
                     children: [
                       IconButton(
                         onPressed: (){},
-                        icon: Icon(Icons.sms_outlined),
+                        icon: Icon(Icons.sms_outlined, color: Colors.grey),
                         iconSize: 25,
                         padding: EdgeInsets.zero, // 패딩 설정
                         constraints: BoxConstraints(), // 패딩 설정
