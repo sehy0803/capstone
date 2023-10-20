@@ -1,5 +1,3 @@
-// import 'package:firebase_core/firebase_core.dart'; // 파이어베이스
-import 'package:capstone/terms_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -40,6 +38,7 @@ class _AuctionRegistScreenState extends State<AuctionRegistScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
           '경매 등록',
@@ -56,61 +55,58 @@ class _AuctionRegistScreenState extends State<AuctionRegistScreen> {
         ),
       ),
       body: SingleChildScrollView(
-        child: Container(
-          color: Colors.white,
-          child: Padding(
-            padding: const EdgeInsets.all(15),
-            child: Column(
-              children: [
-                // 1. 사진
-                ImageUploadWidget(
-                  userImage: userImage,
-                  onImageUpload: () async {
-                    var picker = ImagePicker();
-                    var image = await picker.pickImage(source: ImageSource.gallery);
-                    if (image != null) {
-                      setState(() {
-                        userImage = File(image.path);
-                      });
-                    }
-                  },
-                ),
-                Line(),
-
-                // 2. 카테고리
-                CategoryWidget(),
-                Line(),
-
-                // 3. 상품명
-                ProductName(),
-                Line(),
-
-                // 4. 즉시낙찰가
-                StartAndNowPrice(),
-                Line(),
-
-                // 5. 경매 종료시간
-                AuctionClosingTime(
-                  initialDate: selectedDate,
-                  initialTime: selectedTime,
-                  onDateTimeSelected: (date, time) {
+        child: Padding(
+          padding: const EdgeInsets.all(15),
+          child: Column(
+            children: [
+              // 1. 사진
+              ImageUploadWidget(
+                userImage: userImage,
+                onImageUpload: () async {
+                  var picker = ImagePicker();
+                  var image = await picker.pickImage(source: ImageSource.gallery);
+                  if (image != null) {
                     setState(() {
-                      selectedDate = date;
-                      selectedTime = time;
-                      formattedDate = DateFormat('yyyy-MM-dd').format(date);
-                      formattedTime = DateFormat('HH:mm').format(
-                          DateTime(0, 0, 0, time.hour, time.minute));
+                      userImage = File(image.path);
                     });
-                  },
-                ),
-                Line(),
+                  }
+                },
+              ),
+              Line(),
 
-                // 6. 설명
-                ProductInfo(),
+              // 2. 카테고리
+              CategoryWidget(),
+              Line(),
+
+              // 3. 상품명
+              ProductName(),
+              Line(),
+
+              // 4. 즉시낙찰가
+              StartAndNowPrice(),
+              Line(),
+
+              // 5. 경매 종료시간
+              AuctionClosingTime(
+                initialDate: selectedDate,
+                initialTime: selectedTime,
+                onDateTimeSelected: (date, time) {
+                  setState(() {
+                    selectedDate = date;
+                    selectedTime = time;
+                    formattedDate = DateFormat('yyyy-MM-dd').format(date);
+                    formattedTime = DateFormat('HH:mm').format(
+                        DateTime(0, 0, 0, time.hour, time.minute));
+                  });
+                },
+              ),
+              Line(),
+
+              // 6. 설명
+              ProductInfo(),
 
 
-              ],
-            ),
+            ],
           ),
         ),
       ),
@@ -125,8 +121,8 @@ class _AuctionRegistScreenState extends State<AuctionRegistScreen> {
                     fontSize: 20,
                     fontWeight: FontWeight.bold)
             ),
-            style: ButtonStyle(
-              backgroundColor: MaterialStateProperty.all(Colors.lightBlue),
+            style: ElevatedButton.styleFrom(
+              backgroundColor : Colors.lightBlue,
             ),
           ),
         ),
@@ -138,6 +134,19 @@ class _AuctionRegistScreenState extends State<AuctionRegistScreen> {
 
 
 // ========================================== 커스텀 위젯 ==========================================
+
+// 구분선
+class Line extends StatelessWidget {
+  const Line({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 1,
+      color: Colors.black12,
+    );
+  }
+}
 
 // 1. 사진
 class ImageUploadWidget extends StatelessWidget {
@@ -186,9 +195,9 @@ class ImageUploadWidget extends StatelessWidget {
                       color: Colors.white,
                       fontSize: 16),
                 ),
-                style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all(Color(0xffbbbbbb)),
-                  minimumSize: MaterialStateProperty.all(Size(150, 40)),
+                style: OutlinedButton.styleFrom(
+                  backgroundColor : Colors.lightBlue,
+                  minimumSize: Size(150, 40),
                 ),
               ),
             ],
@@ -416,8 +425,8 @@ class _AuctionClosingTimeState extends State<AuctionClosingTime> {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: selectedDate,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
+      firstDate: DateTime(2023),
+      lastDate: DateTime(2024),
     );
     if (picked != null) {
       setState(() {

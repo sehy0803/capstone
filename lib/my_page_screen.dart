@@ -8,29 +8,27 @@ class MyPageScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
+        backgroundColor: Colors.white,
         appBar: AppBar(
           title: Text('마이페이지',
               style: TextStyle(color: Colors.black, fontSize: 20)),
           backgroundColor: Colors.white,
         ),
         body: SingleChildScrollView(
-            child: Container(
-              color: Colors.white,
-              child: Padding(
-                padding: const EdgeInsets.all(10),
-                child: Column(
-                  children: [
-                    // 위젯 추가
-                    UserProfileInfo()
+          child: Padding(
+            padding: const EdgeInsets.all(10),
+            child: Column(
+              children: [
+                // 위젯 추가
+                UserProfileInfo()
 
 
 
 
 
-                  ],
-                ),
-              ),
-            )
+              ],
+            ),
+          ),
 
 
         ),

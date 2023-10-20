@@ -1,4 +1,5 @@
 import 'package:capstone/auction_regist_screen.dart';
+import 'package:capstone/search_screen.dart';
 import 'package:flutter/material.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -8,13 +9,19 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
+        backgroundColor: Colors.white,
         appBar: AppBar(
             title: Text('홈',
                 style: TextStyle(color: Colors.black, fontSize: 20)),
             backgroundColor: Colors.white,
             actions: [
               IconButton(
-                onPressed: (){},
+                onPressed: () { // 버튼 클릭 시
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => SearchScreen()),
+                  );
+                },
                 icon: Icon(Icons.search),
                 iconSize: 30,
                 color: Colors.black,
@@ -26,17 +33,14 @@ class HomeScreen extends StatelessWidget {
             children: [
               // 위젯 추가
               TopImageBox(),
-              Container(
-                color: Colors.white,
-                child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      children: [
-                        CategoryNavigation(), // 카테고리 이동 버튼
-                        RecentAuctionList(),
-                      ],
-                    )
-                ),
+              Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    children: [
+                      CategoryNavigation(), // 카테고리 이동 버튼
+                      RecentAuctionList(), // 최근 경매 결과
+                    ],
+                  )
               ),
             ],
           )

@@ -7,6 +7,7 @@ class CategoryScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
+        backgroundColor: Colors.white,
         appBar: AppBar(
             title: Text('카테고리',
                 style: TextStyle(color: Colors.black, fontSize: 20)),
