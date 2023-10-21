@@ -1,3 +1,4 @@
+import 'package:capstone/community_regist_screen.dart';
 import 'package:flutter/material.dart';
 
 class CommunityScreen extends StatelessWidget {
@@ -33,12 +34,18 @@ class CommunityScreen extends StatelessWidget {
               ],
             )
         ),
-        floatingActionButton: FloatingActionButton.extended(
-          onPressed: () {},
-          icon: Icon(Icons.add),
-          label: Text('글쓰기', style: TextStyle(fontSize: 18)),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => CommunityRegisterScreen()),
+            );
+          },
+          child: Icon(Icons.edit),
           backgroundColor: Colors.lightBlue,
         ),
+
+
       ),
     );
   }

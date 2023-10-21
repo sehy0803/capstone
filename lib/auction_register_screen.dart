@@ -6,7 +6,7 @@ import 'package:intl/intl.dart';
 
 void main() {
   runApp(MaterialApp(
-    home: AuctionRegistScreen(),
+    home: AuctionRegisterScreen(),
     localizationsDelegates: [
       GlobalMaterialLocalizations.delegate,
       GlobalWidgetsLocalizations.delegate,
@@ -19,16 +19,14 @@ void main() {
   ));
 }
 
-
-
-class AuctionRegistScreen extends StatefulWidget {
-  const AuctionRegistScreen({Key? key}) : super(key: key);
+class AuctionRegisterScreen extends StatefulWidget {
+  const AuctionRegisterScreen({Key? key}) : super(key: key);
 
   @override
-  _AuctionRegistScreenState createState() => _AuctionRegistScreenState();
+  _AuctionRegisterScreenState createState() => _AuctionRegisterScreenState();
 }
 
-class _AuctionRegistScreenState extends State<AuctionRegistScreen> {
+class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
   File? userImage;
   DateTime selectedDate = DateTime.now();
   TimeOfDay selectedTime = TimeOfDay.now();
@@ -72,19 +70,25 @@ class _AuctionRegistScreenState extends State<AuctionRegistScreen> {
                   }
                 },
               ),
+              SizedBox(height: 10),
               Line(),
+              SizedBox(height: 10),
 
-              // 2. 카테고리
-              CategoryWidget(),
-              Line(),
+              // // 2. 카테고리
+              // CategoryWidget(),
+              // Line(),
 
               // 3. 상품명
               ProductName(),
+              SizedBox(height: 10),
               Line(),
+              SizedBox(height: 10),
 
               // 4. 즉시낙찰가
               StartAndNowPrice(),
+              SizedBox(height: 10),
               Line(),
+              SizedBox(height: 10),
 
               // 5. 경매 종료시간
               AuctionClosingTime(
@@ -100,11 +104,12 @@ class _AuctionRegistScreenState extends State<AuctionRegistScreen> {
                   });
                 },
               ),
+              SizedBox(height: 10),
               Line(),
+              SizedBox(height: 10),
 
               // 6. 설명
               ProductInfo(),
-
 
             ],
           ),
@@ -177,7 +182,7 @@ class ImageUploadWidget extends StatelessWidget {
                     userImage!,
                     width: 100,
                     height: 100,
-                    fit: BoxFit.cover, // 이미지를 컨테이너에 맞게 늘립니다.
+                    fit: BoxFit.cover, // 이미지를 컨테이너에 맞춤
                   ),
                 )
                     : Center(
@@ -323,15 +328,15 @@ class ProductName extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('3. 상품명', style: TextStyle(fontSize: 18)),
+        SizedBox(height: 10),
         TextField(
           decoration: InputDecoration(
             hintText: '상품명을 입력하세요',
+            contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.all(Radius.circular(10.0)),
+              borderRadius: BorderRadius.all(Radius.circular(5)),
             ),
           ),
-          keyboardType: TextInputType.text,
-          maxLength: 20,
         ),
       ],
     );
@@ -348,16 +353,15 @@ class StartAndNowPrice extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('4. 즉시낙찰가', style: TextStyle(fontSize: 18)),
+        SizedBox(height: 10),
         TextField(
           decoration: InputDecoration(
             hintText: '즉시낙찰가를 입력하세요',
+            contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.all(Radius.circular(10.0)),
+              borderRadius: BorderRadius.all(Radius.circular(5)),
             ),
           ),
-          keyboardType: TextInputType.multiline,
-          maxLines: null,
-          maxLength: 10,
         )
       ],
     );
@@ -397,6 +401,7 @@ class _AuctionClosingTimeState extends State<AuctionClosingTime> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('5. 경매 종료시간', style: TextStyle(fontSize: 18)),
+        SizedBox(height: 10),
         Row(
           children: [
             ElevatedButton(
@@ -462,16 +467,17 @@ class ProductInfo extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('6. 설명', style: TextStyle(fontSize: 18)),
+        SizedBox(height: 10),
         TextField(
           decoration: InputDecoration(
             hintText: '상품 설명을 입력하세요',
+            contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.all(Radius.circular(10.0)),
+              borderRadius: BorderRadius.all(Radius.circular(5)),
             ),
           ),
           keyboardType: TextInputType.multiline,
-          maxLines: null,
-          maxLength: 300,
+          maxLines: 10,
         )
       ],
     );

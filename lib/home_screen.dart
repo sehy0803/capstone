@@ -1,4 +1,4 @@
-import 'package:capstone/auction_regist_screen.dart';
+import 'package:capstone/auction_register_screen.dart';
 import 'package:capstone/search_screen.dart';
 import 'package:flutter/material.dart';
 
@@ -34,14 +34,13 @@ class HomeScreen extends StatelessWidget {
               // 위젯 추가
               TopImageBox(),
               Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    children: [
-                      CategoryNavigation(), // 카테고리 이동 버튼
-                      RecentAuctionList(), // 최근 경매 결과
-                    ],
-                  )
+                  padding: const EdgeInsets.all(30),
+                  child: CategoryNavigation(), // 카테고리 이동 버튼,
               ),
+              Padding(
+                padding: const EdgeInsets.all(10),
+                child: RecentAuctionList(),
+              ), // 최근 경매 결과
             ],
           )
         ),
@@ -49,7 +48,7 @@ class HomeScreen extends StatelessWidget {
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => AuctionRegistScreen()),
+              MaterialPageRoute(builder: (context) => AuctionRegisterScreen()),
             );
           },
           icon: Icon(Icons.add),
@@ -125,7 +124,7 @@ class CategoryNavigation extends StatelessWidget {
             ),
           ],
         ),
-        SizedBox(height: 20),
+        SizedBox(height: 30),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -159,7 +158,6 @@ class CategoryNavigation extends StatelessWidget {
             ),
           ],
         ),
-        SizedBox(height: 20)
       ],
     );
   }
@@ -171,77 +169,78 @@ class RecentAuctionItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          width: 120,
-          height: 120,
-          decoration: BoxDecoration(
-            color: Colors.white, // 배경색
-            borderRadius: BorderRadius.circular(10), // 모서리 둥글게
-            border: Border.all(
-              color: Colors.black, // 테두리 색상
-              width: 1.0, // 테두리 두께
+    return Padding(
+      padding: const EdgeInsets.all(5),
+      child: Row(
+        children: [
+          Container(
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(
+              color: Colors.white, // 배경색
+              border: Border.all(
+                color: Colors.black, // 테두리 색상
+                width: 1.0, // 테두리 두께
+              ),
             ),
           ),
-        ),
-        Expanded(
-            child: Container(
-              height: 120,
-              decoration: BoxDecoration(
-                color: Colors.white, // 배경색
-                borderRadius: BorderRadius.circular(10), // 모서리 둥글게
-                border: Border.all(
-                  color: Colors.black12, // 테두리 색상
-                  width: 1.0, // 테두리 두께
+          Expanded(
+              child: Container(
+                height: 120,
+                decoration: BoxDecoration(
+                  color: Colors.white, // 배경색
+                  border: Border.all(
+                    color: Colors.black12, // 테두리 색상
+                    width: 1.0, // 테두리 두께
+                  ),
                 ),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(5),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          child: Text("경매 제목", style: TextStyle(fontSize: 18)),
-                        ),
-                        IconButton(
-                          onPressed: (){},
-                          icon: Icon(Icons.favorite, color: Colors.redAccent),
-                          iconSize: 30,
-                          padding: EdgeInsets.zero, // 패딩 설정
-                          constraints: BoxConstraints(), // 패딩 설정
-                        ),
-                      ],
-                    ),
-                    Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text("즉시거래가", style: TextStyle(fontSize: 16)),
-                            Text("100,000원", style: TextStyle(fontSize: 16))
-                          ],
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text("낙찰가", style: TextStyle(fontSize: 16)),
-                            Text("100,000원", style: TextStyle(fontSize: 16, color: Colors.lightBlue))
-                          ],
-                        )
-                      ],
-                    )
-                  ],
+                child: Padding(
+                  padding: const EdgeInsets.all(5),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            child: Text("경매 제목", style: TextStyle(fontSize: 18)),
+                          ),
+                          IconButton(
+                            onPressed: (){},
+                            icon: Icon(Icons.favorite, color: Colors.redAccent),
+                            iconSize: 30,
+                            padding: EdgeInsets.zero, // 패딩 설정
+                            constraints: BoxConstraints(), // 패딩 설정
+                          ),
+                        ],
+                      ),
+                      Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text("즉시거래가", style: TextStyle(fontSize: 16)),
+                              Text("100,000원", style: TextStyle(fontSize: 16))
+                            ],
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text("낙찰가", style: TextStyle(fontSize: 16)),
+                              Text("100,000원", style: TextStyle(fontSize: 16, color: Colors.lightBlue))
+                            ],
+                          )
+                        ],
+                      )
+                    ],
+                  ),
                 ),
-              ),
-            )
-        )
-      ],
+              )
+          )
+        ],
+      ),
     );
   }
 }
@@ -254,11 +253,23 @@ class RecentAuctionList extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        SizedBox(
-            width: double.infinity,
-            child: Text("최근 경매 결과", style: TextStyle(fontSize: 20))
+        Padding(
+          padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text("최근 경매 결과", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              IconButton(
+                onPressed: (){},
+                icon: Icon(Icons.arrow_forward_ios_rounded),
+                iconSize: 25,
+                color: Colors.black,
+                padding: EdgeInsets.zero, // 패딩 설정
+                constraints: BoxConstraints(), // 패딩 설정
+              ),
+            ],
+          ),
         ),
-        SizedBox(height: 10),
         RecentAuctionItem(), // 최근 경매 결과 - 경매 정보
         RecentAuctionItem(),
         RecentAuctionItem()

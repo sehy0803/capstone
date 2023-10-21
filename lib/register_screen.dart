@@ -1,5 +1,6 @@
-import 'package:capstone/test.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:capstone/test.dart';
 import 'package:flutter/material.dart';
 
 
@@ -8,37 +9,52 @@ class RegisterScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final FirebaseAuth _auth = FirebaseAuth.instance;
     final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
     final TextEditingController emailController = TextEditingController();
     final TextEditingController passController = TextEditingController();
     final TextEditingController nickController = TextEditingController();
 
-    Future<void> addUserToFirestore(String email, String password, String nickname) async {
+    Future<void> registerUserAndSaveToFirebase(BuildContext context, String email, String password, String nickname) async {
       if (email.isEmpty || password.isEmpty || nickname.isEmpty) {
         print("빈 칸을 모두 입력해주세요");
         return;
       }
       try {
-        // Firestore 컬렉션 참조
-        CollectionReference User = firestore.collection('User');
-
-        // 데이터 추가
-        await User.add({
-          'email': email,
-          'password' : password,
-          'nickname': nickname,
-        });
-
-        print("회원가입 성공");
-
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => test()),
+        // Firebase Authentication을 사용하여 사용자 생성
+        final UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+          email: email,
+          password: password,
         );
 
+        // Firebase Authentication에서 사용자 정보 가져오기
+        if (userCredential.user != null) {
+          final User? user = userCredential.user;
+          final uid = user?.uid;
+
+          // Firestore 컬렉션 참조
+          CollectionReference userCollection = firestore.collection('User');
+
+          // Firestore에 사용자 정보 저장
+          await userCollection.doc(uid).set({
+            'email': email,
+            'password': password,
+            'nickname': nickname,
+          });
+
+          print("회원가입 성공");
+
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => test()),
+          );
+
+        } else {
+          print("Firebase Authentication에서 사용자 생성 실패");
+        }
       } catch (e) {
-        print('Firestore에 사용자 추가 중 오류 발생: $e');
+        print('회원가입 중 오류 발생: $e');
       }
     }
 
@@ -73,7 +89,7 @@ class RegisterScreen extends StatelessWidget {
             child: SizedBox(
               height: 50,
               child: RegisterButton(() {
-                addUserToFirestore(emailController.text, passController.text, nickController.text);
+                registerUserAndSaveToFirebase(context, emailController.text, passController.text, nickController.text);
               }),
             ),
           )
