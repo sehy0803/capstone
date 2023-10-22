@@ -1,192 +1,75 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-// void main() {
-//   runApp(CategoryScreen());
-// }
+void main() {
+  runApp(CategoryScreen());
+}
 
+class CategoryScreen extends StatefulWidget {
+  @override
+  _CategoryScreenState createState() => _CategoryScreenState();
+}
 
-class CategoryScreen extends StatelessWidget {
+class _CategoryScreenState extends State<CategoryScreen> {
+  String selectedCategory = '';
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
+          backgroundColor: Colors.white,
           title: Text(
             '카테고리',
-            style: TextStyle(color: Colors.black, fontSize: 25),
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.w500, color: Colors.black),
           ),
-          backgroundColor: Colors.white,
-          centerTitle: false,
-          titleSpacing: 0.0,
         ),
-        body: Container(
-          child: Row(
-            children: [
-              Flexible(
-                child: Container(
-                  width: 100,
-                  color: Colors.black12,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      TextButton(
-                        onPressed: () {},
-                        child: Text('의류', style: TextStyle(color: Colors.black, fontSize: 20)),
-                      ),
-                      TextButton(
-                        onPressed: () {},
-                        child: Text('신발', style: TextStyle(color: Colors.black, fontSize: 20)),
-                      ),
-                      TextButton(
-                        onPressed: () {},
-                        child: Text('가방', style: TextStyle(color: Colors.black, fontSize: 20)),
-                      ),
-                      TextButton(
-                        onPressed: () => {},
-                        child: Text('디지털', style: TextStyle(color: Colors.black, fontSize: 20)),
-                      ),
-
-                      TextButton(
-                        onPressed: () {},
-                        child: Text('쥬얼리', style: TextStyle(color: Colors.black, fontSize: 20)),
-                      ),
-                      TextButton(
-                        onPressed: () {},
-                        child: Text('뷰티', style: TextStyle(color: Colors.black, fontSize: 20)),
-                      ),
-                      TextButton(
-                        onPressed: () {},
-                        child: Text('가구', style: TextStyle(color: Colors.black, fontSize: 20)),
-                      ),
-                      TextButton(
-                        onPressed: () {},
-                        child: Text(
-                          '기타',
-                          style: TextStyle(color: Colors.black, fontSize: 20),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                flex: 3,
+        body: Row(
+          children: [
+            Container(
+              width: 110,
+              height: 655,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(5),
+                color: Colors.black12,
               ),
-              Flexible(
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 400.0),
-                  child: Wrap(
-                    spacing: 10.0, // 각 버튼 간격 조절
-                    runSpacing: 20.0, // 각 줄 간격 조절
-                    children: [
-                      Container(child: Padding(padding: EdgeInsets.only(top: 20))),
-                      TextButton(
-                        onPressed: () {},
-                        child: Text(
-                          '휴대폰',
-                          style: TextStyle(color: Colors.black, fontSize: 15),
-                        ),
-                        style: ButtonStyle(
-                          minimumSize: MaterialStateProperty.all<Size>(
-                            Size(70, 60), // 버튼의 최소 크기 조절
-                          ),
-                          shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                            RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(25.0),
-                            ),
-                          ),
-                          backgroundColor: MaterialStateProperty.all<Color>(Colors.black12),
-                        ),
-                      ),
-
-                      Container(child: Padding(padding: EdgeInsets.only(top: 20))),
-                      TextButton(
-                        onPressed: () {},
-                        child: Text(
-                          '노트북',
-                          style: TextStyle(color: Colors.black, fontSize: 15),
-                        ),
-                        style: ButtonStyle(
-                          minimumSize: MaterialStateProperty.all<Size>(
-                            Size(70, 60), // 버튼의 최소 크기 조절
-                          ),
-                          shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                            RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(25.0),
-                            ),
-                          ),
-                          backgroundColor: MaterialStateProperty.all<Color>(Colors.black12),
-                        ),
-                      ),
-
-                      Padding(padding: EdgeInsets.only(top: 20)),
-                      TextButton(
-                        onPressed: () {},
-                        child: Text(
-                          '데스크탑',
-                          style: TextStyle(color: Colors.black, fontSize: 15),
-                        ),
-                        style: ButtonStyle(
-                          minimumSize: MaterialStateProperty.all<Size>(
-                            Size(70, 60), // 버튼의 최소 크기 조절
-                          ),
-                          shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                            RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(25.0),
-                            ),
-                          ),
-                          backgroundColor: MaterialStateProperty.all<Color>(Colors.black12),
-                        ),
-                      ),
-
-                      Padding(
-                        padding: const EdgeInsets.only(left: 8.0),
-                        child: TextButton(
-                          onPressed: () {},
-                          child: Text(
-                            '보조\n배터리',
-                            textAlign: TextAlign.center, // 텍스트 가운데 정렬
-                            style: TextStyle(color: Colors.black, fontSize: 15),
-                          ),
-                          style: ButtonStyle(
-                            minimumSize: MaterialStateProperty.all<Size>(
-                              Size(70, 60), // 버튼의 최소 크기 조절
-                            ),
-                            shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                              RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(25.0),
-                              ),
-                            ),
-                            backgroundColor: MaterialStateProperty.all<Color>(Colors.black12),
-                          ),
-                        ),
-                      ),
-
-                      Padding(padding: EdgeInsets.only(top: 20)),
-                      TextButton(
-                        onPressed: () {},
-                        child: Text(
-                          '충전기',
-                          style: TextStyle(color: Colors.black, fontSize: 15),
-                        ),
-                        style: ButtonStyle(
-                          minimumSize: MaterialStateProperty.all<Size>(
-                            Size(70, 60), // 버튼의 최소 크기 조절
-                          ),
-                          shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                            RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(25.0),
-                            ),
-                          ),
-                          backgroundColor: MaterialStateProperty.all<Color>(Colors.black12),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                flex: 7,
+              child: Column(
+                children: [
+                  buildCategoryButton('의류'),
+                  buildCategoryButton('신발'),
+                  buildCategoryButton('가방'),
+                  buildCategoryButton('디지털'),
+                  buildCategoryButton('쥬얼리'),
+                  buildCategoryButton('뷰티'),
+                  buildCategoryButton('가구'),
+                  buildCategoryButton('기타'),
+                ],
               ),
-            ],
-          ),
+            ),
+            Container(
+              alignment: Alignment.topLeft,
+              margin: EdgeInsets.only(left: 10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    selectedCategory,
+                    style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+                  ),
+                  if (selectedCategory == '디지털')
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        buildSubCategoryButton('서브 카테고리 1'),
+                        buildSubCategoryButton('서브 카테고리 2'),
+                        buildSubCategoryButton('서브 카테고리 3'),
+                        buildSubCategoryButton('서브 카테고리 4'),
+                        buildSubCategoryButton('서브 카테고리 5'),
+                      ],
+                    ),
+                ],
+              ),
+            ),
+          ],
         ),
         bottomNavigationBar: BottomAppBar(
           child: Row(
@@ -200,6 +83,49 @@ class CategoryScreen extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget buildCategoryButton(String category) {
+    return Container(
+      width: double.infinity,
+      child: TextButton(
+        style: ButtonStyle(
+          alignment: Alignment.centerLeft,
+          backgroundColor: selectedCategory == category && category == '디지털'
+              ? MaterialStateProperty.all(Colors.white)
+              : null,
+        ),
+        child: Text(
+          category,
+          style: TextStyle(fontSize: 17, fontWeight: FontWeight.normal, color: Colors.black),
+        ),
+        onPressed: () {
+          setState(() {
+            selectedCategory = category;
+          });
+        },
+      ),
+    );
+  }
+
+  Widget buildSubCategoryButton(String subCategory) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.only(left: 16.0, top: 8.0), // Adjust padding as needed
+      child: TextButton(
+        style: ButtonStyle(
+          alignment: Alignment.centerLeft,
+          backgroundColor: MaterialStateProperty.all(Colors.white),
+        ),
+        child: Text(
+          subCategory,
+          style: TextStyle(fontSize: 17, fontWeight: FontWeight.normal, color: Colors.black),
+        ),
+        onPressed: () {
+          // Handle subcategory button press
+        },
       ),
     );
   }

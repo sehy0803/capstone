@@ -1,9 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(CommunityScreen());
-}
+// void main() {
+//   runApp(CommunityScreen());
+// }
 
 class CommunityScreen extends StatelessWidget {
 
