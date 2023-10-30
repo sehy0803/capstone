@@ -31,12 +31,12 @@ class _CategoryScreenState extends State<CategoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
+    return Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
           title: Text('카테고리', style: TextStyle(color: Colors.black, fontSize: 20)),
           backgroundColor: Colors.white,
+          automaticallyImplyLeading: false,
         ),
         body: SingleChildScrollView(
           child: Column(
@@ -54,7 +54,6 @@ class _CategoryScreenState extends State<CategoryScreen> {
             ],
           ),
         ),
-      ),
     );
   }
 }

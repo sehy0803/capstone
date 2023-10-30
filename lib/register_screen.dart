@@ -1,163 +1,220 @@
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:capstone/main.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:capstone/test.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-
-class RegisterScreen extends StatelessWidget {
+class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final FirebaseAuth _auth = FirebaseAuth.instance;
-    final FirebaseFirestore firestore = FirebaseFirestore.instance;
+  State<RegisterScreen> createState() => _RegisterScreenState();
+}
 
-    final TextEditingController emailController = TextEditingController();
-    final TextEditingController passController = TextEditingController();
-    final TextEditingController nickController = TextEditingController();
+class _RegisterScreenState extends State<RegisterScreen> {
+  final _authentication = FirebaseAuth.instance;
+  final _formKey = GlobalKey<FormState>();
 
-    Future<void> registerUserAndSaveToFirebase(BuildContext context, String email, String password, String nickname) async {
-      if (email.isEmpty || password.isEmpty || nickname.isEmpty) {
-        print("빈 칸을 모두 입력해주세요");
-        return;
-      }
-      try {
-        // Firebase Authentication을 사용하여 사용자 생성
-        final UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
-          email: email,
-          password: password,
-        );
+  // 유저가 입력한 회원가입 정보를 저장할 변수
+  String email = '';
+  String password = '';
+  String nickname = '';
 
-        // Firebase Authentication에서 사용자 정보 가져오기
-        if (userCredential.user != null) {
-          final User? user = userCredential.user;
-          final uid = user?.uid;
-
-          // Firestore 컬렉션 참조
-          CollectionReference userCollection = firestore.collection('User');
-
-          // Firestore에 사용자 정보 저장
-          await userCollection.doc(uid).set({
-            'email': email,
-            'password': password,
-            'nickname': nickname,
-          });
-
-          print("회원가입 성공");
-
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => test()),
-          );
-
-        } else {
-          print("Firebase Authentication에서 사용자 생성 실패");
-        }
-      } catch (e) {
-        print('회원가입 중 오류 발생: $e');
-      }
+  // 유효성 검사 후 값 저장
+  void _tryValidation() {
+    final isValid = _formKey.currentState!.validate();
+    if (isValid) {
+      _formKey.currentState!.save();
     }
+  }
 
-    return MaterialApp(
-      home: Scaffold(
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
-            title: Text('회원가입',
-                style: TextStyle(color: Colors.black, fontSize: 20)),
-            centerTitle: true,
-            backgroundColor: Colors.white,
-            leading: IconButton(
-              onPressed: (){
-                Navigator.pop(context);
-              },
-              icon: Icon(Icons.close),
-              iconSize: 30,
-              color: Colors.black,
-            ),
-        ),
-        body: SingleChildScrollView(
-          child: Padding(
-              padding: const EdgeInsets.all(30),
-              child: Column(
-                children: [
-                  RegisterInputText(emailController, passController, nickController), // 사용자 정보 입력칸
-                ],
-              )
+          title:
+              Text('회원가입', style: TextStyle(fontSize: 20, color: Colors.black)),
+          centerTitle: true,
+          backgroundColor: Colors.white,
+          leading: IconButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            icon: Icon(Icons.arrow_back_ios_rounded),
+            color: Colors.black,
           ),
         ),
-          bottomNavigationBar: BottomAppBar(
-            child: SizedBox(
-              height: 50,
-              child: RegisterButton(() {
-                registerUserAndSaveToFirebase(context, emailController.text, passController.text, nickController.text);
-              }),
-            ),
-          )
-      )
-    );
+        body: Padding(
+          padding: const EdgeInsets.all(30),
+          child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      // 이메일 텍스트필드
+                      TextFormField(
+                        keyboardType: TextInputType.emailAddress,
+                        key: ValueKey(1),
+                        validator: (value) {
+                          if (value!.isEmpty || !value.contains('@')) {
+                            return '올바른 이메일 형식을 입력해주세요.';
+                          }
+                          return null;
+                        },
+                        onSaved: (value) {
+                          email = value!;
+                        },
+                        onChanged: (value) {
+                          email = value;
+                        },
+                        decoration: InputDecoration(
+                            prefixIcon: Icon(
+                              Icons.account_circle,
+                              color: Colors.grey[400]!,
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.grey[400]!),
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(35.0)),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.grey[400]!),
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(35.0)),
+                            ),
+                            hintText: '이메일',
+                            hintStyle: TextStyle(
+                                fontSize: 16, color: Colors.grey[400]!),
+                            contentPadding: EdgeInsets.all(15)),
+                      ),
+                      SizedBox(height: 10),
+                      // 비밀번호 텍스트필드
+                      TextFormField(
+                        obscureText: true,
+                        key: ValueKey(2),
+                        validator: (value) {
+                          if (value!.isEmpty || value.length < 6) {
+                            return '비밀번호를 6글자 이상 입력해주세요.';
+                          }
+                          return null;
+                        },
+                        onSaved: (value) {
+                          password = value!;
+                        },
+                        onChanged: (value) {
+                          password = value;
+                        },
+                        decoration: InputDecoration(
+                            prefixIcon: Icon(
+                              Icons.lock,
+                              color: Colors.grey[400]!,
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.grey[400]!),
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(35.0)),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.grey[400]!),
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(35.0)),
+                            ),
+                            hintText: '비밀번호',
+                            hintStyle: TextStyle(
+                                fontSize: 16, color: Colors.grey[400]!),
+                            contentPadding: EdgeInsets.all(15)),
+                      ),
+                      SizedBox(height: 10),
+                      // 닉네임 텍스트필드
+                      TextFormField(
+                        key: ValueKey(3),
+                        validator: (value) {
+                          if (value!.isEmpty || value.length < 2) {
+                            return '닉네임을 2글자 이상 입력해주세요.';
+                          }
+                          return null;
+                        },
+                        onSaved: (value) {
+                          nickname = value!;
+                        },
+                        onChanged: (value) {
+                          nickname = value;
+                        },
+                        decoration: InputDecoration(
+                            prefixIcon: Icon(
+                              Icons.lock,
+                              color: Colors.grey[400]!,
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.grey[400]!),
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(35.0)),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.grey[400]!),
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(35.0)),
+                            ),
+                            hintText: '닉네임',
+                            hintStyle: TextStyle(
+                                fontSize: 16, color: Colors.grey[400]!),
+                            contentPadding: EdgeInsets.all(15)),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // 회원가입 버튼
+                ElevatedButton(
+                    onPressed: () async {
+                      _tryValidation();
+
+                      try {
+                        final newUser = await _authentication
+                            .createUserWithEmailAndPassword(
+                                email: email, password: password);
+
+                        // Cloud Firestore 에 유저 정보 저장
+                        await FirebaseFirestore.instance.collection('User').doc(newUser.user!.uid)
+                            .set({
+                          'email' : email,
+                          'nickname' : nickname,
+                        });
+
+                        // 회원가입 성공시 TabScreen으로 이동
+                        if (newUser.user != null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                                content: Text('회원가입이 완료되었습니다. 로그인을 해주세요.',
+                                    style: TextStyle(fontSize: 18)),
+                                backgroundColor: Colors.blue[200]),
+                          );
+                          Navigator.push(context, MaterialPageRoute(
+                            builder: (context) {
+                              return LoginScreen();
+                            },
+                          ));
+                        }
+                      } catch (e) {
+                        print(e);
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text('이메일, 비밀번호 또는 닉네임을 확인해주세요.')));
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        minimumSize: Size(double.infinity, 55),
+                        elevation: 5,
+                        shape: StadiumBorder()),
+                    child: Text(
+                      "회원가입",
+                      style: TextStyle(fontSize: 18),
+                    )),
+              ]),
+        ));
   }
 }
 
 // ========================================== 커스텀 위젯 ==========================================
-
-class RegisterInputText extends StatelessWidget {
-  final TextEditingController emailController;
-  final TextEditingController passController;
-  final TextEditingController nickController;
-
-  RegisterInputText(this.emailController, this.passController, this.nickController);
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        TextField(
-          controller: emailController,
-          decoration: InputDecoration(
-            hintText: '이메일',
-          ),
-        ),
-        TextField(
-          controller: passController,
-          decoration: InputDecoration(
-            hintText: '비밀번호',
-          ),
-        ),
-        TextField(
-          controller: nickController,
-          decoration: InputDecoration(
-            hintText: '닉네임',
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// 회원가입
-class RegisterButton extends StatelessWidget {
-  final Function registerFunction;
-
-  RegisterButton(this.registerFunction);
-
-  @override
-  Widget build(BuildContext context) {
-    return ElevatedButton(
-      onPressed: () {
-        registerFunction();
-      },
-      child: Text("가입완료",
-          style: TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold)
-      ),
-      style: ElevatedButton.styleFrom(
-        backgroundColor : Colors.lightBlue,
-        shape: BeveledRectangleBorder(
-          borderRadius: BorderRadius.circular(0),
-        ),
-      ),
-    );
-  }
-}

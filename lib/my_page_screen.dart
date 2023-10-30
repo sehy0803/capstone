@@ -1,100 +1,154 @@
 import 'package:capstone/profile_edit_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-class MyPageScreen extends StatelessWidget {
+class MyPageScreen extends StatefulWidget {
   const MyPageScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        backgroundColor: Colors.white,
-        appBar: AppBar(
-          title: Text('마이페이지',
-              style: TextStyle(color: Colors.black, fontSize: 20)),
-          backgroundColor: Colors.white,
-        ),
-        body: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(10),
-            child: Column(
-              children: [
-                // 위젯 추가
-                UserProfileInfo()
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  State<MyPageScreen> createState() => _MyPageScreenState();
 }
 
-// ========================================== 커스텀 위젯 ==========================================
+class _MyPageScreenState extends State<MyPageScreen> {
+  final _authentication = FirebaseAuth.instance;
+  final _firestore = FirebaseFirestore.instance;
+  final _storage = FirebaseStorage.instance;
 
-// 사용자 프로필 정보
-class UserProfileInfo extends StatelessWidget {
-  const UserProfileInfo({super.key});
+  String? profileImageUrl;
+  String nickname = '';
+
+
+  // 사용자의 닉네임을 Firestore에서 가져와 변수에 저장하는 함수
+  void _fetchUserNickname() async {
+    final user = _authentication.currentUser;
+    if (user != null) {
+      final userCollection =
+          await _firestore.collection('User').doc(user.uid).get();
+      final userData = userCollection.data() as Map<String, dynamic>;
+      final nickname = userData['nickname'];
+      setState(() {
+        this.nickname = nickname;
+      });
+    }
+  }
+
+  // 사용자의 프로필 사진을 Firebase Storage에서 가져와 변수에 저장하는 함수
+  void _fetchUserProfileImage() async {
+    final user = _authentication.currentUser;
+    if (user != null) {
+      final userCollection =
+      await _firestore.collection('User').doc(user.uid).get();
+      final userData = userCollection.data() as Map<String, dynamic>;
+      final imageUrl = userData['profileImageUrl'];
+
+      if (imageUrl != null) {
+        final ref = _storage.ref().child(imageUrl);
+        final url = await ref.getDownloadURL();
+        setState(() {
+          profileImageUrl = url;
+        });
+      }
+    }
+  }
+
+  // 유저 프로필 사진을 표시하는 부분
+  Widget _buildUserProfileImage() {
+    final _imageSize = MediaQuery.of(context).size.width / 2;
+
+    if (profileImageUrl != null && profileImageUrl!.isNotEmpty) {
+      // Firebase Storage에서 이미지를 가져와 표시
+      return Container(
+        constraints: BoxConstraints(
+          minHeight: _imageSize,
+          minWidth: _imageSize,
+        ),
+        child: Image.network(
+          profileImageUrl!,
+          width: _imageSize,
+          height: _imageSize,
+          fit: BoxFit.cover,
+        ),
+      );
+    } else {
+      // 기본 아이콘 표시
+      return Container(
+        constraints: BoxConstraints(
+          minHeight: _imageSize,
+          minWidth: _imageSize,
+        ),
+        child: Icon(
+          Icons.account_circle,
+          size: _imageSize,
+        ),
+      );
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserNickname();
+    _fetchUserProfileImage();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final FirebaseAuth _auth = FirebaseAuth.instance;
-    final FirebaseFirestore firestore = FirebaseFirestore.instance;
-    User? user = _auth.currentUser;
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title:
+            Text('마이페이지', style: TextStyle(color: Colors.black, fontSize: 20)),
+        backgroundColor: Colors.white,
+        automaticallyImplyLeading: false,
+      ),
+      body: SingleChildScrollView(
+          child: Column(
+        children: [
 
-    return FutureBuilder<DocumentSnapshot>(
-      future: firestore.collection('User').doc(user?.uid).get(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.done) {
-          if (snapshot.hasError) {
-            return Text('데이터를 가져오는 중 오류 발생');
-          }
-          if (snapshot.hasData) {
-            // 데이터 가져오기 성공
-            final userData = snapshot.data!.data() as Map<String, dynamic>;
-            final userNickname = userData['nickname']; // 닉네임 가져오기
-            return Row(
-              children: [
-                Icon(Icons.account_circle, size: 80), // 사용자 프로필 이미지
-                SizedBox(width: 10),
-                Expanded(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        userNickname ?? '사용자 이름 없음', // 닉네임이 설정되지 않았을 경우 없음으로 표시
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                      ),
-                      Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Colors.black12,
-                            width: 1.0,
-                          ),
-                        ),
-                        child: IconButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => ProfileEditScreen()),
-                            );
-                          },
-                          icon: Icon(Icons.settings, size: 30, color: Colors.grey),
-                        ),
-                      )
-                    ],
-                  ),
-                )
-              ],
-            );
-          }
-        }
-        // 로딩중일때 표시되는 동그라미
-        return CircularProgressIndicator();
-      },
+          // 유저 프로필 사진 표시
+          _buildUserProfileImage(),
+
+          Row(
+            children: [Text('닉네임'), Text(nickname)],
+          ),
+
+
+
+          // 프로필 수정 버튼
+          TextButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => ProfileEditScreen()),
+              ).then((updatedInfo) {
+                if (updatedInfo != null) {
+                  if (updatedInfo.containsKey('nickname')) {
+                    setState(() {
+                      nickname = updatedInfo['nickname'];
+                    });
+                  }
+                  if (updatedInfo.containsKey('photoURL')) {
+                    // 프로필 사진 업데이트 로직
+                  }
+                }
+              });
+            },
+            child: Text('프로필 수정'),
+          ),
+
+
+          // 로그아웃 버튼
+          TextButton(
+            onPressed: () {
+              _authentication.signOut();
+            },
+            child: Text('로그아웃'),
+          ),
+        ],
+      )
+      ),
     );
   }
 }

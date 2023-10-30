@@ -1,16 +1,11 @@
 import 'package:flutter/material.dart';
 
-// void main() {
-//   runApp(const PostScreen());
-// }
-
 class PostScreen extends StatelessWidget {
   const PostScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
+    return Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
             title: Text('게시글 제목',
@@ -38,7 +33,6 @@ class PostScreen extends StatelessWidget {
 
 
         ),
-      ),
     );
   }
 }

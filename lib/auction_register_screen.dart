@@ -6,7 +6,9 @@ import 'package:intl/intl.dart';
 
 void main() {
   runApp(MaterialApp(
-    home: AuctionRegisterScreen(),
+    home: AuctionRegisterScreen(
+      boardType: '',
+    ),
     localizationsDelegates: [
       GlobalMaterialLocalizations.delegate,
       GlobalWidgetsLocalizations.delegate,
@@ -20,7 +22,8 @@ void main() {
 }
 
 class AuctionRegisterScreen extends StatefulWidget {
-  const AuctionRegisterScreen({Key? key}) : super(key: key);
+  const AuctionRegisterScreen({Key? key, required String boardType})
+      : super(key: key);
 
   @override
   _AuctionRegisterScreenState createState() => _AuctionRegisterScreenState();
@@ -62,7 +65,8 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
                 userImage: userImage,
                 onImageUpload: () async {
                   var picker = ImagePicker();
-                  var image = await picker.pickImage(source: ImageSource.gallery);
+                  var image =
+                      await picker.pickImage(source: ImageSource.gallery);
                   if (image != null) {
                     setState(() {
                       userImage = File(image.path);
@@ -71,7 +75,6 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
                 },
               ),
               SizedBox(height: 10),
-              Line(),
               SizedBox(height: 10),
 
               // // 2. 카테고리
@@ -81,13 +84,11 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
               // 3. 상품명
               ProductName(),
               SizedBox(height: 10),
-              Line(),
               SizedBox(height: 10),
 
               // 4. 즉시낙찰가
               StartAndNowPrice(),
               SizedBox(height: 10),
-              Line(),
               SizedBox(height: 10),
 
               // 5. 경매 종료시간
@@ -99,18 +100,17 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
                     selectedDate = date;
                     selectedTime = time;
                     formattedDate = DateFormat('yyyy-MM-dd').format(date);
-                    formattedTime = DateFormat('HH:mm').format(
-                        DateTime(0, 0, 0, time.hour, time.minute));
+                    formattedTime = DateFormat('HH:mm')
+                        .format(DateTime(0, 0, 0, time.hour, time.minute));
                   });
                 },
               ),
               SizedBox(height: 10),
-              Line(),
+
               SizedBox(height: 10),
 
               // 6. 설명
               ProductInfo(),
-
             ],
           ),
         ),
@@ -124,31 +124,13 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
                 style: TextStyle(
                     color: Colors.white,
                     fontSize: 20,
-                    fontWeight: FontWeight.bold)
-            ),
+                    fontWeight: FontWeight.bold)),
             style: ElevatedButton.styleFrom(
-              backgroundColor : Colors.lightBlue,
+              backgroundColor: Colors.lightBlue,
             ),
           ),
         ),
       ),
-    );
-  }
-}
-
-
-
-// ========================================== 커스텀 위젯 ==========================================
-
-// 구분선
-class Line extends StatelessWidget {
-  const Line({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 1,
-      color: Colors.black12,
     );
   }
 }
@@ -176,32 +158,32 @@ class ImageUploadWidget extends StatelessWidget {
                   color: Colors.grey[200], // 빈 이미지 컨테이너의 배경색
                 ),
                 child: userImage != null
-                    ? ClipRRect( // userImage 변수가 null이 아닐 시(=이미지가 선택되었음) 다음 코드를 실행
-                  // borderRadius: BorderRadius.circular(50), // 이미지 둥글게
-                  child: Image.file(
-                    userImage!,
-                    width: 100,
-                    height: 100,
-                    fit: BoxFit.cover, // 이미지를 컨테이너에 맞춤
-                  ),
-                )
+                    ? ClipRRect(
+                        // userImage 변수가 null이 아닐 시(=이미지가 선택되었음) 다음 코드를 실행
+                        // borderRadius: BorderRadius.circular(50), // 이미지 둥글게
+                        child: Image.file(
+                          userImage!,
+                          width: 100,
+                          height: 100,
+                          fit: BoxFit.cover, // 이미지를 컨테이너에 맞춤
+                        ),
+                      )
                     : Center(
-                  child: Icon(
-                    Icons.photo,
-                    size: 50, // 빈 이미지 컨테이너에 표시되는 아이콘 크기
-                    color: Colors.grey, // 빈 이미지 컨테이너 아이콘의 색상
-                  ),
-                ),
+                        child: Icon(
+                          Icons.photo,
+                          size: 50, // 빈 이미지 컨테이너에 표시되는 아이콘 크기
+                          color: Colors.grey, // 빈 이미지 컨테이너 아이콘의 색상
+                        ),
+                      ),
               ),
               OutlinedButton(
                 onPressed: onImageUpload,
-                child: Text( "사진 업로드",
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16),
+                child: Text(
+                  "사진 업로드",
+                  style: TextStyle(color: Colors.white, fontSize: 16),
                 ),
                 style: OutlinedButton.styleFrom(
-                  backgroundColor : Colors.lightBlue,
+                  backgroundColor: Colors.lightBlue,
                   minimumSize: Size(150, 40),
                 ),
               ),
@@ -454,8 +436,6 @@ class _AuctionClosingTimeState extends State<AuctionClosingTime> {
     }
   }
 }
-
-
 
 // 6. 설명
 class ProductInfo extends StatelessWidget {
