@@ -62,9 +62,14 @@ class _TabScreenState extends State<TabScreen> {
     return Scaffold(
         body: _widgetOptions[_selectedIndex], // 현재 선택된 페이지를 표시
         bottomNavigationBar: BottomNavigationBar(
-          selectedItemColor: Colors.lightBlue,
+          backgroundColor: Colors.black,
+          type: BottomNavigationBarType.fixed, // 애니메이션 효과 제거
+          selectedItemColor: Colors.white,
           unselectedItemColor: Colors.grey,
+          selectedFontSize: 14,
+          unselectedFontSize: 14,
           currentIndex: _selectedIndex,
+          showUnselectedLabels: true,
           onTap: _onItemTapped,
           items: [
             BottomNavigationBarItem(icon: Icon(Icons.home), label: '홈'),

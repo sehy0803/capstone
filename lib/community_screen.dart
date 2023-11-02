@@ -1,5 +1,7 @@
 import 'package:capstone/auction_register_screen.dart';
+import 'package:capstone/community_detail_screen.dart';
 import 'package:capstone/community_register_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class CommunityScreen extends StatefulWidget {
@@ -10,57 +12,68 @@ class CommunityScreen extends StatefulWidget {
 }
 
 class _CommunityScreenState extends State<CommunityScreen> {
+  final _firestore = FirebaseFirestore.instance;
   int _currentTabIndex = 0; // 현재 선택된 탭을 저장하는 변수
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.black12,
         appBar: AppBar(
           title: Text('커뮤니티', style: TextStyle(color: Colors.black, fontSize: 20)),
           backgroundColor: Colors.white,
           automaticallyImplyLeading: false,
+          elevation: 0,
           bottom: TabBar(
             tabs: [
               Tab(text: '경매 게시판'),
               Tab(text: '유저 게시판'),
             ],
             labelColor: Colors.black,
-            indicatorColor: Colors.lightBlue,
+            labelStyle: TextStyle(fontSize: 18),
+            indicatorColor: Colors.black,
             onTap: (index) {
-              // 탭이 선택되었을 때 호출되는 콜백 함수
               setState(() {
                 _currentTabIndex = index;
               });
             },
           ),
         ),
-        body: TabBarView(
-          children: [
-            // 경매 게시판
-            ListView(
-              children: [
-                Text('경매'),
-                Text('경매'),
-                Text('경매'),
-                Text('경매'),
-                Text('경매'),
-              ],
-            ),
+        body: StreamBuilder<QuerySnapshot>(
+          stream: _getCommunityStream(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(child: CircularProgressIndicator());
+            }
 
-            // 유저 게시판
-            ListView(
-              children: [
-                Text('유저'),
-                Text('유저'),
-                Text('유저'),
-                Text('유저'),
-                Text('유저'),
-              ],
-            ),
-          ],
+            if (snapshot.hasError) {
+              return Center(child: Text('데이터를 불러올 수 없습니다.'));
+            }
+
+            final documents = snapshot.data?.docs;
+
+            return ListView.builder(
+              itemCount: documents?.length ?? 0,
+              itemBuilder: (context, index) {
+                final title = documents![index]['title'] as String;
+                final content = documents[index]['content'] as String;
+
+                return Card(
+                  child: ListTile(
+                    title: Text(title),
+                    subtitle: Text(content),
+                  ),
+                );
+              },
+            );
+          },
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () {
@@ -83,5 +96,10 @@ class _CommunityScreenState extends State<CommunityScreen> {
         ),
       ),
     );
+  }
+
+  Stream<QuerySnapshot> _getCommunityStream() {
+    String collectionName = (_currentTabIndex == 0) ? 'AuctionCommunity' : 'UserCommunity';
+    return _firestore.collection(collectionName).snapshots();
   }
 }

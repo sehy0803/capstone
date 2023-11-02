@@ -10,6 +10,10 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Firebase 로그인 해제
+  await FirebaseAuth.instance.signOut();
+
   runApp(MyApp());
 }
 
@@ -23,14 +27,13 @@ class MyApp extends StatelessWidget {
         title: 'Capstone App',
         home: StreamBuilder(
           stream: FirebaseAuth.instance.authStateChanges(),
-          builder: (context, snapshot){
-            if(snapshot.hasData){
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
               return TabScreen();
             }
             return LoginScreen();
           },
-        )
-    );
+        ));
   }
 }
 
@@ -44,6 +47,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _authentication = FirebaseAuth.instance;
   final _formKey = GlobalKey<FormState>();
+  bool isLoading = false;
 
   // 유저가 입력한 로그인 정보를 저장할 변수
   String email = '';
@@ -79,12 +83,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       TextFormField(
                         keyboardType: TextInputType.emailAddress,
                         key: ValueKey(1),
-                        validator: (value) {
-                          if (value!.isEmpty || !value.contains('@')) {
-                            return '올바른 이메일 형식을 입력해주세요.';
-                          }
-                          return null;
-                        },
                         onSaved: (value) {
                           email = value!;
                         },
@@ -116,12 +114,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       TextFormField(
                         obscureText: true,
                         key: ValueKey(2),
-                        validator: (value) {
-                          if (value!.isEmpty || value.length < 6) {
-                            return '비밀번호를 6글자 이상 입력해주세요.';
-                          }
-                          return null;
-                        },
                         onSaved: (value) {
                           password = value!;
                         },
@@ -163,6 +155,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     onPressed: () async {
                       _tryValidation();
 
+                      setState(() {
+                        isLoading = true; // 버튼 클릭 시 로딩 상태를 활성화
+                      });
+
                       try {
                         final newUser =
                             await _authentication.signInWithEmailAndPassword(
@@ -170,23 +166,59 @@ class _LoginScreenState extends State<LoginScreen> {
 
                         // 로그인 성공시 TabScreen으로 이동
                         if (newUser.user != null) {
-
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                                content: Text(
+                                  '환영합니다!',
+                                  style: TextStyle(
+                                      fontSize: 16, color: Colors.white),
+                                ),
+                                margin: EdgeInsets.only(
+                                    bottom: MediaQuery.of(context).size.height- 120,
+                                    left: 10,
+                                    right: 10
+                                ),
+                                dismissDirection: DismissDirection.up,
+                                duration: Duration(milliseconds: 1500),
+                                behavior: SnackBarBehavior.floating,
+                                backgroundColor: Colors.black),
+                          );
                         }
                       } catch (e) {
                         print(e);
                         ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('이메일 또는 비밀번호 확인해주세요.')));
-                      }
+                          SnackBar(
+                              content: Text(
+                                '이메일 또는 비밀번호를 확인해주세요.',
+                                style: TextStyle(
+                                    fontSize: 16, color: Colors.white),
+                              ),
+                              margin: EdgeInsets.only(
+                                  bottom: MediaQuery.of(context).size.height- 90,
+                                left: 10,
+                                right: 10
+                              ),
+                              dismissDirection: DismissDirection.up,
+                              duration: Duration(milliseconds: 1500),
+                              behavior: SnackBarBehavior.floating,
+                              backgroundColor: Colors.redAccent),
+                        );
+                      } setState(() {
+                        isLoading = false; // 로딩 완료 시 로딩 상태를 비활성화
+                      });
                     },
                     style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
+                        backgroundColor: Colors.black,
                         minimumSize: Size(double.infinity, 55),
                         elevation: 5,
                         shape: StadiumBorder()),
-                    child: Text(
-                      "로그인",
-                      style: TextStyle(fontSize: 18),
-                    )),
+                  child: isLoading
+                      ? CircularProgressIndicator() // 로딩 중일 때 표시할 위젯
+                      : Text(
+                    "로그인",
+                    style: TextStyle(fontSize: 18),
+                  )
+                ),
 
                 SizedBox(height: 50),
 
@@ -214,11 +246,8 @@ class MainText extends StatelessWidget {
       children: [
         Text("쉽고 빠른", style: TextStyle(fontSize: 24, color: Colors.black)),
         Text("경매의 시작", style: TextStyle(fontSize: 24, color: Colors.black)),
-        Text("Logo",
-            style: TextStyle(
-                fontSize: 44,
-                color: Colors.lightBlue,
-                fontWeight: FontWeight.bold)),
+        SizedBox(height: 10),
+        Image.asset('assets/logo.png')
       ],
     );
   }
@@ -288,8 +317,8 @@ class MoveRegisterScreenButton extends StatelessWidget {
               MaterialPageRoute(builder: (context) => RegisterScreen()),
             );
           },
-          child: Text("회원가입",
-              style: TextStyle(fontSize: 16, color: Colors.lightBlue)),
+          child:
+              Text("회원가입", style: TextStyle(fontSize: 16, color: Colors.black)),
         )
       ],
     );

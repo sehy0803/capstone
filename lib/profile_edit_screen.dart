@@ -1,6 +1,6 @@
 import 'dart:io';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +15,7 @@ class ProfileEditScreen extends StatefulWidget {
 class _ProfileEditScreenState extends State<ProfileEditScreen> {
   final _authentication = FirebaseAuth.instance;
   final _firestore = FirebaseFirestore.instance;
+  bool isLoading = false;
 
   TextEditingController nicknameController = TextEditingController();
 
@@ -56,18 +57,24 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
     try {
       if (user != null) {
-        // Authentication에 사용자의 프로필 사진 업데이트
         if (_pickedFile != null) {
           final storageRef = FirebaseStorage.instance
               .ref()
               .child('user_profile/${user.uid}.jpg');
           await storageRef.putFile(_pickedFile!);
+
+          // 이미지 업로드 이후에 이미지 URL을 얻어옵니다.
           final downloadURL = await storageRef.getDownloadURL();
 
           await user.updatePhotoURL(downloadURL);
           user.reload();
 
           updatedInfo['photoURL'] = downloadURL;
+
+          // Firestore에 사용자의 이미지 URL 업데이트
+          await _firestore.collection('User').doc(user.uid).update({
+            'imageURL': downloadURL,
+          });
         }
 
         // Firestore에 사용자의 닉네임 업데이트
@@ -78,7 +85,6 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
           updatedInfo['nickname'] = newNickname;
         }
-
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -86,10 +92,15 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           content: Text("프로필 수정 중 오류 발생"),
         ),
       );
+    } finally {
+      setState(() {
+        isLoading = false; // Set isLoading back to false after asynchronous calls are completed
+      });
     }
 
     return updatedInfo; // 업데이트된 정보가 포함된 Map 반환
   }
+
 
 
   // 프로필 이미지를 표시할 위젯
@@ -158,6 +169,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
             child: _pickedFile == null
                 ? Icon(
               Icons.account_circle,
+              color: Colors.blue[200],
               size: _imageSize,
             )
                 : Container(
@@ -235,20 +247,69 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
               ),
 
               // 프로필 수정 버튼
-              ElevatedButton(
-                onPressed: () async {
-                  final updatedInfo = await _updateProfile(); // 프로필 업데이트
-                  if (updatedInfo['nickname'] != null || updatedInfo['photoURL'] != null) {
-                    Navigator.pop(context, updatedInfo); // Map 반환
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text("변경된 내용이 없습니다."),
-                      ),
-                    );
-                  }
-                },
-                child: Text('저장하기'),
+              SizedBox(
+                width: double.infinity,
+                height: 55,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    final updatedInfo = await _updateProfile(); // 프로필 업데이트
+
+                    setState(() {
+                      isLoading = true; // 버튼 클릭 시 로딩 상태를 활성화
+                    });
+
+                    if (updatedInfo.isNotEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text(
+                              '변경사항이 적용되었습니다.',
+                              style: TextStyle(
+                                  fontSize: 18, color: Colors.white),
+                            ),
+                            margin: EdgeInsets.only(
+                                bottom: MediaQuery.of(context).size.height- 100,
+                                left: 10,
+                                right: 10
+                            ),
+                            dismissDirection: DismissDirection.up,
+                            duration: Duration(milliseconds: 1500),
+                            behavior: SnackBarBehavior.floating,
+                            backgroundColor: Colors.black),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text(
+                              '변경된 내용이 없습니다.',
+                              style: TextStyle(
+                                  fontSize: 18, color: Colors.white),
+                            ),
+                            margin: EdgeInsets.only(
+                                bottom: MediaQuery.of(context).size.height- 100,
+                                left: 10,
+                                right: 10
+                            ),
+                            dismissDirection: DismissDirection.up,
+                            duration: Duration(milliseconds: 1500),
+                            behavior: SnackBarBehavior.floating,
+                            backgroundColor: Colors.black),
+                      );
+                    } setState(() {
+                      isLoading = false; // 로딩 완료 시 로딩 상태를 비활성화
+                    });
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black,
+                    elevation: 5,
+                    shape: StadiumBorder(),
+                  ),
+                    child: isLoading
+                        ? CircularProgressIndicator() // 로딩 중일 때 표시할 위젯
+                        : Text(
+                      "저장하기",
+                      style: TextStyle(fontSize: 18),
+                    )
+                ),
               )
 
             ],

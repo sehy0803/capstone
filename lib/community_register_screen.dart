@@ -1,19 +1,20 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class CommunityRegisterScreen extends StatefulWidget {
   const CommunityRegisterScreen({super.key, required String boardType});
 
   @override
-  State<CommunityRegisterScreen> createState() => _CommunityRegisterScreenState();
+  State<CommunityRegisterScreen> createState() =>
+      _CommunityRegisterScreenState();
 }
 
 class _CommunityRegisterScreenState extends State<CommunityRegisterScreen> {
-  final _formKey = GlobalKey<FormState>();
+  final _firestore = FirebaseFirestore.instance;
 
   // 유저가 입력한 게시글 정보를 저장할 변수
   String title = '';
   String content = '';
-
 
   @override
   Widget build(BuildContext context) {
@@ -21,6 +22,7 @@ class _CommunityRegisterScreenState extends State<CommunityRegisterScreen> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
+        title: Text('유저 게시판', style: TextStyle(color: Colors.black, fontSize: 20)),
         leading: IconButton(
           onPressed: () {
             Navigator.pop(context);
@@ -32,68 +34,81 @@ class _CommunityRegisterScreenState extends State<CommunityRegisterScreen> {
         actions: [
           // 게시글 등록 버튼
           TextButton(
-            onPressed: () {},
+            onPressed: () {
+              // 파이어스토어에 데이터 저장
+              _saveCommunityData();
+            },
             child: Text('등록',
                 style: TextStyle(
                     fontSize: 18,
-                    fontWeight: FontWeight.bold,
                     color: Colors.lightBlue)),
           )
         ],
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(10),
+          padding: const EdgeInsets.all(20),
           child: Column(
             children: [
-              Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    // 제목 텍스트필드
-                    TextFormField(
-                      key: ValueKey(1),
-                      validator: (value) {
-                        if (value!.isEmpty || value.length < 20) {
-                          return '제목은 20글자 이하만 입력할 수 있습니다.';
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        title = value!;
-                      },
-                      onChanged: (value) {
-                        title = value;
-                      },
-                      decoration: InputDecoration(
-                          prefixIcon: Icon(
-                            Icons.account_circle,
-                            color: Colors.grey[400]!,
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.grey[400]!),
-                            borderRadius:
-                            BorderRadius.all(Radius.circular(35.0)),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.grey[400]!),
-                            borderRadius:
-                            BorderRadius.all(Radius.circular(35.0)),
-                          ),
-                          hintText: '이메일',
-                          hintStyle: TextStyle(
-                              fontSize: 16, color: Colors.grey[400]!),
-                          contentPadding: EdgeInsets.all(15)),
-                    ),
-                    SizedBox(height: 10),
-
-                  ],
-                ),
+              Column(
+                children: [
+                  TextField(
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    decoration: InputDecoration(
+                        hintText: '제목',
+                        hintStyle: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold)),
+                    onChanged: (value) {
+                      title = value;
+                    },
+                  ),
+                  SizedBox(height: 10),
+                  TextField(
+                    style: TextStyle(fontSize: 18),
+                    decoration: InputDecoration(
+                        hintText: '내용', hintStyle: TextStyle(fontSize: 18)),
+                    keyboardType: TextInputType.multiline,
+                    maxLines: 50,
+                    onChanged: (value) {
+                      content = value;
+                    },
+                  ),
+                ],
               ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  // firestore에 게시글 데이터 저장
+  void _saveCommunityData() async {
+    if (title.isNotEmpty && content.isNotEmpty) {
+      try {
+        await _firestore.collection('UserCommunity').add({'title': title, 'content': content});
+        Navigator.pop(context);
+      } catch (e) {
+        print('데이터 저장 오류: $e');
+      }
+    } else {
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('알림'),
+            content: Text('제목과 내용을 모두 입력하세요.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text('확인'),
+              ),
+            ],
+          );
+        },
+      );
+    }
   }
 }
