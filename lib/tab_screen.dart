@@ -66,8 +66,8 @@ class _TabScreenState extends State<TabScreen> {
           type: BottomNavigationBarType.fixed, // 애니메이션 효과 제거
           selectedItemColor: Colors.white,
           unselectedItemColor: Colors.grey,
-          selectedFontSize: 14,
-          unselectedFontSize: 14,
+          selectedFontSize: 12,
+          unselectedFontSize: 12,
           currentIndex: _selectedIndex,
           showUnselectedLabels: true,
           onTap: _onItemTapped,

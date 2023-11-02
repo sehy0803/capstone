@@ -1,4 +1,5 @@
 import 'package:capstone/profile_edit_screen.dart';
+import 'package:capstone/profile_setting_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -24,9 +25,22 @@ class _MyPageScreenState extends State<MyPageScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text('마이페이지', style: TextStyle(color: Colors.black, fontSize: 20)),
+        title:
+            Text('마이페이지', style: TextStyle(color: Colors.black, fontSize: 20)),
         backgroundColor: Colors.white,
         automaticallyImplyLeading: false,
+        actions: [
+          // 프로필 설정 버튼
+          IconButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => ProfileSettingScreen()),
+                );
+              },
+              icon: Icon(Icons.settings, color: Colors.grey, size: 30))
+        ],
       ),
       body: StreamBuilder(
         stream: _fetchUserProfileStream(),
@@ -61,12 +75,13 @@ class _MyPageScreenState extends State<MyPageScreen> {
                           // 닉네임 표시
                           Text(
                             nickname,
-                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
                       // 프로필 수정 버튼
-                      IconButton(
+                      ElevatedButton(
                         onPressed: () {
                           Navigator.push(
                             context,
@@ -74,23 +89,15 @@ class _MyPageScreenState extends State<MyPageScreen> {
                                 builder: (context) => ProfileEditScreen()),
                           );
                         },
-                        icon: Icon(Icons.settings,
-                            size: 40, color: Colors.grey[400]!),
-                        padding: EdgeInsets.zero,
+                        child: Text('프로필 수정', style: TextStyle(fontSize: 16)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.black,
+                        ),
                       ),
                     ],
                   ),
-                  // 로그아웃 버튼
-                  TextButton.icon(
-                    onPressed: () {
-                      _authentication.signOut();
-                    },
-                    icon: Icon(Icons.exit_to_app),
-                    label: Text('로그아웃'),
-                    style: TextButton.styleFrom(
-                      foregroundColor: Colors.grey,
-                    ),
-                  ),
+
+
                 ],
               ),
             ),
@@ -104,7 +111,11 @@ class _MyPageScreenState extends State<MyPageScreen> {
   Stream<Map<String, dynamic>> _fetchUserProfileStream() {
     final user = _authentication.currentUser;
     if (user != null) {
-      return _firestore.collection('User').doc(user.uid).snapshots().map((snapshot) {
+      return _firestore
+          .collection('User')
+          .doc(user.uid)
+          .snapshots()
+          .map((snapshot) {
         return snapshot.data() as Map<String, dynamic>;
       });
     } else {

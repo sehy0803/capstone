@@ -63,170 +63,175 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      resizeToAvoidBottomInset: false,
-      body: Padding(
-        padding: const EdgeInsets.fromLTRB(30, 120, 30, 120),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            MainText(), // 글씨 부분
-            Column(
-              children: [
-                Form(
-                  key: _formKey,
-                  child: Column(
-                    children: [
-                      // 이메일 텍스트필드
-                      TextFormField(
-                        keyboardType: TextInputType.emailAddress,
-                        key: ValueKey(1),
-                        onSaved: (value) {
-                          email = value!;
-                        },
-                        onChanged: (value) {
-                          email = value;
-                        },
-                        decoration: InputDecoration(
-                            prefixIcon: Icon(
-                              Icons.account_circle,
-                              color: Colors.grey[400]!,
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.grey[400]!),
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(35.0)),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.grey[400]!),
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(35.0)),
-                            ),
-                            hintText: '이메일',
-                            hintStyle: TextStyle(
-                                fontSize: 16, color: Colors.grey[400]!),
-                            contentPadding: EdgeInsets.all(15)),
-                      ),
-                      SizedBox(height: 10),
-                      // 비밀번호 텍스트필드
-                      TextFormField(
-                        obscureText: true,
-                        key: ValueKey(2),
-                        onSaved: (value) {
-                          password = value!;
-                        },
-                        onChanged: (value) {
-                          password = value;
-                        },
-                        decoration: InputDecoration(
-                            prefixIcon: Icon(
-                              Icons.lock,
-                              color: Colors.grey[400]!,
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.grey[400]!),
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(35.0)),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.grey[400]!),
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(35.0)),
-                            ),
-                            hintText: '비밀번호',
-                            hintStyle: TextStyle(
-                                fontSize: 16, color: Colors.grey[400]!),
-                            contentPadding: EdgeInsets.all(15)),
-                      ),
-                      SizedBox(height: 10),
-                    ],
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).unfocus(); // 빈 곳 터치시 키패드 사라짐
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        resizeToAvoidBottomInset: false,
+        body: Padding(
+          padding: const EdgeInsets.fromLTRB(30, 120, 30, 120),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              MainText(), // 글씨 부분
+              Column(
+                children: [
+                  Form(
+                    key: _formKey,
+                    child: Column(
+                      children: [
+                        // 이메일 텍스트필드
+                        TextFormField(
+                          keyboardType: TextInputType.emailAddress,
+                          key: ValueKey(1),
+                          onSaved: (value) {
+                            email = value!;
+                          },
+                          onChanged: (value) {
+                            email = value;
+                          },
+                          decoration: InputDecoration(
+                              prefixIcon: Icon(
+                                Icons.account_circle,
+                                color: Colors.grey[400]!,
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.grey[400]!),
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(35.0)),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.grey[400]!),
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(35.0)),
+                              ),
+                              hintText: '이메일',
+                              hintStyle: TextStyle(
+                                  fontSize: 16, color: Colors.grey[400]!),
+                              contentPadding: EdgeInsets.all(15)),
+                        ),
+                        SizedBox(height: 10),
+                        // 비밀번호 텍스트필드
+                        TextFormField(
+                          obscureText: true,
+                          key: ValueKey(2),
+                          onSaved: (value) {
+                            password = value!;
+                          },
+                          onChanged: (value) {
+                            password = value;
+                          },
+                          decoration: InputDecoration(
+                              prefixIcon: Icon(
+                                Icons.lock,
+                                color: Colors.grey[400]!,
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.grey[400]!),
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(35.0)),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.grey[400]!),
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(35.0)),
+                              ),
+                              hintText: '비밀번호',
+                              hintStyle: TextStyle(
+                                  fontSize: 16, color: Colors.grey[400]!),
+                              contentPadding: EdgeInsets.all(15)),
+                        ),
+                        SizedBox(height: 10),
+                      ],
+                    ),
                   ),
-                ),
 
-                // 이메일, 비밀번호 찾기
-                EmailPassFindButton(),
+                  // 이메일, 비밀번호 찾기
+                  EmailPassFindButton(),
 
-                SizedBox(height: 10),
+                  SizedBox(height: 10),
 
-                //로그인 버튼
-                ElevatedButton(
-                    onPressed: () async {
-                      _tryValidation();
+                  //로그인 버튼
+                  ElevatedButton(
+                      onPressed: () async {
+                        _tryValidation();
 
-                      setState(() {
-                        isLoading = true; // 버튼 클릭 시 로딩 상태를 활성화
-                      });
+                        setState(() {
+                          isLoading = true; // 버튼 클릭 시 로딩 상태를 활성화
+                        });
 
-                      try {
-                        final newUser =
-                            await _authentication.signInWithEmailAndPassword(
-                                email: email, password: password);
+                        try {
+                          final newUser =
+                              await _authentication.signInWithEmailAndPassword(
+                                  email: email, password: password);
 
-                        // 로그인 성공시 TabScreen으로 이동
-                        if (newUser.user != null) {
+                          // 로그인 성공시 TabScreen으로 이동
+                          if (newUser.user != null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                  content: Text(
+                                    '환영합니다!',
+                                    style: TextStyle(
+                                        fontSize: 16, color: Colors.white),
+                                  ),
+                                  margin: EdgeInsets.only(
+                                      bottom: MediaQuery.of(context).size.height- 120,
+                                      left: 10,
+                                      right: 10
+                                  ),
+                                  dismissDirection: DismissDirection.up,
+                                  duration: Duration(milliseconds: 1500),
+                                  behavior: SnackBarBehavior.floating,
+                                  backgroundColor: Colors.black),
+                            );
+                          }
+                        } catch (e) {
+                          print(e);
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                                 content: Text(
-                                  '환영합니다!',
+                                  '이메일 또는 비밀번호를 확인해주세요.',
                                   style: TextStyle(
                                       fontSize: 16, color: Colors.white),
                                 ),
                                 margin: EdgeInsets.only(
-                                    bottom: MediaQuery.of(context).size.height- 120,
-                                    left: 10,
-                                    right: 10
+                                    bottom: MediaQuery.of(context).size.height- 90,
+                                  left: 10,
+                                  right: 10
                                 ),
                                 dismissDirection: DismissDirection.up,
                                 duration: Duration(milliseconds: 1500),
                                 behavior: SnackBarBehavior.floating,
-                                backgroundColor: Colors.black),
+                                backgroundColor: Colors.redAccent),
                           );
-                        }
-                      } catch (e) {
-                        print(e);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                              content: Text(
-                                '이메일 또는 비밀번호를 확인해주세요.',
-                                style: TextStyle(
-                                    fontSize: 16, color: Colors.white),
-                              ),
-                              margin: EdgeInsets.only(
-                                  bottom: MediaQuery.of(context).size.height- 90,
-                                left: 10,
-                                right: 10
-                              ),
-                              dismissDirection: DismissDirection.up,
-                              duration: Duration(milliseconds: 1500),
-                              behavior: SnackBarBehavior.floating,
-                              backgroundColor: Colors.redAccent),
-                        );
-                      } setState(() {
-                        isLoading = false; // 로딩 완료 시 로딩 상태를 비활성화
-                      });
-                    },
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
-                        minimumSize: Size(double.infinity, 55),
-                        elevation: 5,
-                        shape: StadiumBorder()),
-                  child: isLoading
-                      ? CircularProgressIndicator() // 로딩 중일 때 표시할 위젯
-                      : Text(
-                    "로그인",
-                    style: TextStyle(fontSize: 18),
-                  )
-                ),
+                        } setState(() {
+                          isLoading = false; // 로딩 완료 시 로딩 상태를 비활성화
+                        });
+                      },
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.black,
+                          minimumSize: Size(double.infinity, 55),
+                          elevation: 5,
+                          shape: StadiumBorder()),
+                    child: isLoading
+                        ? CircularProgressIndicator() // 로딩 중일 때 표시할 위젯
+                        : Text(
+                      "로그인",
+                      style: TextStyle(fontSize: 18),
+                    )
+                  ),
 
-                SizedBox(height: 50),
+                  SizedBox(height: 50),
 
-                // 회원가입 화면으로 이동하는 버튼
-                MoveRegisterScreenButton()
-              ],
-            ),
-          ],
+                  // 회원가입 화면으로 이동하는 버튼
+                  MoveRegisterScreenButton()
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

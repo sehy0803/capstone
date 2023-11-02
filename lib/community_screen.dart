@@ -27,7 +27,8 @@ class _CommunityScreenState extends State<CommunityScreen> {
       child: Scaffold(
         backgroundColor: Colors.black12,
         appBar: AppBar(
-          title: Text('커뮤니티', style: TextStyle(color: Colors.black, fontSize: 20)),
+          title:
+              Text('커뮤니티', style: TextStyle(color: Colors.black, fontSize: 20)),
           backgroundColor: Colors.white,
           automaticallyImplyLeading: false,
           elevation: 0,
@@ -64,11 +65,32 @@ class _CommunityScreenState extends State<CommunityScreen> {
               itemBuilder: (context, index) {
                 final title = documents![index]['title'] as String;
                 final content = documents[index]['content'] as String;
+                final uploaderImageURL = documents[index]['uploaderImageURL'] as String;
+                final uploadernickname = documents[index]['uploadernickname'] as String;
+                final createDate = documents[index]['createDate'] as String;
 
                 return Card(
                   child: ListTile(
                     title: Text(title),
                     subtitle: Text(content),
+                    onTap: () {
+                      try {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => CommunityDetailScreen(
+                                title: title, // 제목
+                                content: content, // 내용
+                                uploaderImageURL: uploaderImageURL, // 게시글을 작성한 유저의 프로필 사진 URL
+                                uploadernickname: uploadernickname, // 게시글을 작성한 유저의 닉네임
+                                createDate: createDate, // 게시글이 업로드된 날짜
+                              ),
+                            ));
+                      } catch (e) {
+                        print('================================== $e');
+                      }
+
+                    },
                   ),
                 );
               },
@@ -81,17 +103,21 @@ class _CommunityScreenState extends State<CommunityScreen> {
               // 경매 게시판 탭이 선택된 상태면 경매 게시글 등록 화면으로 이동
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => AuctionRegisterScreen(boardType: '경매 게시판')),
+                MaterialPageRoute(
+                    builder: (context) =>
+                        AuctionRegisterScreen(boardType: '경매 게시판')),
               );
             } else {
               // 유저 게시판 탭이 선택된 상태면 유저 게시글 등록 화면으로 이동
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => CommunityRegisterScreen(boardType: '유저 게시판')),
+                MaterialPageRoute(
+                    builder: (context) =>
+                        CommunityRegisterScreen(boardType: '유저 게시판')),
               );
             }
           },
-          backgroundColor: Colors.lightBlue,
+          backgroundColor: Colors.black,
           child: Icon(Icons.edit),
         ),
       ),
@@ -99,7 +125,8 @@ class _CommunityScreenState extends State<CommunityScreen> {
   }
 
   Stream<QuerySnapshot> _getCommunityStream() {
-    String collectionName = (_currentTabIndex == 0) ? 'AuctionCommunity' : 'UserCommunity';
+    String collectionName =
+        (_currentTabIndex == 0) ? 'AuctionCommunity' : 'UserCommunity';
     return _firestore.collection(collectionName).snapshots();
   }
 }
