@@ -102,7 +102,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                 final createDate = documents[index]['createDate'] as String;
                 final documentId = getDocumentId(documents![index]);
                 final views = documents[index]['views'] as int;
-                final favorite = documents[index]['favorite'] as int;
+                final like = documents[index]['like'] as int;
                 final comments = documents[index]['comments'] as int;
                 final photoURL = documents[index]['photoURL'] as String;
 
@@ -119,7 +119,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                         Text(uploadernickname, style: TextStyle(fontSize: 14)),
                         SizedBox(width: 10),
                         Text(createDate, style: TextStyle(fontSize: 14)),
-                        Text('조회수: $views, 찜 횟수: $favorite, 댓글 수: $comments'),
+                        Text('조회수: $views, 좋아요: $like, 댓글: $comments'),
                       ],
                     ),
                     onTap: () {
@@ -139,7 +139,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                   collectionName: getCollectionName(),
                                   documentId: documentId,
                                   views: views + 1,
-                                  favorite: favorite,
+                                  like: like,
                                   comments: comments,
                                   photoURL: photoURL,
                                   endTime: endTime,
@@ -155,7 +155,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                   collectionName: getCollectionName(),
                                   documentId: documentId,
                                   views: views + 1,
-                                  favorite: favorite,
+                                  like: like,
                                   comments: comments,
                                   photoURL: photoURL,
                                 );

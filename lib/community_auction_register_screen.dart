@@ -27,7 +27,7 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
   String uploadernickname = ''; // 사용자 닉네임
   String createDate = ''; // 글을 올린 날짜와 시간
   int views = 0; // 조회수
-  int favorite = 0; // 찜 횟수
+  int like = 0; // 좋아요 횟수
   int comments = 0; // 댓글 수
   String photoURL = ''; // 사진
   String endTime = ''; // 경매 종료시간
@@ -210,7 +210,7 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
                     );
                   },
                   style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
+                      backgroundColor: Colors.black,
                       minimumSize: Size(double.infinity, 55),
                       elevation: 5,
                       shape: StadiumBorder()),
@@ -228,7 +228,10 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
   // firestore에 게시글 정보 저장
   void _saveCommunityData() async {
     if (title.isNotEmpty && content.isNotEmpty) {
-      photoURL = await uploadImageToStorage(_pickedFile!);
+      String photoURL = '';
+      if (_pickedFile != null) {
+        photoURL = await uploadImageToStorage(_pickedFile!);
+      }
 
       try {
         await _firestore.collection('AuctionCommunity').add({
@@ -238,14 +241,13 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
           'uploadernickname': uploadernickname, // 닉네임 저장
           'createDate': createDate, // 작성일자 저장
           'views': views, // 조회수 초기값
-          'favorite': favorite, // 찜 횟수 초기값
+          'like': like, // 좋아요 횟수 초기값
           'comments': comments, // 댓글 수 초기값
           'photoURL': photoURL, // Firebase Storage에서 받은 URL로 업데이트
           'endTime': endTime, // 경매 종료시간
           'nowPrice': nowPrice // 즉시거래가
         });
 
-        Navigator.pop(context);
       } catch (e) {
         print('데이터 저장 오류: $e');
       }

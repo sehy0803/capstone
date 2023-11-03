@@ -22,7 +22,7 @@ class _CommunityRegisterScreenState extends State<CommunityRegisterScreen> {
   String uploadernickname = ''; // 사용자 닉네임
   String createDate = ''; // 글을 올린 날짜와 시간
   int views = 0; // 조회수
-  int favorite = 0; // 찜 횟수
+  int like = 0; // 좋아요 횟수
   int comments = 0; // 댓글 수
   String photoURL = ''; // 게시글 사진
 
@@ -133,7 +133,7 @@ class _CommunityRegisterScreenState extends State<CommunityRegisterScreen> {
           'uploadernickname': uploadernickname, // 닉네임 저장
           'createDate': createDate, // 작성일자 저장
           'views': views, // 조회수 초기값
-          'favorite': favorite, // 찜 횟수 초기값
+          'like': like, // 좋아요 횟수 초기값
           'comments': comments, // 댓글 수 초기값
           'photoURL': photoURL,
         });
