@@ -20,6 +20,30 @@ class _CommunityScreenState extends State<CommunityScreen> {
     super.initState();
   }
 
+  // 선택된 게시판 이름
+  String getCollectionName() {
+    return (_currentTabIndex == 0) ? 'AuctionCommunity' : 'UserCommunity';
+  }
+
+  // 게시물의 Document ID를 가져오는 함수
+  String getDocumentId(QueryDocumentSnapshot document) {
+    return document.id;
+  }
+
+  // Firestore에서 조회수를 증가시키는 함수
+  Future<void> increaseViews(String documentId, String collectionName) async {
+    final documentReference =
+        _firestore.collection(collectionName).doc(documentId);
+    final document = await documentReference.get();
+
+    if (document.exists) {
+      final currentViews = document['views'] as int;
+      final updatedViews = currentViews + 1;
+
+      await documentReference.update({'views': updatedViews});
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
@@ -65,31 +89,56 @@ class _CommunityScreenState extends State<CommunityScreen> {
               itemBuilder: (context, index) {
                 final title = documents![index]['title'] as String;
                 final content = documents[index]['content'] as String;
-                final uploaderImageURL = documents[index]['uploaderImageURL'] as String;
-                final uploadernickname = documents[index]['uploadernickname'] as String;
+                final uploaderImageURL =
+                    documents[index]['uploaderImageURL'] as String;
+                final uploadernickname =
+                    documents[index]['uploadernickname'] as String;
                 final createDate = documents[index]['createDate'] as String;
+                final documentId = getDocumentId(documents![index]);
+                final views = documents[index]['views'] as int;
+                final favorite = documents[index]['favorite'] as int;
+                final comments = documents[index]['comments'] as int;
 
                 return Card(
                   child: ListTile(
-                    title: Text(title),
-                    subtitle: Text(content),
+                    title: Text(title, style: TextStyle(fontSize: 18)),
+                    subtitle: Row(
+                      children: [
+                        Text(uploadernickname, style: TextStyle(fontSize: 14)),
+                        SizedBox(width: 10),
+                        Text(createDate, style: TextStyle(fontSize: 14)),
+                        Text('조회수: $views, 찜 횟수: $favorite, 댓글 수: $comments'),
+                      ],
+                    ),
                     onTap: () {
+                      increaseViews(documentId, getCollectionName()); // 조회수 증가
                       try {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => CommunityDetailScreen(
-                                title: title, // 제목
-                                content: content, // 내용
-                                uploaderImageURL: uploaderImageURL, // 게시글을 작성한 유저의 프로필 사진 URL
-                                uploadernickname: uploadernickname, // 게시글을 작성한 유저의 닉네임
-                                createDate: createDate, // 게시글이 업로드된 날짜
-                              ),
-                            ));
+                                builder: (context) => CommunityDetailScreen(
+                                      // 제목
+                                      title: title,
+                                      // 내용
+                                      content: content,
+                                      // 게시글을 작성한 유저의 프로필 사진 URL
+                                      uploaderImageURL: uploaderImageURL,
+                                      // 게시글을 작성한 유저의 닉네임
+                                      uploadernickname: uploadernickname,
+                                      // 게시글이 업로드된 날짜
+                                      createDate: createDate,
+                                      // collectionName 전달
+                                      collectionName: (_currentTabIndex == 0)
+                                          ? 'AuctionCommunity'
+                                          : 'UserCommunity',
+                                      documentId: documentId,
+                                      views: views + 1,
+                                      favorite: favorite,
+                                      comments: comments,
+                                    )));
                       } catch (e) {
                         print('================================== $e');
                       }
-
                     },
                   ),
                 );
@@ -125,8 +174,10 @@ class _CommunityScreenState extends State<CommunityScreen> {
   }
 
   Stream<QuerySnapshot> _getCommunityStream() {
-    String collectionName =
-        (_currentTabIndex == 0) ? 'AuctionCommunity' : 'UserCommunity';
-    return _firestore.collection(collectionName).snapshots();
+    final collectionName = getCollectionName();
+    return _firestore
+        .collection(collectionName)
+        .orderBy('createDate', descending: true)
+        .snapshots();
   }
 }

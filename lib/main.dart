@@ -312,7 +312,7 @@ class MoveRegisterScreenButton extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text("Logo가 처음이신가요?",
+        Text("Negomore가 처음이신가요?",
             style: TextStyle(fontSize: 16, color: Colors.grey)),
         TextButton(
           onPressed: () {

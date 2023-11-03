@@ -21,6 +21,9 @@ class _CommunityRegisterScreenState extends State<CommunityRegisterScreen> {
   String uploaderImageURL = ''; // 사용자 프로필 사진 URL
   String uploadernickname = ''; // 사용자 닉네임
   String createDate = ''; // 글을 올린 날짜와 시간
+  int views = 0; // 조회수
+  int favorite = 0; // 찜 횟수
+  int comments = 0; // 댓글 수
 
   @override
   void initState() {
@@ -74,6 +77,23 @@ class _CommunityRegisterScreenState extends State<CommunityRegisterScreen> {
             onPressed: () {
               // 파이어스토어에 데이터 저장
               _saveCommunityData();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                    content: Text(
+                      '게시물이 등록되었습니다.',
+                      style: TextStyle(
+                          fontSize: 16, color: Colors.white),
+                    ),
+                    margin: EdgeInsets.only(
+                        bottom: MediaQuery.of(context).size.height- 120,
+                        left: 10,
+                        right: 10
+                    ),
+                    dismissDirection: DismissDirection.up,
+                    duration: Duration(milliseconds: 1500),
+                    behavior: SnackBarBehavior.floating,
+                    backgroundColor: Colors.black),
+              );
             },
             child: Text('등록',
                 style: TextStyle(fontSize: 18, color: Colors.lightBlue)),
@@ -127,6 +147,9 @@ class _CommunityRegisterScreenState extends State<CommunityRegisterScreen> {
           'uploaderImageURL': uploaderImageURL, // 프로필 사진 URL 저장
           'uploadernickname': uploadernickname, // 닉네임 저장
           'createDate': createDate, // 작성일자 저장
+          'views': views, // 조회수 초기값
+          'favorite': favorite, // 찜 횟수 초기값
+          'comments': comments, // 댓글 수 초기값
         });
         Navigator.pop(context);
       } catch (e) {
