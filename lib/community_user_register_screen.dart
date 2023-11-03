@@ -24,6 +24,7 @@ class _CommunityRegisterScreenState extends State<CommunityRegisterScreen> {
   int views = 0; // 조회수
   int favorite = 0; // 찜 횟수
   int comments = 0; // 댓글 수
+  String photoURL = ''; // 게시글 사진
 
   @override
   void initState() {
@@ -37,7 +38,8 @@ class _CommunityRegisterScreenState extends State<CommunityRegisterScreen> {
     try {
       final user = _authentication.currentUser;
       if (user != null) {
-        final userDocument = await _firestore.collection('User').doc(user.uid).get();
+        final userDocument =
+            await _firestore.collection('User').doc(user.uid).get();
         if (userDocument.exists) {
           uploaderImageURL = userDocument['imageURL'] ?? '';
           uploadernickname = userDocument['nickname'] ?? '';
@@ -75,25 +77,8 @@ class _CommunityRegisterScreenState extends State<CommunityRegisterScreen> {
           // 게시글 등록 버튼
           TextButton(
             onPressed: () {
-              // 파이어스토어에 데이터 저장
-              _saveCommunityData();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                    content: Text(
-                      '게시물이 등록되었습니다.',
-                      style: TextStyle(
-                          fontSize: 16, color: Colors.white),
-                    ),
-                    margin: EdgeInsets.only(
-                        bottom: MediaQuery.of(context).size.height- 120,
-                        left: 10,
-                        right: 10
-                    ),
-                    dismissDirection: DismissDirection.up,
-                    duration: Duration(milliseconds: 1500),
-                    behavior: SnackBarBehavior.floating,
-                    backgroundColor: Colors.black),
-              );
+              // 게시물 등록 확인 AlertDialog 표시
+              showConfirmationDialog(context);
             },
             child: Text('등록',
                 style: TextStyle(fontSize: 18, color: Colors.lightBlue)),
@@ -150,6 +135,7 @@ class _CommunityRegisterScreenState extends State<CommunityRegisterScreen> {
           'views': views, // 조회수 초기값
           'favorite': favorite, // 찜 횟수 초기값
           'comments': comments, // 댓글 수 초기값
+          'photoURL': photoURL,
         });
         Navigator.pop(context);
       } catch (e) {
@@ -176,4 +162,41 @@ class _CommunityRegisterScreenState extends State<CommunityRegisterScreen> {
     }
   }
 
+  // 게시물 등록 확인 AlertDialog 표시
+  void showConfirmationDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('등록하기'),
+          content: Text('게시물을 등록하시겠습니까?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // AlertDialog 닫기
+              },
+              child: Text('취소'),
+            ),
+            TextButton(
+              onPressed: () {
+                // 게시물을 등록하고 AlertDialog 닫기
+                _saveCommunityData();
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('게시물이 등록되었습니다.',
+                        style: TextStyle(fontSize: 16, color: Colors.white)),
+                    dismissDirection: DismissDirection.up,
+                    duration: Duration(milliseconds: 1500),
+                    backgroundColor: Colors.black,
+                  ),
+                );
+              },
+              child: Text('확인'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }

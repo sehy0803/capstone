@@ -1,7 +1,8 @@
+import 'package:capstone/custom_widget.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
-class CommunityDetailScreen extends StatelessWidget {
+class CommunityUserDetailScreen extends StatelessWidget {
   final _firestore = FirebaseFirestore.instance;
 
   final String title; // 제목
@@ -11,11 +12,12 @@ class CommunityDetailScreen extends StatelessWidget {
   final String createDate; // 글을 올린 날짜와 시간
   final String collectionName; // 커뮤니티 종류
   final String documentId; // 게시물 고유 ID
-  final int views;
-  final int favorite;
-  final int comments;
+  final int views; // 조회수
+  final int favorite; // 찜 횟수
+  final int comments; // 댓글 수
+  final String photoURL; // 게시물 사진
 
-  CommunityDetailScreen({
+  CommunityUserDetailScreen({
     required this.title,
     required this.content,
     required this.uploaderImageURL,
@@ -26,12 +28,14 @@ class CommunityDetailScreen extends StatelessWidget {
     required this.views,
     required this.favorite,
     required this.comments,
+    required this.photoURL,
   });
 
-  Future<void> deletePost(String documentId) async {
+  Future<void> deletePost(String documentId, BuildContext context) async {
     try {
       // Firestore에서 게시물 삭제
       await _firestore.collection(collectionName).doc(documentId).delete();
+      Navigator.pop(context);
     } catch (e) {
       print('게시물 삭제 중 오류 발생: $e');
     }
@@ -60,30 +64,7 @@ class CommunityDetailScreen extends StatelessWidget {
               offset: Offset(0, 60),
               onSelected: (value) {
                 if (value == 'delete') {
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: Text('삭제하기'),
-                        content: Text('이 게시물을 삭제하시겠습니까?'),
-                        actions: [
-                          TextButton(
-                            onPressed: () async {
-                              await deletePost(documentId); // 게시물 삭제 함수 호출
-                              Navigator.of(context).pop();
-                            },
-                            child: Text('예'),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                            child: Text('아니오'),
-                          ),
-                        ],
-                      );
-                    },
-                  );
+                  showConfirmationDialog(context);
                 }
               },
               itemBuilder: (BuildContext context) {
@@ -129,54 +110,71 @@ class CommunityDetailScreen extends StatelessWidget {
                           ),
                         ),
 
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // 글을 올린 유저의 닉네임
-                            Text(uploadernickname,
-                                style: TextStyle(fontSize: 18)),
-
-                            // 글을 올린 날짜와 시간
-                            Text(createDate,
-                                style: TextStyle(
-                                    fontSize: 14, color: Colors.grey)),
-                          ],
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // 글을 올린 유저의 닉네임
+                              Text(uploadernickname,
+                                  style: TextStyle(fontSize: 18)),
+                              SizedBox(height: 5),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(createDate,
+                                      style: TextStyle(
+                                          fontSize: 14, color: Colors.grey)),
+                                  Row(
+                                    children: [
+                                      Text('조회수',
+                                          style: TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.grey)),
+                                      SizedBox(width: 5),
+                                      Text('$views',
+                                          style: TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.grey,
+                                              height: 1.5))
+                                    ],
+                                  )
+                                ],
+                              )
+                              // 글을 올린 날짜와 시간
+                            ],
+                          ),
                         )
                       ],
                     ),
 
-                    // 구분선
-                    Divider(
-                      color: Colors.grey,
-                      height: 30,
-                    ),
+                    Line(),
 
                     // 게시글 내용
                     Text(content, style: TextStyle(fontSize: 18)),
 
-                    // 구분선
-                    Divider(
-                      color: Colors.grey[350],
-                      height: 30,
-                    ),
+                    Line(),
 
                     Row(
-                      children: [Text('댓글'), SizedBox(width: 10), Text('댓글개수')],
-                    ),
-
-                    // 구분선
-                    Divider(
-                      color: Colors.grey,
-                      height: 30,
-                    ),
-
-                    // 댓글
-                    Column(
                       children: [
-                        Card()
+                        Text(
+                          '댓글',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                        SizedBox(width: 10),
+                        Text(
+                          '$comments',
+                          style: TextStyle(fontSize: 14, height: 1.4),
+                        )
                       ],
                     ),
 
+                    Line(),
+
+                    // 댓글
+                    Column(
+                      children: [Card()],
+                    ),
                   ],
                 ),
               ),
@@ -222,6 +220,43 @@ class CommunityDetailScreen extends StatelessWidget {
         ),
         bottomNavigationBar: BottomAppBar());
   }
-}
 
-// ========================================== 커스텀 위젯 ==========================================
+  // 게시물 삭제 확인 AlertDialog 표시
+  void showConfirmationDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('삭제하기'),
+          content: Text('게시물을 삭제하시겠습니까?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // AlertDialog 닫기
+              },
+              child: Text('취소'),
+            ),
+            TextButton(
+              onPressed: () {
+                // 게시물을 삭제하고 AlertDialog 닫기
+                deletePost(documentId, context);
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                      content: Text(
+                        '게시물이 삭제되었습니다.',
+                        style: TextStyle(fontSize: 16, color: Colors.white),
+                      ),
+                      dismissDirection: DismissDirection.up,
+                      duration: Duration(milliseconds: 1500),
+                      backgroundColor: Colors.black),
+                );
+              },
+              child: Text('확인'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}

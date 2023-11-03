@@ -1,6 +1,7 @@
-import 'package:capstone/auction_register_screen.dart';
-import 'package:capstone/community_detail_screen.dart';
-import 'package:capstone/community_register_screen.dart';
+import 'package:capstone/community_auction_register_screen.dart';
+import 'package:capstone/community_auction_detail_screen.dart';
+import 'package:capstone/community_user_detail_screen.dart';
+import 'package:capstone/community_user_register_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
@@ -14,6 +15,7 @@ class CommunityScreen extends StatefulWidget {
 class _CommunityScreenState extends State<CommunityScreen> {
   final _firestore = FirebaseFirestore.instance;
   int _currentTabIndex = 0; // 현재 선택된 탭을 저장하는 변수
+  String collectionName = '';
 
   @override
   void initState() {
@@ -22,7 +24,8 @@ class _CommunityScreenState extends State<CommunityScreen> {
 
   // 선택된 게시판 이름
   String getCollectionName() {
-    return (_currentTabIndex == 0) ? 'AuctionCommunity' : 'UserCommunity';
+    return collectionName =
+        (_currentTabIndex == 0) ? 'AuctionCommunity' : 'UserCommunity';
   }
 
   // 게시물의 Document ID를 가져오는 함수
@@ -46,6 +49,9 @@ class _CommunityScreenState extends State<CommunityScreen> {
 
   @override
   Widget build(BuildContext context) {
+    String endTime = '';
+    String nowPrice = '';
+
     return DefaultTabController(
       length: 2,
       child: Scaffold(
@@ -98,6 +104,12 @@ class _CommunityScreenState extends State<CommunityScreen> {
                 final views = documents[index]['views'] as int;
                 final favorite = documents[index]['favorite'] as int;
                 final comments = documents[index]['comments'] as int;
+                final photoURL = documents[index]['photoURL'] as String;
+
+                if (getCollectionName() == 'AuctionCommunity') {
+                  endTime = documents![index]['endTime'] as String;
+                  nowPrice = documents![index]['nowPrice'] as String;
+                }
 
                 return Card(
                   child: ListTile(
@@ -114,28 +126,43 @@ class _CommunityScreenState extends State<CommunityScreen> {
                       increaseViews(documentId, getCollectionName()); // 조회수 증가
                       try {
                         Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => CommunityDetailScreen(
-                                      // 제목
-                                      title: title,
-                                      // 내용
-                                      content: content,
-                                      // 게시글을 작성한 유저의 프로필 사진 URL
-                                      uploaderImageURL: uploaderImageURL,
-                                      // 게시글을 작성한 유저의 닉네임
-                                      uploadernickname: uploadernickname,
-                                      // 게시글이 업로드된 날짜
-                                      createDate: createDate,
-                                      // collectionName 전달
-                                      collectionName: (_currentTabIndex == 0)
-                                          ? 'AuctionCommunity'
-                                          : 'UserCommunity',
-                                      documentId: documentId,
-                                      views: views + 1,
-                                      favorite: favorite,
-                                      comments: comments,
-                                    )));
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) {
+                              if (getCollectionName() == 'AuctionCommunity') {
+                                return CommunityAuctionDetailScreen(
+                                  title: title,
+                                  content: content,
+                                  uploaderImageURL: uploaderImageURL,
+                                  uploadernickname: uploadernickname,
+                                  createDate: createDate,
+                                  collectionName: getCollectionName(),
+                                  documentId: documentId,
+                                  views: views + 1,
+                                  favorite: favorite,
+                                  comments: comments,
+                                  photoURL: photoURL,
+                                  endTime: endTime,
+                                  nowPrice: nowPrice,
+                                );
+                              } else {
+                                return CommunityUserDetailScreen(
+                                  title: title,
+                                  content: content,
+                                  uploaderImageURL: uploaderImageURL,
+                                  uploadernickname: uploadernickname,
+                                  createDate: createDate,
+                                  collectionName: getCollectionName(),
+                                  documentId: documentId,
+                                  views: views + 1,
+                                  favorite: favorite,
+                                  comments: comments,
+                                  photoURL: photoURL,
+                                );
+                              }
+                            },
+                          ),
+                        );
                       } catch (e) {
                         print('================================== $e');
                       }
@@ -174,9 +201,8 @@ class _CommunityScreenState extends State<CommunityScreen> {
   }
 
   Stream<QuerySnapshot> _getCommunityStream() {
-    final collectionName = getCollectionName();
     return _firestore
-        .collection(collectionName)
+        .collection(getCollectionName())
         .orderBy('createDate', descending: true)
         .snapshots();
   }
