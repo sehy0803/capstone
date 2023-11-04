@@ -18,8 +18,9 @@ class _CommunityRegisterScreenState extends State<CommunityRegisterScreen> {
   // 유저가 입력한 게시글 정보를 저장할 변수
   String title = ''; // 제목
   String content = ''; // 내용
-  String uploaderImageURL = ''; // 사용자 프로필 사진 URL
-  String uploadernickname = ''; // 사용자 닉네임
+  String uploaderEmail = ''; // 업로더 이메일
+  String uploaderImageURL = ''; // 업로더 프로필 사진 URL
+  String uploaderNickname = ''; // 업로더 닉네임
   String createDate = ''; // 글을 올린 날짜와 시간
   int views = 0; // 조회수
   int like = 0; // 좋아요 횟수
@@ -29,11 +30,11 @@ class _CommunityRegisterScreenState extends State<CommunityRegisterScreen> {
   @override
   void initState() {
     super.initState();
-    getCurrentUser(); // Firestore에서 사용자 정보 가져오기
+    getCurrentUser(); // Firestore에서 업로더 정보 가져오기
     setCreateDate(); // 현재 시간으로 createDate 설정
   }
 
-  // Firestore에서 사용자 정보 가져오기
+  // Firestore에서 업로더 정보 가져오기
   void getCurrentUser() async {
     try {
       final user = _authentication.currentUser;
@@ -41,12 +42,13 @@ class _CommunityRegisterScreenState extends State<CommunityRegisterScreen> {
         final userDocument =
             await _firestore.collection('User').doc(user.uid).get();
         if (userDocument.exists) {
+          uploaderEmail = userDocument['email'] ?? '';
           uploaderImageURL = userDocument['imageURL'] ?? '';
-          uploadernickname = userDocument['nickname'] ?? '';
+          uploaderNickname = userDocument['nickname'] ?? '';
         }
       }
     } catch (e) {
-      print('사용자 정보 가져오기 오류: $e');
+      print('업로더 정보 가져오기 오류: $e');
     }
   }
 
@@ -129,8 +131,9 @@ class _CommunityRegisterScreenState extends State<CommunityRegisterScreen> {
         await _firestore.collection('UserCommunity').add({
           'title': title,
           'content': content,
+          'uploaderEmail': uploaderEmail, // 이메일 저장
           'uploaderImageURL': uploaderImageURL, // 프로필 사진 URL 저장
-          'uploadernickname': uploadernickname, // 닉네임 저장
+          'uploaderNickname': uploaderNickname, // 닉네임 저장
           'createDate': createDate, // 작성일자 저장
           'views': views, // 조회수 초기값
           'like': like, // 좋아요 횟수 초기값

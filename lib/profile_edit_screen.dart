@@ -101,8 +101,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       );
     } finally {
       setState(() {
-        isLoading =
-            false;
+        isLoading = false;
       });
     }
 
@@ -111,8 +110,9 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
   // 프로필 이미지를 표시할 위젯
   Widget _buildProfileImage() {
-    final _imageSize = MediaQuery.of(context).size.width / 2;
+    double _imageSize = 180.0;
 
+    // 기본 프로필 사진이 아닐 경우
     if (imageURL != null && imageURL!.isNotEmpty) {
       // Firebase Storage에서 이미지를 가져와 표시
       return Container(
@@ -154,44 +154,72 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           ),
         ),
       );
-    } else {
+    }
+    // 기본 프로필 사진일 경우
+    else {
       // 기본 아이콘 표시
-      return Container(
-        constraints: BoxConstraints(
-          minHeight: _imageSize,
-          minWidth: _imageSize,
-        ),
-        child: GestureDetector(
-          onTap: () async {
-            var picker = ImagePicker();
-            var image = await picker.pickImage(source: ImageSource.gallery);
-            if (image != null) {
-              setState(() {
-                _pickedFile = File(image.path);
-              });
-            }
-          },
-          child: Center(
-            child: _pickedFile == null
-                ? Icon(
-                    Icons.account_circle,
-                    color: Colors.black12,
-                    size: _imageSize,
-                  )
-                : Container(
-                    width: _imageSize,
-                    height: _imageSize,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      image: DecorationImage(
-                        image: FileImage(File(_pickedFile!.path)),
-                        fit: BoxFit.cover,
+      return Stack(children: [
+        Container(
+          constraints: BoxConstraints(
+            minHeight: _imageSize,
+            minWidth: _imageSize,
+          ),
+          child: GestureDetector(
+            onTap: () async {
+              var picker = ImagePicker();
+              var image = await picker.pickImage(source: ImageSource.gallery);
+              if (image != null) {
+                setState(() {
+                  _pickedFile = File(image.path);
+                });
+              }
+            },
+            child: Center(
+              child: _pickedFile == null
+                  ? Container(
+                      width: _imageSize,
+                      height: _imageSize,
+                      child: ClipOval(
+                        child: Image.asset(
+                          'assets/images/defaultImage.png', // 기본 이미지 파일 경로
+                          width: _imageSize,
+                          height: _imageSize,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    )
+                  : Container(
+                      width: _imageSize,
+                      height: _imageSize,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        image: DecorationImage(
+                          image: FileImage(File(_pickedFile!.path)),
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ),
-                  ),
+            ),
           ),
         ),
-      );
+        // '+' 아이콘
+        Center(
+          child: SizedBox(
+            height: 180,
+            child: GestureDetector(
+                onTap: () async {
+                  var picker = ImagePicker();
+                  var image = await picker.pickImage(source: ImageSource.gallery);
+                  if (image != null) {
+                    setState(() {
+                      _pickedFile = File(image.path);
+                    });
+                  }
+                },
+                child: Icon(Icons.add, size: 40, color: Colors.black)),
+          ),
+        ),
+      ]);
     }
   }
 
@@ -226,7 +254,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                 Column(
                   children: [
                     // 유저 프로필 사진
-                    _buildProfileImage(),
+                    Center(child: _buildProfileImage()),
                     SizedBox(height: 30),
                     // 이메일 정보
                     Row(

@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
         debugShowCheckedModeBanner: false,
-        title: 'Capstone App',
+        title: 'Negomore',
         home: StreamBuilder(
           stream: FirebaseAuth.instance.authStateChanges(),
           builder: (context, snapshot) {
@@ -252,7 +252,7 @@ class MainText extends StatelessWidget {
         Text("쉽고 빠른", style: TextStyle(fontSize: 24, color: Colors.black)),
         Text("경매의 시작", style: TextStyle(fontSize: 24, color: Colors.black)),
         SizedBox(height: 10),
-        Image.asset('assets/logo.png')
+        Image.asset('assets/images/logo.png')
       ],
     );
   }

@@ -6,8 +6,9 @@ import 'package:flutter/material.dart';
 class CommunityAuctionDetailScreen extends StatefulWidget {
   final String title; // 제목
   final String content; // 내용
-  final String uploaderImageURL; // 사용자 프로필 사진 URL
-  final String uploadernickname; // 사용자 닉네임
+  final String uploaderEmail; // 업로더 이메일
+  final String uploaderImageURL; // 업로더 프로필 사진 URL
+  final String uploaderNickname; // 업로더 닉네임
   final String createDate; // 글을 올린 날짜와 시간
   final String collectionName; // 커뮤니티 종류
   final String documentId; // 게시물 고유 ID
@@ -21,8 +22,9 @@ class CommunityAuctionDetailScreen extends StatefulWidget {
   CommunityAuctionDetailScreen({
     required this.title,
     required this.content,
+    required this.uploaderEmail,
     required this.uploaderImageURL,
-    required this.uploadernickname,
+    required this.uploaderNickname,
     required this.createDate,
     required this.collectionName,
     required this.documentId,
@@ -35,10 +37,12 @@ class CommunityAuctionDetailScreen extends StatefulWidget {
   });
 
   @override
-  State<CommunityAuctionDetailScreen> createState() => _CommunityAuctionDetailScreenState();
+  State<CommunityAuctionDetailScreen> createState() =>
+      _CommunityAuctionDetailScreenState();
 }
 
-class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScreen> {
+class _CommunityAuctionDetailScreenState
+    extends State<CommunityAuctionDetailScreen> {
   final _firestore = FirebaseFirestore.instance;
   final _authentication = FirebaseAuth.instance;
 
@@ -55,11 +59,27 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
     }
   }
 
+  // 현재 로그인한 사용자의 이메일 가져오기
+  String? userEmail;
+
+  void getCurrentUserEmail() {
+    final User? user = _authentication.currentUser;
+    if (user != null) {
+      userEmail = user.email;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     getCurrentUserUID();
+    getCurrentUserEmail();
     getLikeStatus();
+  }
+
+  // 업로더 이메일과 현재 로그인한 사용자의 이메일 비교
+  bool isCheckUploader() {
+    return userEmail == widget.uploaderEmail;
   }
 
   // Firestore에서 사용자의 좋아요 상태를 가져오는 함수
@@ -73,7 +93,8 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
 
     if (likeDocument.exists) {
       setState(() {
-        isLiked = likeDocument.data()!['liked'] ?? false; // Check if 'liked' field exists, set to false if not
+        isLiked = likeDocument.data()!['liked'] ??
+            false; // Check if 'liked' field exists, set to false if not
       });
     } else {
       setState(() {
@@ -81,7 +102,6 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
       });
     }
   }
-
 
   // 사용자의 좋아요 여부를 저장하는 함수
   void saveLikeStatus(bool isLiked) {
@@ -104,7 +124,10 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
   Future<void> deletePost(String documentId, BuildContext context) async {
     try {
       // Firestore에서 게시물 삭제
-      await _firestore.collection(widget.collectionName).doc(documentId).delete();
+      await _firestore
+          .collection(widget.collectionName)
+          .doc(documentId)
+          .delete();
       Navigator.pop(context);
     } catch (e) {
       print('게시물 삭제 중 오류 발생: $e');
@@ -127,243 +150,288 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
             iconSize: 30,
             color: Colors.white,
           ),
-          // 게시물 신고 기능
-          actions: [
-            PopupMenuButton<String>(
-              icon: Icon(Icons.more_vert, color: Colors.white, size: 30),
-              offset: Offset(0, 60),
-              onSelected: (value) {
-                if (value == 'delete') {
-                  showConfirmationDialog(context);
-                }
-              },
-              itemBuilder: (BuildContext context) {
-                return [
-                  PopupMenuItem<String>(
-                    value: 'delete',
-                    child: Text('삭제하기'),
+          // 게시물 삭제 기능
+          actions: isCheckUploader()
+              ? [
+                  PopupMenuButton<String>(
+                    icon: Icon(Icons.more_vert, color: Colors.white, size: 30),
+                    offset: Offset(0, 60),
+                    onSelected: (value) {
+                      if (value == 'delete') {
+                        showConfirmationDialog(context);
+                      }
+                    },
+                    itemBuilder: (BuildContext context) {
+                      return [
+                        PopupMenuItem<String>(
+                          value: 'delete',
+                          child: Text('삭제하기'),
+                        ),
+                      ];
+                    },
                   ),
-                ];
-              },
-            ),
-          ],
+                ]
+              : [],
         ),
-        body: GestureDetector(
-          onTap: () {
-            FocusScope.of(context).unfocus(); // 빈 곳 터치시 키패드 사라짐
-          },
-          child: Column(
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(20.0),
+        body: StreamBuilder<DocumentSnapshot>(
+            stream: _firestore
+                .collection(widget.collectionName)
+                .doc(widget.documentId)
+                .snapshots(),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) {
+                return Center(child: CircularProgressIndicator());
+              }
+
+              int likeCount = snapshot.data!.get('like') ?? 0;
+              return GestureDetector(
+                onTap: () {
+                  FocusScope.of(context).unfocus(); // 빈 곳 터치시 키패드 사라짐
+                },
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: SingleChildScrollView(
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // 게시글 제목
-                            Text(widget.title,
-                                style: TextStyle(
-                                    fontSize: 24, fontWeight: FontWeight.bold)),
+                            Padding(
+                              padding: const EdgeInsets.all(20.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // 게시글 제목
+                                  Text(widget.title,
+                                      style: TextStyle(
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.bold)),
 
-                            SizedBox(height: 20),
+                                  SizedBox(height: 20),
 
-                            // 경매 상품 사진
-                            Center(
-                              child: Container(
-                                width: double.infinity,
-                                height: 150,
-                                color: Colors.black12,
-                                child: (widget.photoURL == null || widget.photoURL.isEmpty)
-                                    ? Icon(
-                                        Icons.photo,
-                                        color: Colors.grey,
-                                        size: 100,
-                                      )
-                                    : Image.network(
-                                        widget.photoURL,
-                                        fit: BoxFit.contain,
-                                      ),
-                              ),
-                            ),
-
-                            SizedBox(height: 20),
-
-                            // 유저 정보
-                            Row(
-                              children: [
-                                // 글을 올린 유저의 프로필 사진
-                                Container(
-                                  width: 60,
-                                  height: 60,
-                                  child: ClipOval(
-                                    child: Image.network(
-                                      widget.uploaderImageURL,
-                                      width: 60,
-                                      height: 60,
-                                      fit: BoxFit.cover,
+                                  // 경매 상품 사진
+                                  Center(
+                                    child: Container(
+                                      width: double.infinity,
+                                      height: 150,
+                                      color: Colors.black12,
+                                      child: (widget.photoURL == null ||
+                                              widget.photoURL.isEmpty)
+                                          ? Icon(
+                                              Icons.photo,
+                                              color: Colors.grey,
+                                              size: 100,
+                                            )
+                                          : Image.network(
+                                              widget.photoURL,
+                                              fit: BoxFit.contain,
+                                            ),
                                     ),
                                   ),
-                                ),
 
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                  SizedBox(height: 20),
+
+                                  // 유저 정보
+                                  Row(
                                     children: [
-                                      // 글을 올린 유저의 닉네임
-                                      Text(widget.uploadernickname,
-                                          style: TextStyle(fontSize: 18)),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
+                                      // 글을 올린 유저의 프로필 사진
+                                      Container(
+                                        width: 60,
+                                        height: 60,
+                                        child: ClipOval(
+                                          child: (widget
+                                                  .uploaderImageURL.isNotEmpty)
+                                              ? Image.network(
+                                                  widget.uploaderImageURL,
+                                                  width: 60,
+                                                  height: 60,
+                                                  fit: BoxFit.cover,
+                                                )
+                                              : Icon(
+                                                  Icons.account_circle,
+                                                  size: 60,
+                                                  color: Colors.black12,
+                                                ),
+                                        ),
+                                      ),
+                                      SizedBox(width: 10),
+
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            // 글을 올린 유저의 닉네임
+                                            Text(widget.uploaderNickname,
+                                                style: TextStyle(fontSize: 18)),
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                Row(
+                                                  children: [
+                                                    Text(widget.createDate,
+                                                        style: TextStyle(
+                                                            fontSize: 14,
+                                                            color:
+                                                                Colors.grey)),
+                                                    SizedBox(width: 3),
+                                                    Text('조회',
+                                                        style: TextStyle(
+                                                            fontSize: 14,
+                                                            color:
+                                                                Colors.grey)),
+                                                    SizedBox(width: 3),
+                                                    Text('${widget.views}',
+                                                        style: TextStyle(
+                                                            fontSize: 14,
+                                                            color: Colors.grey,
+                                                            height: 1.5))
+                                                  ],
+                                                ),
+                                              ],
+                                            )
+                                          ],
+                                          // 글을 올린 날짜와 시간
+                                        ),
+                                      ),
+
+                                      // 좋아요 버튼
+                                      Column(
                                         children: [
-                                          Row(
-                                            children: [
-                                              Text(widget.createDate,
-                                                  style: TextStyle(
-                                                      fontSize: 14,
-                                                      color: Colors.grey)),
-                                              SizedBox(width: 3),
-                                              Text('조회수',
-                                                  style: TextStyle(
-                                                      fontSize: 14,
-                                                      color: Colors.grey)),
-                                              SizedBox(width: 3),
-                                              Text('${widget.views}',
-                                                  style: TextStyle(
-                                                      fontSize: 14,
-                                                      color: Colors.grey,
-                                                      height: 1.5))
-                                            ],
+                                          IconButton(
+                                            onPressed: () {
+                                              // Toggle the like status
+                                              setState(() {
+                                                isLiked = !isLiked;
+                                              });
+
+                                              // Save the like status to Firestore
+                                              saveLikeStatus(isLiked);
+
+                                              // Update the like count in Firestore
+                                              updateLikeCount(isLiked);
+                                            },
+                                            icon: Icon(
+                                              isLiked
+                                                  ? Icons.favorite
+                                                  : Icons.favorite_border,
+                                              color: isLiked
+                                                  ? Colors.red
+                                                  : Colors.grey,
+                                            ),
+                                            iconSize: 40,
+                                            padding: EdgeInsets.zero,
+                                            constraints: BoxConstraints(),
                                           ),
+
+                                          // 좋아요 수 표시
+                                          Text('$likeCount', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold))
                                         ],
                                       )
                                     ],
-                                    // 글을 올린 날짜와 시간
                                   ),
-                                ),
 
-                                // 좋아요 버튼
-                                IconButton(
-                                  onPressed: () {
-                                    // Toggle the like status
-                                    setState(() {
-                                      isLiked = !isLiked;
-                                    });
+                                  Line(),
 
-                                    // Save the like status to Firestore
-                                    saveLikeStatus(isLiked);
+                                  // 게시글 내용
+                                  Text(widget.content,
+                                      style: TextStyle(fontSize: 18)),
 
-                                    // Update the like count in Firestore
-                                    updateLikeCount(isLiked);
-                                  },
-                                  icon: Icon(
-                                    isLiked ? Icons.favorite : Icons.favorite_border,
-                                    color: isLiked ? Colors.red : Colors.grey,
+                                  SizedBox(height: 50),
+
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text('경매종료일',
+                                          style: TextStyle(fontSize: 18)),
+                                      Text(widget.endTime,
+                                          style: TextStyle(fontSize: 18)),
+                                    ],
                                   ),
-                                  iconSize: 40,
-                                  padding: EdgeInsets.zero,
-                                  constraints: BoxConstraints(),
-                                )
-                              ],
-                            ),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text('즉시낙찰가',
+                                          style: TextStyle(fontSize: 18)),
+                                      Text(widget.nowPrice,
+                                          style: TextStyle(
+                                              fontSize: 24,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.orange)),
+                                    ],
+                                  ),
 
-                            Line(),
+                                  Line(),
 
-                            // 게시글 내용
-                            Text(widget.content, style: TextStyle(fontSize: 18)),
+                                  Row(
+                                    children: [
+                                      Text(
+                                        '댓글',
+                                        style: TextStyle(fontSize: 14),
+                                      ),
+                                      SizedBox(width: 10),
+                                      Text(
+                                        '${widget.comments}',
+                                        style: TextStyle(
+                                            fontSize: 14, height: 1.4),
+                                      )
+                                    ],
+                                  ),
 
-                            SizedBox(height: 50),
-
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text('경매종료일', style: TextStyle(fontSize: 18)),
-                                Text(widget.endTime, style: TextStyle(fontSize: 18)),
-                              ],
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text('즉시낙찰가', style: TextStyle(fontSize: 18)),
-                                Text(widget.nowPrice,
-                                    style: TextStyle(
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.orange)),
-                              ],
-                            ),
-
-                            Line(),
-
-                            Row(
-                              children: [
-                                Text(
-                                  '댓글',
-                                  style: TextStyle(fontSize: 14),
-                                ),
-                                SizedBox(width: 10),
-                                Text(
-                                  '${widget.comments}',
-                                  style: TextStyle(fontSize: 14, height: 1.4),
-                                )
-                              ],
-                            ),
-
-                            Line(),
-                            // 댓글
-                            Column(
-                              children: [Card()],
+                                  Line(),
+                                  // 댓글
+                                  Column(
+                                    children: [Card()],
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
                         ),
                       ),
-
-
-
-                    ],
-                  ),
-                ),
-              ),
-
-              // 댓글 입력 버튼
-              Stack(children: [
-                TextFormField(
-                  decoration: InputDecoration(
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.grey[400]!),
-                        borderRadius: BorderRadius.all(Radius.circular(15.0)),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.grey[400]!),
-                        borderRadius: BorderRadius.all(Radius.circular(15.0)),
-                      ),
-                      hintText: '댓글을 남겨보세요',
-                      hintStyle:
-                      TextStyle(fontSize: 16, color: Colors.grey[400]!),
-                      contentPadding: EdgeInsets.all(15)),
-                ),
-                Positioned(
-                  right: 0,
-                  top: 0,
-                  bottom: 0,
-                  child: ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black87,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15.0),
-                      ),
                     ),
-                    child: Text('등록', style: TextStyle(fontSize: 16)),
-                  ),
-                )
-              ]),
-            ],
-          ),
-        ),
+
+                    // 댓글 입력 버튼
+                    Stack(children: [
+                      TextFormField(
+                        decoration: InputDecoration(
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.grey[400]!),
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(15.0)),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.grey[400]!),
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(15.0)),
+                            ),
+                            hintText: '댓글을 남겨보세요',
+                            hintStyle: TextStyle(
+                                fontSize: 16, color: Colors.grey[400]!),
+                            contentPadding: EdgeInsets.all(15)),
+                      ),
+                      Positioned(
+                        right: 0,
+                        top: 0,
+                        bottom: 0,
+                        child: ElevatedButton(
+                          onPressed: () {},
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.black87,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(15.0),
+                            ),
+                          ),
+                          child: Text('등록', style: TextStyle(fontSize: 16)),
+                        ),
+                      )
+                    ]),
+                  ],
+                ),
+              );
+            }),
         bottomNavigationBar: BottomAppBar());
   }
 
@@ -405,10 +473,12 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
       },
     );
   }
+
   // Firestore에서 좋아요 수를 업데이트하는 함수
   Future<void> updateLikeCount(bool isLiked) async {
     try {
-      final postRef = _firestore.collection(widget.collectionName).doc(widget.documentId);
+      final postRef =
+          _firestore.collection(widget.collectionName).doc(widget.documentId);
 
       // 사용자의 동작에 따라 좋아요 수를 업데이트합니다.
       if (isLiked) {

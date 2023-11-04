@@ -9,7 +9,7 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-          title: Image.asset('assets/logo.png', width: 150),
+          title: Image.asset('assets/images/logo.png', width: 150),
           backgroundColor: Colors.white,
           automaticallyImplyLeading: false,
           actions: [
@@ -32,7 +32,7 @@ class HomeScreen extends StatelessWidget {
           // 상단 이미지
           SizedBox(
             height: 150,
-            child: Image.asset('assets/logo.png', width: 100),
+            child: Image.asset('assets/images/logo.png', width: 100),
           ),
 
           // 카테고리 버튼

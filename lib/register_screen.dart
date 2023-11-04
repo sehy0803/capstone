@@ -12,13 +12,14 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final _authentication = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final _firestore = FirebaseFirestore.instance;
   final _formKey = GlobalKey<FormState>();
 
-  // 유저가 입력한 회원가입 정보를 저장할 변수
+  // 유저의 회원가입 정보를 저장할 변수
   String email = '';
   String password = '';
   String nickname = '';
+  String imageURL = '';
 
   // 유효성 검사 후 값 저장
   void _tryValidation() {
@@ -31,12 +32,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
   // 이메일 중복 검사
   Future<bool> _checkIfEmailExists(String email) async {
     final querySnapshot = await _firestore
-        .collection('User') // Firestore에 사용자 정보를 저장할 컬렉션 이름
+        .collection('User')
         .where('email', isEqualTo: email)
         .get();
 
     return querySnapshot.docs.isNotEmpty;
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -64,7 +66,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             child: Padding(
               padding: const EdgeInsets.all(30),
               child: Column(children: [
-                Image.asset('assets/logo.png'),
+                Image.asset('assets/images/logo.png'),
                 SizedBox(height: 50),
                 Form(
                   key: _formKey,
@@ -303,15 +305,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 password: password,
                               );
 
-                              // Cloud Firestore 에 유저 정보 저장
+                              //Firestore 에 사용자 정보 저장
                               await FirebaseFirestore.instance.collection('User').doc(newUser.user!.uid).set({
                                 'email': email,
                                 'nickname': nickname,
+                                'imageURL': imageURL
                               });
 
                               // 회원가입 성공시 LoginScreen으로 이동
                               if (newUser.user != null) {
-                                print(password);
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text(
@@ -376,6 +378,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
         ));
   }
+
+
 }
 
 // ========================================== 커스텀 위젯 ==========================================

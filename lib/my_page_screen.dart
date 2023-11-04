@@ -1,3 +1,4 @@
+import 'package:capstone/custom_widget.dart';
 import 'package:capstone/profile_edit_screen.dart';
 import 'package:capstone/profile_setting_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -60,9 +61,10 @@ class _MyPageScreenState extends State<MyPageScreen> {
 
           return SingleChildScrollView(
             child: Padding(
-              padding: const EdgeInsets.all(10.0),
+              padding: const EdgeInsets.all(20.0),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -91,13 +93,12 @@ class _MyPageScreenState extends State<MyPageScreen> {
                         },
                         child: Text('프로필 수정', style: TextStyle(fontSize: 16)),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.black,
+                          backgroundColor: Colors.black87,
                         ),
                       ),
                     ],
                   ),
-
-
+                  Line(),
                 ],
               ),
             ),
@@ -123,16 +124,15 @@ class _MyPageScreenState extends State<MyPageScreen> {
     }
   }
 
-  // 유저 프로필 사진을 표시하는 부분
-  Widget _buildUserProfileImage(String? profileImageUrl) {
-    if (profileImageUrl != null && profileImageUrl.isNotEmpty) {
-      // Firebase Storage에서 이미지를 가져와 표시
+  // 사용자의 프로필사진을 표시하는 함수
+  Widget _buildUserProfileImage(String imageURL) {
+    if (imageURL != null && imageURL.isNotEmpty) {
       return Container(
         width: 120,
         height: 120,
         child: ClipOval(
           child: Image.network(
-            profileImageUrl,
+            imageURL,
             width: 120,
             height: 120,
             fit: BoxFit.cover,
@@ -140,16 +140,20 @@ class _MyPageScreenState extends State<MyPageScreen> {
         ),
       );
     } else {
-      // 기본 아이콘 표시
+      // imageURL이 공백 또는 null일 경우 기본 이미지 표시
       return Container(
         width: 120,
         height: 120,
-        child: Icon(
-          Icons.account_circle,
-          color: Colors.black12,
-          size: 120,
+        child: ClipOval(
+          child: Image.asset(
+            'assets/images/defaultImage.png', // 기본 이미지 파일 경로
+            width: 120,
+            height: 120,
+            fit: BoxFit.cover,
+          ),
         ),
       );
     }
   }
+
 }

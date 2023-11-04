@@ -23,8 +23,9 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
   // 유저가 입력한 게시글 정보를 저장할 변수
   String title = ''; // 제목
   String content = ''; // 내용
-  String uploaderImageURL = ''; // 사용자 프로필 사진 URL
-  String uploadernickname = ''; // 사용자 닉네임
+  String uploaderEmail = ''; // 업로더 이메일
+  String uploaderImageURL = ''; // 업로더 프로필 사진 URL
+  String uploaderNickname = ''; // 업로더 닉네임
   String createDate = ''; // 글을 올린 날짜와 시간
   int views = 0; // 조회수
   int like = 0; // 좋아요 횟수
@@ -36,11 +37,11 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
   @override
   void initState() {
     super.initState();
-    getCurrentUser(); // Firestore에서 사용자 정보 가져오기
+    getCurrentUser(); // Firestore에서 업로더 정보 가져오기
     setCreateDate(); // 현재 시간으로 createDate 설정
   }
 
-  // Firestore에서 사용자 정보 가져오기
+  // Firestore에서 업로더 정보 가져오기
   void getCurrentUser() async {
     try {
       final user = _authentication.currentUser;
@@ -48,22 +49,24 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
         final userDocument =
             await _firestore.collection('User').doc(user.uid).get();
         if (userDocument.exists) {
-          uploaderImageURL = userDocument['imageURL'] ?? '';
-          uploadernickname = userDocument['nickname'] ?? '';
+          uploaderEmail = userDocument['email'];
+          uploaderImageURL = userDocument['imageURL'];
+          uploaderNickname = userDocument['nickname'];
         }
       }
     } catch (e) {
-      print('사용자 정보 가져오기 오류: $e');
+      print('업로더 정보 가져오기 오류: $e');
     }
   }
 
   // 현재 시간으로 createDate 설정
   void setCreateDate() {
     final now = DateTime.now();
-    final formatter = DateFormat('yyyy-MM-dd HH:mm');
+    final formatter = DateFormat('yyyy.MM.dd HH:mm');
     createDate = formatter.format(now);
   }
 
+  // 상품 사진을 스토리지에 업로드
   Future<String> uploadImageToStorage(File imageFile) async {
     try {
       final storageReference = FirebaseStorage.instance.ref().child('images/${Uuid().v4()}');
@@ -228,17 +231,17 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
   // firestore에 게시글 정보 저장
   void _saveCommunityData() async {
     if (title.isNotEmpty && content.isNotEmpty) {
-      String photoURL = '';
       if (_pickedFile != null) {
-        photoURL = await uploadImageToStorage(_pickedFile!);
+        String photoURL = await uploadImageToStorage(_pickedFile!);
       }
 
       try {
         await _firestore.collection('AuctionCommunity').add({
           'title': title,
           'content': content,
+          'uploaderEmail': uploaderEmail, // 이메일 저장
           'uploaderImageURL': uploaderImageURL, // 프로필 사진 URL 저장
-          'uploadernickname': uploadernickname, // 닉네임 저장
+          'uploaderNickname': uploaderNickname, // 닉네임 저장
           'createDate': createDate, // 작성일자 저장
           'views': views, // 조회수 초기값
           'like': like, // 좋아요 횟수 초기값
@@ -247,7 +250,7 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
           'endTime': endTime, // 경매 종료시간
           'nowPrice': nowPrice // 즉시거래가
         });
-
+        Navigator.pop(context);
       } catch (e) {
         print('데이터 저장 오류: $e');
       }

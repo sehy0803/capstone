@@ -95,10 +95,12 @@ class _CommunityScreenState extends State<CommunityScreen> {
               itemBuilder: (context, index) {
                 final title = documents![index]['title'] as String;
                 final content = documents[index]['content'] as String;
+                final uploaderEmail =
+                documents[index]['uploaderEmail'] as String;
                 final uploaderImageURL =
                     documents[index]['uploaderImageURL'] as String;
-                final uploadernickname =
-                    documents[index]['uploadernickname'] as String;
+                final uploaderNickname =
+                    documents[index]['uploaderNickname'] as String;
                 final createDate = documents[index]['createDate'] as String;
                 final documentId = getDocumentId(documents![index]);
                 final views = documents[index]['views'] as int;
@@ -116,10 +118,15 @@ class _CommunityScreenState extends State<CommunityScreen> {
                     title: Text(title, style: TextStyle(fontSize: 18)),
                     subtitle: Row(
                       children: [
-                        Text(uploadernickname, style: TextStyle(fontSize: 14)),
-                        SizedBox(width: 10),
-                        Text(createDate, style: TextStyle(fontSize: 14)),
-                        Text('조회수: $views, 좋아요: $like, 댓글: $comments'),
+                        Text(uploaderNickname, style: TextStyle(fontSize: 14)),
+                        SizedBox(width: 5),
+                        Text(createDate, style: TextStyle(fontSize: 14, height: 1.4)),
+                        SizedBox(width: 5),
+                        Text('조회 $views'),
+                        SizedBox(width: 5),
+                        Text('좋아요 $like'),
+                        SizedBox(width: 5),
+                        Text('댓글 $comments'),
                       ],
                     ),
                     onTap: () {
@@ -133,8 +140,9 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                 return CommunityAuctionDetailScreen(
                                   title: title,
                                   content: content,
+                                  uploaderEmail: uploaderEmail,
                                   uploaderImageURL: uploaderImageURL,
-                                  uploadernickname: uploadernickname,
+                                  uploaderNickname: uploaderNickname,
                                   createDate: createDate,
                                   collectionName: getCollectionName(),
                                   documentId: documentId,
@@ -149,8 +157,9 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                 return CommunityUserDetailScreen(
                                   title: title,
                                   content: content,
+                                  uploaderEmail: uploaderEmail,
                                   uploaderImageURL: uploaderImageURL,
-                                  uploadernickname: uploadernickname,
+                                  uploaderNickname: uploaderNickname,
                                   createDate: createDate,
                                   collectionName: getCollectionName(),
                                   documentId: documentId,

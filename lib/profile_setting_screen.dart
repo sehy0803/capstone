@@ -89,6 +89,26 @@ class _ProfileSettingScreenState extends State<ProfileSettingScreen> {
               );
               if (confirm == true){
                 _authentication.signOut();
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('로그아웃되었습니다.',
+                        style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.white)),
+                    margin: EdgeInsets.only(
+                        bottom: MediaQuery.of(context)
+                            .size
+                            .height -
+                            120,
+                        left: 10,
+                        right: 10),
+                    dismissDirection: DismissDirection.up,
+                    duration: Duration(milliseconds: 1500),
+                    behavior: SnackBarBehavior.floating,
+                    backgroundColor: Colors.black,
+                  ),
+                );
               }
             },
             child: Text('로그아웃'),
@@ -161,7 +181,7 @@ class _ProfileSettingScreenState extends State<ProfileSettingScreen> {
                               bottom: MediaQuery.of(context)
                                   .size
                                   .height -
-                                  90,
+                                  120,
                               left: 10,
                               right: 10),
                           dismissDirection: DismissDirection.up,
