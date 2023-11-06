@@ -76,7 +76,7 @@ class _TabScreenState extends State<TabScreen> {
             BottomNavigationBarItem(icon: Icon(Icons.view_list), label: '카테고리'),
             BottomNavigationBarItem(icon: Icon(Icons.forum), label: '커뮤니티'),
             BottomNavigationBarItem(icon: Icon(Icons.sms), label: '채팅'),
-            BottomNavigationBarItem(icon: Icon(Icons.favorite), label: '즐겨찾기'),
+            BottomNavigationBarItem(icon: Icon(Icons.favorite), label: '관심목록'),
             BottomNavigationBarItem(icon: Icon(Icons.account_circle), label: '마이페이지'),
           ],
         )

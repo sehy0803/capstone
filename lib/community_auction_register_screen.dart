@@ -201,7 +201,6 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
                   onPressed: () {
                     // 게시물을 등록하고 AlertDialog 닫기
                     _saveCommunityData();
-                    Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text('게시물이 등록되었습니다.',

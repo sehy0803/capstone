@@ -109,8 +109,8 @@ class _CommunityScreenState extends State<CommunityScreen> {
                 final photoURL = documents[index]['photoURL'] as String;
 
                 if (getCollectionName() == 'AuctionCommunity') {
-                  endTime = documents![index]['endTime'] as String;
-                  nowPrice = documents![index]['nowPrice'] as String;
+                  endTime = documents[index]['endTime'] as String;
+                  nowPrice = documents[index]['nowPrice'] as String;
                 }
 
                 return Card(
