@@ -112,7 +112,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   ),
                                   hintText: '이메일',
                                   hintStyle: TextStyle(
-                                      fontSize: 16, color: Colors.grey[400]!),
+                                      fontSize: 16, color: Colors.grey[400]!, height: 1.15),
                                   contentPadding: EdgeInsets.all(15)),
                             ),
                           ),
@@ -248,7 +248,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ),
                             hintText: '비밀번호',
                             hintStyle: TextStyle(
-                                fontSize: 16, color: Colors.grey[400]!),
+                                fontSize: 16, color: Colors.grey[400]!, height: 1.15),
                             contentPadding: EdgeInsets.all(15)),
                       ),
                       SizedBox(height: 10),
@@ -287,7 +287,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ),
                             hintText: '닉네임',
                             hintStyle: TextStyle(
-                                fontSize: 16, color: Colors.grey[400]!),
+                                fontSize: 16, color: Colors.grey[400]!, height: 1.15),
                             contentPadding: EdgeInsets.all(15)),
                       ),
                       SizedBox(height: 50),

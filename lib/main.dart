@@ -110,7 +110,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                               hintText: '이메일',
                               hintStyle: TextStyle(
-                                  fontSize: 16, color: Colors.grey[400]!),
+                                  fontSize: 16, color: Colors.grey[400]!, height: 1.15),
                               contentPadding: EdgeInsets.all(15)),
                         ),
                         SizedBox(height: 10),
@@ -141,7 +141,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                               hintText: '비밀번호',
                               hintStyle: TextStyle(
-                                  fontSize: 16, color: Colors.grey[400]!),
+                                  fontSize: 16, color: Colors.grey[400]!, height: 1.15),
                               contentPadding: EdgeInsets.all(15)),
                         ),
                         SizedBox(height: 10),
@@ -171,21 +171,13 @@ class _LoginScreenState extends State<LoginScreen> {
                           // 로그인 성공시 TabScreen으로 이동
                           if (newUser.user != null) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                  content: Text(
-                                    '환영합니다!',
-                                    style: TextStyle(
-                                        fontSize: 16, color: Colors.white),
-                                  ),
-                                  margin: EdgeInsets.only(
-                                      bottom: MediaQuery.of(context).size.height- 120,
-                                      left: 10,
-                                      right: 10
-                                  ),
+                                SnackBar(
+                                  content: Text('환영합니다!',
+                                      style: TextStyle(fontSize: 16, color: Colors.white)),
                                   dismissDirection: DismissDirection.up,
                                   duration: Duration(milliseconds: 1500),
-                                  behavior: SnackBarBehavior.floating,
-                                  backgroundColor: Colors.black),
+                                  backgroundColor: Colors.black,
+                                )
                             );
                           }
                         } catch (e) {
