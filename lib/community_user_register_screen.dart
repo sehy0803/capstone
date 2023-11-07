@@ -95,6 +95,7 @@ class _CommunityRegisterScreenState extends State<CommunityRegisterScreen> {
               Column(
                 children: [
                   TextField(
+                    maxLength: 30,
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     decoration: InputDecoration(
                         hintText: '제목',
@@ -106,11 +107,12 @@ class _CommunityRegisterScreenState extends State<CommunityRegisterScreen> {
                   ),
                   SizedBox(height: 10),
                   TextField(
+                    maxLength: 300,
                     style: TextStyle(fontSize: 18),
                     decoration: InputDecoration(
                         hintText: '내용', hintStyle: TextStyle(fontSize: 18)),
                     keyboardType: TextInputType.multiline,
-                    maxLines: 50,
+                    maxLines: 30,
                     onChanged: (value) {
                       content = value;
                     },

@@ -126,15 +126,16 @@ class _MyPageScreenState extends State<MyPageScreen> {
 
   // 사용자의 프로필사진을 표시하는 함수
   Widget _buildUserProfileImage(String imageURL) {
+    double _imageSize = 80.0;
     if (imageURL != null && imageURL.isNotEmpty) {
       return Container(
-        width: 120,
-        height: 120,
+        width: _imageSize,
+        height: _imageSize,
         child: ClipOval(
           child: Image.network(
             imageURL,
-            width: 120,
-            height: 120,
+            width: _imageSize,
+            height: _imageSize,
             fit: BoxFit.cover,
           ),
         ),
@@ -142,13 +143,13 @@ class _MyPageScreenState extends State<MyPageScreen> {
     } else {
       // imageURL이 공백 또는 null일 경우 기본 이미지 표시
       return Container(
-        width: 120,
-        height: 120,
+        width: _imageSize,
+        height: _imageSize,
         child: ClipOval(
           child: Image.asset(
             'assets/images/defaultImage.png', // 기본 이미지 파일 경로
-            width: 120,
-            height: 120,
+            width: _imageSize,
+            height: _imageSize,
             fit: BoxFit.cover,
           ),
         ),

@@ -2,6 +2,7 @@ import 'package:capstone/community_auction_register_screen.dart';
 import 'package:capstone/community_auction_detail_screen.dart';
 import 'package:capstone/community_user_detail_screen.dart';
 import 'package:capstone/community_user_register_screen.dart';
+import 'package:capstone/custom_widget.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
@@ -55,7 +56,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
-        backgroundColor: Colors.black12,
+        backgroundColor: Colors.white,
         appBar: AppBar(
           title:
               Text('커뮤니티', style: TextStyle(color: Colors.black, fontSize: 20)),
@@ -113,70 +114,82 @@ class _CommunityScreenState extends State<CommunityScreen> {
                   nowPrice = documents[index]['nowPrice'] as String;
                 }
 
-                return Card(
-                  child: ListTile(
-                    title: Text(title, style: TextStyle(fontSize: 18)),
-                    subtitle: Row(
-                      children: [
-                        Text(uploaderNickname, style: TextStyle(fontSize: 14)),
-                        SizedBox(width: 5),
-                        Text(createDate, style: TextStyle(fontSize: 14, height: 1.4)),
-                        SizedBox(width: 5),
-                        Text('조회 $views'),
-                        SizedBox(width: 5),
-                        Text('좋아요 $like'),
-                        SizedBox(width: 5),
-                        Text('댓글 $comments'),
-                      ],
+                return Column(
+                  children: [
+                    Card(
+                      elevation: 0,
+                      child: ListTile(
+                        title: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(title, style: TextStyle(fontSize: 16)),
+                            SizedBox(height: 10),
+                          ],
+                        ),
+                        subtitle: Row(
+                          children: [
+                            Text(uploaderNickname, style: TextStyle(fontSize: 12)),
+                            SizedBox(width: 5),
+                            Text(createDate, style: TextStyle(fontSize: 12, height: 1.3)),
+                            SizedBox(width: 5),
+                            Text('조회 $views', style: TextStyle(fontSize: 12)),
+                            SizedBox(width: 5),
+                            Text('좋아요 $like', style: TextStyle(fontSize: 12)),
+                            SizedBox(width: 5),
+                            Text('댓글 $comments', style: TextStyle(fontSize: 12)),
+                          ],
+                        ),
+                        onTap: () {
+                          increaseViews(documentId, getCollectionName()); // 조회수 증가
+                          try {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) {
+                                  if (getCollectionName() == 'AuctionCommunity') {
+                                    return CommunityAuctionDetailScreen(
+                                      title: title,
+                                      content: content,
+                                      uploaderEmail: uploaderEmail,
+                                      uploaderImageURL: uploaderImageURL,
+                                      uploaderNickname: uploaderNickname,
+                                      createDate: createDate,
+                                      collectionName: getCollectionName(),
+                                      documentId: documentId,
+                                      views: views + 1,
+                                      like: like,
+                                      comments: comments,
+                                      photoURL: photoURL,
+                                      endTime: endTime,
+                                      nowPrice: nowPrice,
+                                    );
+                                  } else {
+                                    return CommunityUserDetailScreen(
+                                      title: title,
+                                      content: content,
+                                      uploaderEmail: uploaderEmail,
+                                      uploaderImageURL: uploaderImageURL,
+                                      uploaderNickname: uploaderNickname,
+                                      createDate: createDate,
+                                      collectionName: getCollectionName(),
+                                      documentId: documentId,
+                                      views: views + 1,
+                                      like: like,
+                                      comments: comments,
+                                      photoURL: photoURL,
+                                    );
+                                  }
+                                },
+                              ),
+                            );
+                          } catch (e) {
+                            print('$e');
+                          }
+                        },
+                      ),
                     ),
-                    onTap: () {
-                      increaseViews(documentId, getCollectionName()); // 조회수 증가
-                      try {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) {
-                              if (getCollectionName() == 'AuctionCommunity') {
-                                return CommunityAuctionDetailScreen(
-                                  title: title,
-                                  content: content,
-                                  uploaderEmail: uploaderEmail,
-                                  uploaderImageURL: uploaderImageURL,
-                                  uploaderNickname: uploaderNickname,
-                                  createDate: createDate,
-                                  collectionName: getCollectionName(),
-                                  documentId: documentId,
-                                  views: views + 1,
-                                  like: like,
-                                  comments: comments,
-                                  photoURL: photoURL,
-                                  endTime: endTime,
-                                  nowPrice: nowPrice,
-                                );
-                              } else {
-                                return CommunityUserDetailScreen(
-                                  title: title,
-                                  content: content,
-                                  uploaderEmail: uploaderEmail,
-                                  uploaderImageURL: uploaderImageURL,
-                                  uploaderNickname: uploaderNickname,
-                                  createDate: createDate,
-                                  collectionName: getCollectionName(),
-                                  documentId: documentId,
-                                  views: views + 1,
-                                  like: like,
-                                  comments: comments,
-                                  photoURL: photoURL,
-                                );
-                              }
-                            },
-                          ),
-                        );
-                      } catch (e) {
-                        print('================================== $e');
-                      }
-                    },
-                  ),
+                    commentLine()
+                  ],
                 );
               },
             );
