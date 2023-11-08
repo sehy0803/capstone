@@ -4,10 +4,7 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   file_selector_windows
-<<<<<<< HEAD
   firebase_core
-=======
->>>>>>> parent of 295220f (2023-10-21 회원가입, 로그인 기능 구현중)
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST
