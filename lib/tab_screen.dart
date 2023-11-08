@@ -1,6 +1,7 @@
 import 'package:capstone/category_screen.dart';
 import 'package:capstone/chat_list_screen.dart';
 import 'package:capstone/community_screen.dart';
+import 'package:capstone/custom_widget.dart';
 import 'package:capstone/favorite_screen.dart';
 import 'package:capstone/home_screen.dart';
 import 'package:capstone/my_page_screen.dart';
@@ -62,10 +63,10 @@ class _TabScreenState extends State<TabScreen> {
     return Scaffold(
         body: _widgetOptions[_selectedIndex], // 현재 선택된 페이지를 표시
         bottomNavigationBar: BottomNavigationBar(
-          backgroundColor: Colors.black,
+          backgroundColor: DarkColors.basic,
           type: BottomNavigationBarType.fixed, // 애니메이션 효과 제거
           selectedItemColor: Colors.white,
-          unselectedItemColor: Colors.grey,
+          unselectedItemColor: Colors.grey[700],
           selectedFontSize: 12,
           unselectedFontSize: 12,
           currentIndex: _selectedIndex,

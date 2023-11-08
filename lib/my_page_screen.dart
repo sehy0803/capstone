@@ -93,7 +93,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
                         },
                         child: Text('프로필 수정', style: TextStyle(fontSize: 16)),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.black87,
+                          backgroundColor: DarkColors.basic,
                         ),
                       ),
                     ],
@@ -107,8 +107,8 @@ class _MyPageScreenState extends State<MyPageScreen> {
       ),
     );
   }
-
-  // 유저 정보 실시간 업데이트하는 함수
+  //============================================================================
+  // 유저 정보를 실시간 업데이트하는 함수
   Stream<Map<String, dynamic>> _fetchUserProfileStream() {
     final user = _authentication.currentUser;
     if (user != null) {

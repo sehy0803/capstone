@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:capstone/custom_widget.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -30,6 +31,142 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     super.initState();
     _fetchUserData();
   }
+
+
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).unfocus(); // 빈 곳 터치시 키패드 사라짐
+      },
+      child: Scaffold(
+          resizeToAvoidBottomInset: false,
+          backgroundColor: Colors.white,
+          appBar: AppBar(
+            centerTitle: true,
+            title: Text('프로필 수정',
+                style: TextStyle(color: Colors.black, fontSize: 20)),
+            backgroundColor: Colors.white,
+            leading: IconButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              icon: Icon(Icons.close),
+              iconSize: 30,
+              color: Colors.black,
+            ),
+          ),
+          body: Padding(
+            padding: const EdgeInsets.all(30.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  children: [
+                    // 유저 프로필 사진
+                    Center(child: _buildProfileImage()),
+                    SizedBox(height: 30),
+                    // 이메일 정보
+                    Row(
+                      children: [
+                        Text('이메일', style: TextStyle(fontSize: 16)),
+                        SizedBox(width: 30),
+                        Text(email,
+                            style: TextStyle(fontSize: 16, color: Colors.grey)),
+                      ],
+                    ),
+
+                    // 수정할 값을 입력받을 텍스트필드
+                    Row(
+                      children: [
+                        Text("닉네임", style: TextStyle(fontSize: 16)),
+                        SizedBox(width: 30),
+                        Form(
+                          key: _formKey,
+                          child: Expanded(
+                            child: // 닉네임 텍스트필드
+                                TextFormField(
+                                    validator: (value) {
+                                      if (value!.length < 2) {
+                                        return '닉네임을 2글자 이상 입력해주세요.';
+                                      }
+                                      if (RegExp(r'[!@#\$%^&*]')
+                                          .hasMatch(value)) {
+                                        return '닉네임에 특수문자를 포함할 수 없습니다.';
+                                      }
+                                      return null;
+                                    },
+                                    onSaved: (value) {
+                                      nickname = value!;
+                                    },
+                                    onChanged: (value) {
+                                      nickname = value;
+                                    },
+                                    decoration: InputDecoration(
+                                      hintText: '닉네임',
+                                      hintStyle: TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.grey[400]!),
+                                    )),
+                          ),
+                        )
+                      ],
+                    ),
+                  ],
+                ),
+
+                // 프로필 수정 버튼
+                SizedBox(
+                  width: double.infinity,
+                  height: 55,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      setState(() {
+                        isLoading = true; // 버튼 클릭 시 로딩 상태를 활성화
+                      });
+
+                      // 유효성 검사 수행
+                      _tryValidation();
+
+                      // 유효성 검사를 통과했을 시
+                      if (_formKey.currentState!.validate()) {
+                        // 프로필 업데이트 수행
+                        final updatedInfo = await _updateProfile();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('변경 사항이 저장되었습니다.',
+                                  style: TextStyle(fontSize: 16, color: Colors.white)),
+                              dismissDirection: DismissDirection.up,
+                              duration: Duration(milliseconds: 1500),
+                              backgroundColor: Colors.black,
+                            )
+                        );
+                        Navigator.pop(context);
+                      }
+                      setState(() {
+                        isLoading = false;
+                      });
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: DarkColors.basic,
+                      elevation: 5,
+                      shape: StadiumBorder(),
+                    ),
+                    child: isLoading
+                        ? CircularProgressIndicator() // 로딩 중일 때 표시할 위젯
+                        : Text(
+                            "저장하기",
+                            style: TextStyle(fontSize: 18),
+                          ),
+                  ),
+                )
+              ],
+            ),
+          )),
+    );
+  }
+  //============================================================================
 
   // 유효성 검사 후 값 저장
   void _tryValidation() {
@@ -133,24 +270,24 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           child: Center(
             child: _pickedFile == null
                 ? ClipOval(
-                    child: Image.network(
-                      imageURL!,
-                      width: _imageSize,
-                      height: _imageSize,
-                      fit: BoxFit.cover,
-                    ),
-                  )
+              child: Image.network(
+                imageURL!,
+                width: _imageSize,
+                height: _imageSize,
+                fit: BoxFit.cover,
+              ),
+            )
                 : Container(
-                    width: _imageSize,
-                    height: _imageSize,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      image: DecorationImage(
-                        image: FileImage(File(_pickedFile!.path)),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
+              width: _imageSize,
+              height: _imageSize,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                image: DecorationImage(
+                  image: FileImage(File(_pickedFile!.path)),
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
           ),
         ),
       );
@@ -177,28 +314,28 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
             child: Center(
               child: _pickedFile == null
                   ? Container(
-                      width: _imageSize,
-                      height: _imageSize,
-                      child: ClipOval(
-                        child: Image.asset(
-                          'assets/images/defaultImage.png', // 기본 이미지 파일 경로
-                          width: _imageSize,
-                          height: _imageSize,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    )
+                width: _imageSize,
+                height: _imageSize,
+                child: ClipOval(
+                  child: Image.asset(
+                    'assets/images/defaultImage.png', // 기본 이미지 파일 경로
+                    width: _imageSize,
+                    height: _imageSize,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              )
                   : Container(
-                      width: _imageSize,
-                      height: _imageSize,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        image: DecorationImage(
-                          image: FileImage(File(_pickedFile!.path)),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    ),
+                width: _imageSize,
+                height: _imageSize,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  image: DecorationImage(
+                    image: FileImage(File(_pickedFile!.path)),
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
             ),
           ),
         ),
@@ -223,145 +360,4 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        FocusScope.of(context).unfocus(); // 빈 곳 터치시 키패드 사라짐
-      },
-      child: Scaffold(
-          resizeToAvoidBottomInset: false,
-          backgroundColor: Colors.white,
-          appBar: AppBar(
-            centerTitle: true,
-            title: Text('프로필 수정',
-                style: TextStyle(color: Colors.black, fontSize: 20)),
-            backgroundColor: Colors.white,
-            leading: IconButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              icon: Icon(Icons.close),
-              iconSize: 30,
-              color: Colors.black,
-            ),
-          ),
-          body: Padding(
-            padding: const EdgeInsets.all(30.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  children: [
-                    // 유저 프로필 사진
-                    Center(child: _buildProfileImage()),
-                    SizedBox(height: 30),
-                    // 이메일 정보
-                    Row(
-                      children: [
-                        Text('이메일', style: TextStyle(fontSize: 16)),
-                        SizedBox(width: 30),
-                        Text(email,
-                            style: TextStyle(fontSize: 16, color: Colors.grey)),
-                      ],
-                    ),
-
-                    // 수정할 값을 입력받을 텍스트필드
-                    Row(
-                      children: [
-                        Text("닉네임", style: TextStyle(fontSize: 16)),
-                        SizedBox(width: 30),
-                        Form(
-                          key: _formKey,
-                          child: Expanded(
-                            child: // 닉네임 텍스트필드
-                                TextFormField(
-                                    validator: (value) {
-                                      if (value!.length < 2) {
-                                        return '닉네임을 2글자 이상 입력해주세요.';
-                                      }
-                                      if (RegExp(r'[!@#\$%^&*]')
-                                          .hasMatch(value)) {
-                                        return '닉네임에 특수문자를 포함할 수 없습니다.';
-                                      }
-                                      return null;
-                                    },
-                                    onSaved: (value) {
-                                      nickname = value!;
-                                    },
-                                    onChanged: (value) {
-                                      nickname = value;
-                                    },
-                                    decoration: InputDecoration(
-                                      hintText: '닉네임',
-                                      hintStyle: TextStyle(
-                                          fontSize: 16,
-                                          color: Colors.grey[400]!),
-                                    )),
-                          ),
-                        )
-                      ],
-                    ),
-                  ],
-                ),
-
-                // 프로필 수정 버튼
-                SizedBox(
-                  width: double.infinity,
-                  height: 55,
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      setState(() {
-                        isLoading = true; // 버튼 클릭 시 로딩 상태를 활성화
-                      });
-
-                      // 유효성 검사 수행
-                      _tryValidation();
-
-                      // 유효성 검사를 통과했을 시
-                      if (_formKey.currentState!.validate()) {
-                        // 프로필 업데이트 수행
-                        final updatedInfo = await _updateProfile();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              '변경사항이 저장되었습니다.',
-                              style:
-                                  TextStyle(fontSize: 18, color: Colors.white),
-                            ),
-                            margin: EdgeInsets.only(
-                              bottom: MediaQuery.of(context).size.height - 120,
-                              left: 10,
-                              right: 10,
-                            ),
-                            dismissDirection: DismissDirection.up,
-                            duration: Duration(milliseconds: 1500),
-                            behavior: SnackBarBehavior.floating,
-                            backgroundColor: Colors.black,
-                          ),
-                        );
-                        Navigator.pop(context);
-                      }
-                      setState(() {
-                        isLoading = false;
-                      });
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
-                      elevation: 5,
-                      shape: StadiumBorder(),
-                    ),
-                    child: isLoading
-                        ? CircularProgressIndicator() // 로딩 중일 때 표시할 위젯
-                        : Text(
-                            "저장하기",
-                            style: TextStyle(fontSize: 18),
-                          ),
-                  ),
-                )
-              ],
-            ),
-          )),
-    );
-  }
 }

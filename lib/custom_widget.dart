@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class Line extends StatelessWidget {
@@ -12,7 +11,7 @@ class Line extends StatelessWidget {
         Container(
           width: double.infinity,
           height: 1,
-          color: Color(0xffeeeeee)
+          color: Colors.grey[300]
         ),
         SizedBox(height: 20),
       ],
@@ -20,8 +19,8 @@ class Line extends StatelessWidget {
   }
 }
 
-class commentLine extends StatelessWidget {
-  const commentLine({super.key});
+class CommentLine extends StatelessWidget {
+  const CommentLine({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -37,4 +36,25 @@ class commentLine extends StatelessWidget {
       ],
     );
   }
+}
+
+class AuctionLine extends StatelessWidget {
+  const AuctionLine({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Container(
+            width: double.infinity,
+            height: 1,
+            color: DarkColors.basic
+        ),
+      ],
+    );
+  }
+}
+
+class DarkColors {
+  static const Color basic = Color(0xff1F1F1F);
 }

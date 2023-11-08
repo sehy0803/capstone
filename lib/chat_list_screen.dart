@@ -1,3 +1,4 @@
+import 'package:capstone/custom_widget.dart';
 import 'package:flutter/material.dart';
 
 class ChatListScreen extends StatelessWidget {

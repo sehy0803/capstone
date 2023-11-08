@@ -5,6 +5,7 @@ import 'package:capstone/community_user_register_screen.dart';
 import 'package:capstone/custom_widget.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class CommunityScreen extends StatefulWidget {
   const CommunityScreen({super.key});
@@ -18,40 +19,18 @@ class _CommunityScreenState extends State<CommunityScreen> {
   int _currentTabIndex = 0; // 현재 선택된 탭을 저장하는 변수
   String collectionName = '';
 
+  int startBid = 0;
+  int winningBid = 0;
+  String winningBidder = '';
+  Timestamp endTime = Timestamp(0, 0);
+
   @override
   void initState() {
     super.initState();
   }
 
-  // 선택된 게시판 이름
-  String getCollectionName() {
-    return collectionName =
-        (_currentTabIndex == 0) ? 'AuctionCommunity' : 'UserCommunity';
-  }
-
-  // 게시물의 Document ID를 가져오는 함수
-  String getDocumentId(QueryDocumentSnapshot document) {
-    return document.id;
-  }
-
-  // Firestore에서 조회수를 증가시키는 함수
-  Future<void> increaseViews(String documentId, String collectionName) async {
-    final documentReference =
-        _firestore.collection(collectionName).doc(documentId);
-    final document = await documentReference.get();
-
-    if (document.exists) {
-      final currentViews = document['views'] as int;
-      final updatedViews = currentViews + 1;
-
-      await documentReference.update({'views': updatedViews});
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    String endTime = '';
-    String nowPrice = '';
 
     return DefaultTabController(
       length: 2,
@@ -70,7 +49,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
             ],
             labelColor: Colors.black,
             labelStyle: TextStyle(fontSize: 18),
-            indicatorColor: Colors.black,
+            indicatorColor: DarkColors.basic,
             onTap: (index) {
               setState(() {
                 _currentTabIndex = index;
@@ -102,16 +81,19 @@ class _CommunityScreenState extends State<CommunityScreen> {
                     documents[index]['uploaderImageURL'] as String;
                 final uploaderNickname =
                     documents[index]['uploaderNickname'] as String;
-                final createDate = documents[index]['createDate'] as String;
                 final documentId = getDocumentId(documents![index]);
                 final views = documents[index]['views'] as int;
                 final like = documents[index]['like'] as int;
                 final comments = documents[index]['comments'] as int;
                 final photoURL = documents[index]['photoURL'] as String;
+                final createDate = documents[index]['createDate'] as Timestamp;
+                final formattedDate = DateFormat('yyyy.MM.dd HH:mm').format(createDate.toDate());
 
                 if (getCollectionName() == 'AuctionCommunity') {
-                  endTime = documents[index]['endTime'] as String;
-                  nowPrice = documents[index]['nowPrice'] as String;
+                  startBid = documents[index]['startBid'] as int;
+                  winningBid = documents[index]['winningBid'] as int;
+                  winningBidder = documents[index]['winningBidder'] as String;
+                  endTime = documents[index]['endTime'] as Timestamp;
                 }
 
                 return Column(
@@ -130,7 +112,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                           children: [
                             Text(uploaderNickname, style: TextStyle(fontSize: 12)),
                             SizedBox(width: 5),
-                            Text(createDate, style: TextStyle(fontSize: 12, height: 1.3)),
+                            Text(formattedDate, style: TextStyle(fontSize: 12, height: 1.3)),
                             SizedBox(width: 5),
                             Text('조회 $views', style: TextStyle(fontSize: 12)),
                             SizedBox(width: 5),
@@ -153,15 +135,17 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                       uploaderEmail: uploaderEmail,
                                       uploaderImageURL: uploaderImageURL,
                                       uploaderNickname: uploaderNickname,
-                                      createDate: createDate,
                                       collectionName: getCollectionName(),
                                       documentId: documentId,
                                       views: views + 1,
                                       like: like,
                                       comments: comments,
                                       photoURL: photoURL,
+                                      startBid: startBid,
+                                      winningBid: winningBid,
+                                      winningBidder: winningBidder,
+                                      createDate: createDate,
                                       endTime: endTime,
-                                      nowPrice: nowPrice,
                                     );
                                   } else {
                                     return CommunityUserDetailScreen(
@@ -188,7 +172,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                         },
                       ),
                     ),
-                    commentLine()
+                    CommentLine()
                   ],
                 );
               },
@@ -215,17 +199,41 @@ class _CommunityScreenState extends State<CommunityScreen> {
               );
             }
           },
-          backgroundColor: Colors.black,
+          backgroundColor: DarkColors.basic,
           child: Icon(Icons.edit),
         ),
       ),
     );
   }
-
+  //============================================================================
   Stream<QuerySnapshot> _getCommunityStream() {
     return _firestore
         .collection(getCollectionName())
         .orderBy('createDate', descending: true)
         .snapshots();
+  }
+
+  // 선택된 게시판 이름
+  String getCollectionName() {
+    return collectionName =
+    (_currentTabIndex == 0) ? 'AuctionCommunity' : 'UserCommunity';
+  }
+
+  // 게시물의 Document ID를 가져오는 함수
+  String getDocumentId(QueryDocumentSnapshot document) {
+    return document.id;
+  }
+
+  // Firestore에서 조회수를 증가시키는 함수
+  Future<void> increaseViews(String documentId, String collectionName) async {
+    final documentReference =
+    _firestore.collection(collectionName).doc(documentId);
+    final document = await documentReference.get();
+
+    if (document.exists) {
+      final currentViews = document['views'] as int;
+      final updatedViews = currentViews + 1;
+      await documentReference.update({'views': updatedViews});
+    }
   }
 }

@@ -10,7 +10,7 @@ class CommunityUserDetailScreen extends StatefulWidget {
   final String uploaderEmail; // 업로더 이메일
   final String uploaderImageURL; // 업로더 프로필 사진 URL
   final String uploaderNickname; // 업로더 닉네임
-  final String createDate; // 글을 올린 날짜와 시간
+  final Timestamp createDate; // 글을 올린 날짜와 시간
   final String collectionName; // 커뮤니티 종류
   final String documentId; // 게시물 고유 ID
   final int views; // 조회수
@@ -58,6 +58,8 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // 'createDate'를 '2023.12.03 15:30' 형태로 포맷
+    final formattedDate = DateFormat('yyyy.MM.dd HH:mm').format(widget.createDate.toDate());
     return Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
@@ -73,7 +75,7 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
           actions: isCheckUploader()
               ? [
             PopupMenuButton<String>(
-              icon: Icon(Icons.more_vert, color: Colors.white, size: 30),
+              icon: Icon(Icons.more_vert, color: Colors.grey, size: 30),
               offset: Offset(0, 60),
               onSelected: (value) {if (value == 'delete') {showDialogDeletePost(context);}},
               itemBuilder: (BuildContext context) {
@@ -135,7 +137,7 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
                                           SizedBox(height: 5),
                                           Row(
                                             children: [
-                                              Text(widget.createDate, style: TextStyle(fontSize: 12, color: Colors.grey, height: 1.5)),
+                                              Text(formattedDate, style: TextStyle(fontSize: 12, color: Colors.grey, height: 1.5)),
                                               SizedBox(width: 3),
                                               Text('조회', style: TextStyle(fontSize: 12, color: Colors.grey)),
                                               SizedBox(width: 3),
@@ -178,7 +180,7 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
                                 Text(widget.content,
                                     style: TextStyle(fontSize: 16)),
                                 SizedBox(height: 10),
-                                commentLine(),
+                                CommentLine(),
                                 Row(
                                   children: [
                                     Text('댓글', style: TextStyle(fontSize: 14)),
@@ -247,7 +249,7 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
                                                 ),
                                               ),
                                             ),
-                                            commentLine()
+                                            CommentLine()
                                           ],
                                         );
                                       }).toList(),
@@ -264,52 +266,57 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
 
                   // 댓글 입력 버튼
                   Stack(children: [
-                    TextFormField(
-                      controller: commentController,
-                      decoration: InputDecoration(
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.grey[400]!),
-                            borderRadius: BorderRadius.all(
-                                Radius.circular(15.0)),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            controller: commentController,
+                            decoration: InputDecoration(
+                                enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(color: Colors.grey[400]!),
+                                  borderRadius: BorderRadius.all(
+                                      Radius.circular(0.0)),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(color: Colors.grey[400]!),
+                                  borderRadius: BorderRadius.all(
+                                      Radius.circular(0.0)),
+                                ),
+                                hintText: '댓글을 남겨보세요',
+                                hintStyle: TextStyle(fontSize: 16, color: Colors
+                                    .grey[400]!),
+                                contentPadding: EdgeInsets.all(15)),
                           ),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.grey[400]!),
-                            borderRadius: BorderRadius.all(
-                                Radius.circular(15.0)),
-                          ),
-                          hintText: '댓글을 남겨보세요',
-                          hintStyle: TextStyle(fontSize: 16, color: Colors
-                              .grey[400]!),
-                          contentPadding: EdgeInsets.all(15)),
-                    ),
-                    Positioned(
-                      right: 0,
-                      top: 0,
-                      bottom: 0,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          if(commentController.text.isEmpty){
-                            ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('댓글을 입력해주세요.',
-                                      style: TextStyle(fontSize: 16, color: Colors.white)),
-                                  dismissDirection: DismissDirection.up,
-                                  duration: Duration(milliseconds: 1500),
-                                  backgroundColor: Colors.black,
-                                )
-                            );
-                          } else {
-                            showDialogAddComment(context);
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.black87,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(15.0)),
                         ),
-                        child: Text('등록', style: TextStyle(fontSize: 16)),
-                      ),
-                    )
+                        SizedBox(
+                          width: 80,
+                          height: 55,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              if(commentController.text.isEmpty){
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('댓글을 입력해주세요.',
+                                          style: TextStyle(fontSize: 16, color: Colors.white)),
+                                      dismissDirection: DismissDirection.up,
+                                      duration: Duration(milliseconds: 1500),
+                                      backgroundColor: Colors.black,
+                                    )
+                                );
+                              } else {
+                                showDialogAddComment(context);
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.black87,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(0.0)),
+                            ),
+                            child: Text('등록', style: TextStyle(fontSize: 16)),
+                          ),
+                        ),
+                      ],
+                    ),
                   ]),
                 ],
               ),
