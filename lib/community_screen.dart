@@ -22,6 +22,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
   int startBid = 0;
   int winningBid = 0;
   String winningBidder = '';
+  String status = '';
   Timestamp endTime = Timestamp(0, 0);
 
   @override
@@ -57,129 +58,199 @@ class _CommunityScreenState extends State<CommunityScreen> {
             },
           ),
         ),
-        body: StreamBuilder<QuerySnapshot>(
-          stream: _getCommunityStream(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(child: CircularProgressIndicator());
-            }
+          body: StreamBuilder<QuerySnapshot>(
+            stream: _getCommunityStream(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(child: CircularProgressIndicator());
+              }
 
-            if (snapshot.hasError) {
-              return Center(child: Text('데이터를 불러올 수 없습니다.'));
-            }
+              if (snapshot.hasError) {
+                return Center(child: Text('데이터를 불러올 수 없습니다.'));
+              }
 
-            final documents = snapshot.data?.docs;
+              final documents = snapshot.data?.docs;
 
-            return ListView.builder(
-              itemCount: documents?.length ?? 0,
-              itemBuilder: (context, index) {
-                final title = documents![index]['title'] as String;
-                final content = documents[index]['content'] as String;
-                final uploaderEmail =
-                documents[index]['uploaderEmail'] as String;
-                final uploaderImageURL =
-                    documents[index]['uploaderImageURL'] as String;
-                final uploaderNickname =
-                    documents[index]['uploaderNickname'] as String;
-                final documentId = getDocumentId(documents![index]);
-                final views = documents[index]['views'] as int;
-                final like = documents[index]['like'] as int;
-                final comments = documents[index]['comments'] as int;
-                final photoURL = documents[index]['photoURL'] as String;
-                final createDate = documents[index]['createDate'] as Timestamp;
-                final formattedDate = DateFormat('yyyy.MM.dd HH:mm').format(createDate.toDate());
+              return ListView.builder(
+                itemCount: documents?.length ?? 0,
+                itemBuilder: (context, index) {
+                  final title = documents![index]['title'] as String;
+                  final content = documents[index]['content'] as String;
+                  final uploaderEmail = documents[index]['uploaderEmail'] as String;
+                  final uploaderImageURL = documents[index]['uploaderImageURL'] as String;
+                  final uploaderNickname = documents[index]['uploaderNickname'] as String;
+                  final documentId = getDocumentId(documents![index]);
+                  final views = documents[index]['views'] as int;
+                  final like = documents[index]['like'] as int;
+                  final comments = documents[index]['comments'] as int;
+                  final photoURL = documents[index]['photoURL'] as String;
+                  final createDate = documents[index]['createDate'] as Timestamp;
+                  final formattedDate = DateFormat('yyyy.MM.dd HH:mm').format(createDate.toDate());
 
-                if (getCollectionName() == 'AuctionCommunity') {
-                  startBid = documents[index]['startBid'] as int;
-                  winningBid = documents[index]['winningBid'] as int;
-                  winningBidder = documents[index]['winningBidder'] as String;
-                  endTime = documents[index]['endTime'] as Timestamp;
-                }
+                  if (getCollectionName() == 'AuctionCommunity') {
+                    startBid = documents[index]['startBid'] as int;
+                    winningBid = documents[index]['winningBid'] as int;
+                    winningBidder = documents[index]['winningBidder'] as String;
+                    status = documents[index]['status'] as String;
+                    endTime = documents[index]['endTime'] as Timestamp;
 
-                return Column(
-                  children: [
-                    Card(
-                      elevation: 0,
-                      child: ListTile(
-                        title: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(title, style: TextStyle(fontSize: 16)),
-                            SizedBox(height: 10),
-                          ],
-                        ),
-                        subtitle: Row(
-                          children: [
-                            Text(uploaderNickname, style: TextStyle(fontSize: 12)),
-                            SizedBox(width: 5),
-                            Text(formattedDate, style: TextStyle(fontSize: 12, height: 1.3)),
-                            SizedBox(width: 5),
-                            Text('조회 $views', style: TextStyle(fontSize: 12)),
-                            SizedBox(width: 5),
-                            Text('좋아요 $like', style: TextStyle(fontSize: 12)),
-                            SizedBox(width: 5),
-                            Text('댓글 $comments', style: TextStyle(fontSize: 12)),
-                          ],
-                        ),
-                        onTap: () {
-                          increaseViews(documentId, getCollectionName()); // 조회수 증가
-                          try {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) {
-                                  if (getCollectionName() == 'AuctionCommunity') {
-                                    return CommunityAuctionDetailScreen(
-                                      title: title,
-                                      content: content,
-                                      uploaderEmail: uploaderEmail,
-                                      uploaderImageURL: uploaderImageURL,
-                                      uploaderNickname: uploaderNickname,
-                                      collectionName: getCollectionName(),
-                                      documentId: documentId,
-                                      views: views + 1,
-                                      like: like,
-                                      comments: comments,
-                                      photoURL: photoURL,
-                                      startBid: startBid,
-                                      winningBid: winningBid,
-                                      winningBidder: winningBidder,
-                                      createDate: createDate,
-                                      endTime: endTime,
-                                    );
-                                  } else {
-                                    return CommunityUserDetailScreen(
-                                      title: title,
-                                      content: content,
-                                      uploaderEmail: uploaderEmail,
-                                      uploaderImageURL: uploaderImageURL,
-                                      uploaderNickname: uploaderNickname,
-                                      createDate: createDate,
-                                      collectionName: getCollectionName(),
-                                      documentId: documentId,
-                                      views: views + 1,
-                                      like: like,
-                                      comments: comments,
-                                      photoURL: photoURL,
-                                    );
-                                  }
-                                },
-                              ),
-                            );
-                          } catch (e) {
-                            print('$e');
-                          }
-                        },
+                    // 경매 커뮤니티 게시물 표시
+                    return GestureDetector(
+                      onTap: () {
+                        increaseViews(documentId, getCollectionName()); // 조회수 증가
+                        try {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) {
+                                return CommunityAuctionDetailScreen(
+                                  title: title,
+                                  content: content,
+                                  uploaderEmail: uploaderEmail,
+                                  uploaderImageURL: uploaderImageURL,
+                                  uploaderNickname: uploaderNickname,
+                                  collectionName: getCollectionName(),
+                                  documentId: documentId,
+                                  views: views + 1,
+                                  like: like,
+                                  comments: comments,
+                                  photoURL: photoURL,
+                                  startBid: startBid,
+                                  winningBid: winningBid,
+                                  winningBidder: winningBidder,
+                                  status: status,
+                                  createDate: createDate,
+                                  endTime: endTime,
+                                );
+                              },
+                            ),
+                          );
+                        } catch (e) {
+                          print('$e');
+                        }
+                      },
+                      child: Column(
+                        children: [
+                          Card(
+                            elevation: 0,
+                            child: Row(
+                              children: [
+                                _buildAuctionImage(photoURL),
+                                SizedBox(width: 10),
+                                Expanded(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Container(
+                                              decoration: BoxDecoration(
+                                                color: _getStatusColor(status),
+                                                borderRadius: BorderRadius.circular(10.0),
+                                                border: Border.all(
+                                                  color: Colors.yellow, // 외곽선의 색상 설정
+                                                  width: 1.0,          // 외곽선의 두께 설정
+                                                ),
+                                              ),
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(6.0),
+                                              child: Text(status,
+                                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)
+                                              ),
+                                            )
+                                          ),
+                                          SizedBox(width: 10),
+                                          Text(title, style: TextStyle(fontSize: 16)),
+                                        ],
+                                      ),
+                                      SizedBox(height: 10),
+                                      Text(uploaderNickname, style: TextStyle(fontSize: 12, color: Colors.grey)),
+                                      Row(
+                                        children: [
+                                          Text(formattedDate, style: TextStyle(fontSize: 12, height: 1.3, color: Colors.grey)),
+                                          SizedBox(width: 5),
+                                          Text('조회 $views', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                                          SizedBox(width: 5),
+                                          Text('좋아요 $like', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              ],
+                            ),
+                          ),
+                          Container(height: 1, color: Colors.grey[200])
+                        ],
                       ),
-                    ),
-                    CommentLine()
-                  ],
-                );
-              },
-            );
-          },
-        ),
-        floatingActionButton: FloatingActionButton(
+                    );
+                  } else {
+                    // 유저 커뮤니티 게시물 표시
+                    return Column(
+                      children: [
+                        Card(
+                          elevation: 0,
+                          child: ListTile(
+                            title: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(title, style: TextStyle(fontSize: 16)),
+                                SizedBox(height: 10),
+                              ],
+                            ),
+                            subtitle: Row(
+                              children: [
+                                Text(uploaderNickname, style: TextStyle(fontSize: 12)),
+                                SizedBox(width: 5),
+                                Text(formattedDate, style: TextStyle(fontSize: 12, height: 1.3)),
+                                SizedBox(width: 5),
+                                Text('조회 $views', style: TextStyle(fontSize: 12)),
+                                SizedBox(width: 5),
+                                Text('좋아요 $like', style: TextStyle(fontSize: 12)),
+                                SizedBox(width: 5),
+                                Text('댓글 $comments', style: TextStyle(fontSize: 12)),
+                              ],
+                            ),
+                            onTap: () {
+                              increaseViews(documentId, getCollectionName()); // 조회수 증가
+                              try {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) {
+                                      return CommunityUserDetailScreen(
+                                        title: title,
+                                        content: content,
+                                        uploaderEmail: uploaderEmail,
+                                        uploaderImageURL: uploaderImageURL,
+                                        uploaderNickname: uploaderNickname,
+                                        createDate: createDate,
+                                        collectionName: getCollectionName(),
+                                        documentId: documentId,
+                                        views: views + 1,
+                                        like: like,
+                                        comments: comments,
+                                        photoURL: photoURL,
+                                      );
+                                    },
+                                  ),
+                                );
+                              } catch (e) {
+                                print('$e');
+                              }
+                            },
+                          ),
+                        ),
+                        CommentLine()
+                      ],
+                    );
+                  }
+                },
+              );
+            },
+          ),
+          floatingActionButton: FloatingActionButton(
           onPressed: () {
             if (_currentTabIndex == 0) {
               // 경매 게시판 탭이 선택된 상태면 경매 게시글 등록 화면으로 이동
@@ -236,4 +307,31 @@ class _CommunityScreenState extends State<CommunityScreen> {
       await documentReference.update({'views': updatedViews});
     }
   }
+
+  // 경매 상품 사진을 표시하는 함수
+  Widget _buildAuctionImage(String auctionImageURL) {
+    double _imageSize = 100.0;
+    return Center(
+      child: Container(
+        color: Colors.black,
+        width: _imageSize,
+        height: _imageSize,
+        child: Image.network(auctionImageURL, width: _imageSize, height: _imageSize, fit: BoxFit.cover),
+      ),
+    );
+  }
+
+  // _getStatusColor 함수
+  Color _getStatusColor(String status) {
+    if (status == '진행중') {
+      return Colors.green; // 녹색
+    } else if (status == '낙찰') {
+      return Colors.red; // 빨간색
+    } else if (status == '경매 실패') {
+      return Colors.grey; // 회색
+    } else {
+      return Colors.black; // 기본값 (다른 상태일 때)
+    }
+  }
+
 }

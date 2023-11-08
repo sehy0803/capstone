@@ -29,13 +29,13 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
   int like = 0; // 좋아요 횟수
   int comments = 0; // 댓글 수
   String photoURL = ''; // 경매 상품 사진
-  //============================================================================
-  // 입찰, 낙찰 정보를 저장할 변수
+  // 경매 정보를 저장할 변수
   int startBid = 0; // 시작가
   int winningBid = 0; // 낙찰가
   String winningBidder = ''; // 낙찰자
+  String status = '진행중'; // 경매 상태 : 진행중, 낙찰, 경매 실패
   Timestamp createDate = Timestamp.now(); // 글을 올린 날짜와 시간
-  Timestamp endTime = Timestamp.fromDate(DateTime.now().add(Duration(hours: 1))); // 경매 종료까지 남은 시간 : createDate + 1시간
+  Timestamp endTime = Timestamp.fromDate(DateTime.now().add(Duration(minutes: 1))); // 경매 종료까지 남은 시간 : createDate + 1분
 
   @override
   void initState() {
@@ -142,6 +142,7 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
             'startBid': startBid, // 시작가
             'winningBid': startBid, // 낙찰가. 최소 입찰가(초기값은 시작가로)
             'winningBidder': winningBidder, // 낙찰자
+            'status': status,
             'endTime': endTime, // 경매 종료까지 남은 시간
           });
         } catch (e) {

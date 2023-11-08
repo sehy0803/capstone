@@ -21,6 +21,7 @@ class CommunityAuctionDetailScreen extends StatefulWidget {
   final int startBid; // 시작가
   final int winningBid; // 낙찰가
   final String winningBidder; // 낙찰자
+  final String status; // 경매 상태
   final Timestamp createDate; // 글을 올린 날짜와 시간
   final Timestamp endTime; // 경매 종료까지 남은 시간
 
@@ -40,6 +41,7 @@ class CommunityAuctionDetailScreen extends StatefulWidget {
     required this.startBid,
     required this.winningBid,
     required this.winningBidder,
+    required this.status,
     required this.endTime,
 
   });
@@ -108,11 +110,12 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
       if (_timeRemaining.isNegative) {
         _timer.cancel();
         _timeRemaining = Duration(); // 타이머가 종료되면 _timeRemaining을 0으로 설정
+
+        updateAuctionStatus();
       }
       setState(() {});
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -360,9 +363,43 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
     );
   }
   //============================================================================
+
+  // 경매 종료시 경매 상태를 업데이트 하는 함수
+  void updateAuctionStatus() async {
+    String postDocumentPath = '${widget.collectionName}/${widget.documentId}';
+    final winningBidder = await getWinningBidder();
+    if (winningBidder.isNotEmpty) {
+      // 최고 입찰자가 있는 경우
+      await FirebaseFirestore.instance.doc(postDocumentPath).update({
+        'status': '낙찰',
+      });
+
+    } else {
+      // 최고 입찰자가 없는 경우
+      await FirebaseFirestore.instance.doc(postDocumentPath).update({
+        'status': '경매 실패',
+      });
+    }
+  }
+
+  // 최고 입찰자를 가져오는 함수
+  Future<String> getWinningBidder() async {
+    final document = await _firestore
+        .collection(widget.collectionName)
+        .doc(widget.documentId)
+        .get();
+    final data = document.data();
+
+    if (data != null && data['winningBidder'] != null) {
+      return data['winningBidder'] as String;
+    } else {
+      return '';
+    }
+  }
+
   // 최소 입찰가를 가져올 스트림
   Stream<int> getWinningBidStream() {
-    return FirebaseFirestore.instance
+    return _firestore
         .collection(widget.collectionName)
         .doc(widget.documentId)
         .snapshots()
