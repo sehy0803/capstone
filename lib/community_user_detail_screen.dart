@@ -147,7 +147,6 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
                                         ],
                                       ),
                                     ),
-
                                     // 좋아요 버튼
                                     Column(
                                       children: [
@@ -175,8 +174,16 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
                                     ),
                                   ],
                                 ),
-                                Line(),
-                                // 게시글 내용
+                              ],
+                            ),
+                          ),
+                          Container(height: 1, color: Colors.grey[300]),
+                          // 게시글 내용
+                          Padding(
+                            padding: const EdgeInsets.all(20.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
                                 Text(widget.content,
                                     style: TextStyle(fontSize: 16)),
                                 SizedBox(height: 10),
@@ -189,7 +196,6 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
                                   ],
                                 ),
                                 SizedBox(height: 20),
-
                                 // 댓글창을 표시하는 부분
                                 StreamBuilder<QuerySnapshot>(
                                   stream: _firestore.collection(commentsCollectionPath).orderBy('timestamp', descending: false).snapshots(),
@@ -259,6 +265,7 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
                               ],
                             ),
                           ),
+
                         ],
                       ),
                     ),
@@ -308,7 +315,7 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
                               }
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.black87,
+                              backgroundColor: DarkColors.basic,
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(0.0)),
                             ),

@@ -124,6 +124,7 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
   void _saveAuctionData() async {
     if (title.isNotEmpty && content.isNotEmpty) {
       if(_pickedFile != null){
+        Navigator.of(context).pop();
         try {
           String photoURL = await uploadImageToStorage(_pickedFile!);
           await _firestore.collection('AuctionCommunity').add({
@@ -143,7 +144,6 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
             'winningBidder': winningBidder, // 낙찰자
             'endTime': endTime, // 경매 종료까지 남은 시간
           });
-          Navigator.of(context).pop();
         } catch (e) {
           print('데이터 저장 오류: $e');
         }
