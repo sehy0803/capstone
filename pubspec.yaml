@@ -33,10 +33,6 @@ dependencies:
   flutter_localizations: # 날짜, 시간 패키지
     sdk: flutter
   intl: ^0.18.1 # intl 패키지(날짜, 시간을 원하는 형식으로 포맷)
-  firebase_core: ^2.19.0
-  firebase_auth: ^4.11.1
-  cloud_firestore: ^4.11.0
-
 
 
 

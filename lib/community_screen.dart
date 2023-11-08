@@ -7,7 +7,6 @@ class CommunityScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        backgroundColor: Colors.white,
         appBar: AppBar(
             title: Text('커뮤니티',
                 style: TextStyle(color: Colors.black, fontSize: 20)),

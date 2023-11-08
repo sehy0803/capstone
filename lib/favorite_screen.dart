@@ -7,23 +7,26 @@ class FavoriteScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        backgroundColor: Colors.white,
         appBar: AppBar(
             title: Text('관심목록',
                 style: TextStyle(color: Colors.black, fontSize: 20)),
             backgroundColor: Colors.white,
         ),
         body: SingleChildScrollView(
-          child: Column(
-            children: [
-              // 위젯 추가
-              FavoriteList()
+            child: Container(
+              color: Colors.white,
+              child: Column(
+                children: [
+                  // 위젯 추가
+                  FavoriteList()
 
 
 
 
-            ],
-          ),
+                ],
+              ),
+            )
+
 
         ),
       ),

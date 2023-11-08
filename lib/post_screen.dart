@@ -11,7 +11,6 @@ class PostScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        backgroundColor: Colors.white,
         appBar: AppBar(
             title: Text('게시글 제목',
                 style: TextStyle(color: Colors.black, fontSize: 20)),

@@ -11,7 +11,6 @@ class AuctionScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        backgroundColor: Colors.white,
         appBar: AppBar(
             title: Text('경매',
                 style: TextStyle(color: Colors.black, fontSize: 20)),
@@ -24,6 +23,8 @@ class AuctionScreen extends StatelessWidget {
             ),
         ),
         body: SingleChildScrollView(
+            child: Container(
+              color: Colors.white,
               child: Column(
                 children: [
                   // 위젯 추가
@@ -60,7 +61,7 @@ class AuctionScreen extends StatelessWidget {
                       ],
                     ),
                   )
-
+                  
 
 
 
@@ -69,8 +70,10 @@ class AuctionScreen extends StatelessWidget {
 
                 ],
               ),
-        )
+            )
 
+
+        ),
       ),
     );
   }
