@@ -22,6 +22,7 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
   // 게시글 정보를 저장할 변수
   String title = ''; // 제목
   String content = ''; // 내용
+  String uploaderUID = ''; // 업로더 uid
   String uploaderEmail = ''; // 업로더 이메일
   String uploaderImageURL = ''; // 업로더 프로필 사진 URL
   String uploaderNickname = ''; // 업로더 닉네임
@@ -33,6 +34,7 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
   int startBid = 0; // 시작가
   int winningBid = 0; // 낙찰가
   String winningBidder = ''; // 낙찰자
+  String winningBidderUID = ''; // 낙찰자 uid
   String status = '진행중'; // 경매 상태 : 진행중, 낙찰, 경매 실패
   Timestamp createDate = Timestamp.now(); // 글을 올린 날짜와 시간
   Timestamp endTime = Timestamp.fromDate(DateTime.now().add(Duration(minutes: 1))); // 경매 종료까지 남은 시간 : createDate + 1분
@@ -130,6 +132,7 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
           await _firestore.collection('AuctionCommunity').add({
             'title': title, // 제목
             'content': content, // 상품 설명
+            'uploaderUID': uploaderUID, // 업로더 uid
             'uploaderEmail': uploaderEmail, // 업로더 이메일
             'uploaderImageURL': uploaderImageURL, // 프로필 사진 URL
             'uploaderNickname': uploaderNickname, // 업로더 닉네임
@@ -141,7 +144,8 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
             // ==========================================================
             'startBid': startBid, // 시작가
             'winningBid': startBid, // 낙찰가. 최소 입찰가(초기값은 시작가로)
-            'winningBidder': winningBidder, // 낙찰자
+            'winningBidder': winningBidder, // 낙찰자 닉네임
+            'winningBidderUID': winningBidderUID, // 낙찰자 uid
             'status': status,
             'endTime': endTime, // 경매 종료까지 남은 시간
           });
@@ -239,6 +243,7 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
         final userDocument =
         await _firestore.collection('User').doc(user.uid).get();
         if (userDocument.exists) {
+          uploaderUID = user.uid;
           uploaderEmail = userDocument['email'];
           uploaderImageURL = userDocument['imageURL'];
           uploaderNickname = userDocument['nickname'];

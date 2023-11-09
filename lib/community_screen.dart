@@ -22,6 +22,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
   int startBid = 0;
   int winningBid = 0;
   String winningBidder = '';
+  String winningBidderUID = '';
   String status = '';
   Timestamp endTime = Timestamp(0, 0);
 
@@ -76,6 +77,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                 itemBuilder: (context, index) {
                   final title = documents![index]['title'] as String;
                   final content = documents[index]['content'] as String;
+                  final uploaderUID = documents[index]['uploaderUID'] as String;
                   final uploaderEmail = documents[index]['uploaderEmail'] as String;
                   final uploaderImageURL = documents[index]['uploaderImageURL'] as String;
                   final uploaderNickname = documents[index]['uploaderNickname'] as String;
@@ -91,6 +93,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                     startBid = documents[index]['startBid'] as int;
                     winningBid = documents[index]['winningBid'] as int;
                     winningBidder = documents[index]['winningBidder'] as String;
+                    winningBidderUID = documents[index]['winningBidderUID'] as String;
                     status = documents[index]['status'] as String;
                     endTime = documents[index]['endTime'] as Timestamp;
 
@@ -106,6 +109,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                 return CommunityAuctionDetailScreen(
                                   title: title,
                                   content: content,
+                                  uploaderUID: uploaderUID,
                                   uploaderEmail: uploaderEmail,
                                   uploaderImageURL: uploaderImageURL,
                                   uploaderNickname: uploaderNickname,
@@ -118,6 +122,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                   startBid: startBid,
                                   winningBid: winningBid,
                                   winningBidder: winningBidder,
+                                  winningBidderUID: winningBidderUID,
                                   status: status,
                                   createDate: createDate,
                                   endTime: endTime,
@@ -165,9 +170,10 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                         ],
                                       ),
                                       SizedBox(height: 10),
-                                      Text(uploaderNickname, style: TextStyle(fontSize: 12, color: Colors.grey)),
                                       Row(
                                         children: [
+                                          Text(uploaderNickname, style: TextStyle(fontSize: 12, color: Colors.grey)),
+                                          SizedBox(width: 5),
                                           Text(formattedDate, style: TextStyle(fontSize: 12, height: 1.3, color: Colors.grey)),
                                           SizedBox(width: 5),
                                           Text('조회 $views', style: TextStyle(fontSize: 12, color: Colors.grey)),
@@ -222,6 +228,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                       return CommunityUserDetailScreen(
                                         title: title,
                                         content: content,
+                                        uploaderUID: uploaderUID,
                                         uploaderEmail: uploaderEmail,
                                         uploaderImageURL: uploaderImageURL,
                                         uploaderNickname: uploaderNickname,

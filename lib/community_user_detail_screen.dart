@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 class CommunityUserDetailScreen extends StatefulWidget {
   final String title; // 제목
   final String content; // 내용
+  final String uploaderUID; // 업로더 uid
   final String uploaderEmail; // 업로더 이메일
   final String uploaderImageURL; // 업로더 프로필 사진 URL
   final String uploaderNickname; // 업로더 닉네임
@@ -21,6 +22,7 @@ class CommunityUserDetailScreen extends StatefulWidget {
   CommunityUserDetailScreen({
     required this.title,
     required this.content,
+    required this.uploaderUID,
     required this.uploaderEmail,
     required this.uploaderImageURL,
     required this.uploaderNickname,
@@ -52,7 +54,6 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
   void initState() {
     super.initState();
     getCurrentUserUID();
-    getCurrentUserEmail();
     getLikeStatus();
   }
 
@@ -587,23 +588,14 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
     }
   }
 
-  // 현재 로그인한 사용자의 이메일 가져오기
-  String? userEmail;
-  void getCurrentUserEmail() {
-    final User? user = _authentication.currentUser;
-    if (user != null) {
-      userEmail = user.email;
-    }
-  }
-
-  // 업로더의 이메일과 현재 로그인한 사용자의 이메일 비교
+  // 업로더의 uid와 현재 로그인한 사용자의 uid 비교
   bool isCheckUploader() {
-    return userEmail == widget.uploaderEmail;
+    return userUID == widget.uploaderEmail;
   }
 
   // 코멘터의 이메일과 현재 로그인한 사용자의 이메일 비교
   bool isCheckCommenter(commenterEmail) {
-    return userEmail == commenterEmail;
+    return userUID == commenterEmail;
   }
 
   //============================================================================

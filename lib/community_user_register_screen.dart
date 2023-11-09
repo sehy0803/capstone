@@ -18,6 +18,7 @@ class _CommunityRegisterScreenState extends State<CommunityRegisterScreen> {
   // 유저가 입력한 게시글 정보를 저장할 변수
   String title = ''; // 제목
   String content = ''; // 내용
+  String uploaderUID = ''; // 업로더 uid
   String uploaderEmail = ''; // 업로더 이메일
   String uploaderImageURL = ''; // 업로더 프로필 사진 URL
   String uploaderNickname = ''; // 업로더 닉네임
@@ -98,6 +99,7 @@ class _CommunityRegisterScreenState extends State<CommunityRegisterScreen> {
         final userDocument =
         await _firestore.collection('User').doc(user.uid).get();
         if (userDocument.exists) {
+          uploaderUID = user.uid;
           uploaderEmail = userDocument['email'] ?? '';
           uploaderImageURL = userDocument['imageURL'] ?? '';
           uploaderNickname = userDocument['nickname'] ?? '';
@@ -115,6 +117,7 @@ class _CommunityRegisterScreenState extends State<CommunityRegisterScreen> {
         await _firestore.collection('UserCommunity').add({
           'title': title,
           'content': content,
+          'uploaderUID': uploaderUID, // 이메일 저장
           'uploaderEmail': uploaderEmail, // 이메일 저장
           'uploaderImageURL': uploaderImageURL, // 프로필 사진 URL 저장
           'uploaderNickname': uploaderNickname, // 닉네임 저장
