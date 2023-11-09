@@ -114,6 +114,7 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
         _timer.cancel();
         _timeRemaining = Duration(); // 타이머가 종료되면 _timeRemaining을 0으로 설정
 
+        // 경매 종료 시 수행할 함수들
         updateAuctionStatus();
       }
       setState(() {});

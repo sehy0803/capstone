@@ -195,7 +195,7 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
       builder: (context) {
         return AlertDialog(
           title: Text('등록하기'),
-          content: Text('게시물을 등록하시겠습니까?'),
+          content: Text('경매를 등록하시겠습니까?'),
           actions: [
             TextButton(
               onPressed: () {Navigator.pop(context);},
