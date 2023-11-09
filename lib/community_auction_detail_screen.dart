@@ -574,15 +574,26 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
 
   // 게시물 삭제 함수
   Future<void> deletePost(String documentId, BuildContext context) async {
+    Navigator.pop(context);
     try {
-      // Firestore에서 게시물 삭제
-      await _firestore
+      // Firestore에서 경매 삭제하기 전에 해당 경매의 DocumentSnapshot을 가져오기
+      final postSnapshot = await _firestore
           .collection(widget.collectionName)
           .doc(documentId)
-          .delete();
-      Navigator.pop(context);
+          .get();
+
+      if (postSnapshot.exists) {
+        // DocumentSnapshot이 존재하는 경우에만 게시물을 삭제
+        await _firestore
+            .collection(widget.collectionName)
+            .doc(documentId)
+            .delete();
+      } else {
+        // DocumentSnapshot이 존재하지 않는 경우에 대한 처리
+        print('경매가 이미 삭제되었습니다.');
+      }
     } catch (e) {
-      print('게시물 삭제 중 오류 발생: $e');
+      print('경매 삭제 중 오류 발생: $e');
     }
   }
 
@@ -593,7 +604,7 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
       builder: (context) {
         return AlertDialog(
           title: Text('삭제하기'),
-          content: Text('게시물을 삭제하시겠습니까?'),
+          content: Text('경매를 삭제하시겠습니까?'),
           actions: [
             TextButton(
               onPressed: () {Navigator.pop(context);},
@@ -601,15 +612,15 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
             ),
             TextButton(
               onPressed: () {
-                // 게시물을 삭제하고 AlertDialog 닫기
-                deletePost(widget.documentId, context);
                 Navigator.pop(context);
+                deletePost(widget.documentId, context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                      content: Text('게시물이 삭제되었습니다.', style: TextStyle(fontSize: 16, color: Colors.white),),
-                      dismissDirection: DismissDirection.up,
-                      duration: Duration(milliseconds: 1500),
-                      backgroundColor: Colors.black),
+                    content: Text('경매가 삭제되었습니다.', style: TextStyle(fontSize: 16, color: Colors.white),),
+                    dismissDirection: DismissDirection.up,
+                    duration: Duration(milliseconds: 1500),
+                    backgroundColor: Colors.black,
+                  ),
                 );
               },
               child: Text('확인'),
