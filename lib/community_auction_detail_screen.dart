@@ -138,20 +138,20 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
           // 게시물 삭제 기능
           actions: isCheckUploader()
               ? [
-                  PopupMenuButton<String>(
-                    icon: Icon(Icons.more_vert, color: Colors.grey, size: 30),
-                    offset: Offset(0, 60),
-                    onSelected: (value) {if (value == 'delete') {showDialogDeletePost(context);}},
-                    itemBuilder: (BuildContext context) {
-                      return [
-                        PopupMenuItem<String>(
-                          value: 'delete',
-                          child: Text('삭제하기'),
-                        ),
-                      ];
-                    },
+            PopupMenuButton<String>(
+              icon: Icon(Icons.more_vert, color: Colors.grey, size: 30),
+              offset: Offset(0, 60),
+              onSelected: (value) {if (value == 'delete') {showDialogDeletePost(context);}},
+              itemBuilder: (BuildContext context) {
+                return [
+                  PopupMenuItem<String>(
+                    value: 'delete',
+                    child: Text('삭제하기'),
                   ),
-                ]
+                ];
+              },
+            ),
+          ]
               : [],
         ),
         body: StreamBuilder<DocumentSnapshot>(
@@ -270,7 +270,7 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
                               children: [
                                 Container(
                                   decoration: BoxDecoration(
-                                      color: Colors.white,
+                                    color: Colors.white,
                                     boxShadow: [
                                       BoxShadow(
                                         color: Color(0xffeeeeee), // 그림자 색상
@@ -324,10 +324,10 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
                                   ),
                                 ),
                                 StreamBuilder<String>(
-                                  stream: getAuctionStatusStream(),
-                                  builder: (context, snapshot) {
+                                    stream: getAuctionStatusStream(),
+                                    builder: (context, snapshot) {
                                       if (!snapshot.hasData) {
-                                      return Center(child: CircularProgressIndicator());
+                                        return Center(child: CircularProgressIndicator());
                                       }
                                       String status = snapshot.data ?? '경매 상태 없음';
                                       return Visibility(
@@ -384,7 +384,7 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
                                           ],
                                         ),
                                       );
-                                  }
+                                    }
                                 )
                               ],
                             ),
@@ -464,7 +464,7 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
       }
     });
   }
-  
+
   // 입찰을 수행할 함수
   void _saveBidData() async {
 
