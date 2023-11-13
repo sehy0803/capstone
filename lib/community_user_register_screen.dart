@@ -171,7 +171,7 @@ class _CommunityRegisterScreenState extends State<CommunityRegisterScreen> {
                   SnackBar(
                     content: Text('게시물이 등록되었습니다.', style: TextStyle(fontSize: 16, color: Colors.white)),
                     dismissDirection: DismissDirection.up,
-                    duration: Duration(milliseconds: 1500),
+                    duration: Duration(milliseconds: 15000),  // 경매 시간 제한
                     backgroundColor: Colors.black,
                   ),
                 );
