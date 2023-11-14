@@ -57,26 +57,21 @@ class ChatListScreen extends StatelessWidget {
     List<ChatRoomInfo> chatRooms = [];
 
     try {
-      // Fetch the Firestore documents containing the chat room data
       QuerySnapshot<Map<String, dynamic>> querySnapshot =
-      await FirebaseFirestore.instance.collection('AuctionCommunity').get();
+      await FirebaseFirestore.instance.collection('AuctionCommunity').get();  // DB에서 컬렉션 정보 가져오기
 
-      // Iterate through the documents and extract relevant information
       for (QueryDocumentSnapshot<Map<String, dynamic>> doc in querySnapshot.docs) {
         String uploaderUID = doc['uploaderUID'];
         String winningBidderUID = doc['winningBidderUID'];
         String auctionTitle = doc['title'];
 
-        // Check if both uploaderUID, winningBidderUID, and auctionTitle are not empty
-        if (uploaderUID.isNotEmpty && winningBidderUID.isNotEmpty && auctionTitle.isNotEmpty) {
-          // Create a unique chat room ID using both user UIDs
-          String chatRoomId = createChatRoomId(uploaderUID, winningBidderUID);
+        if (uploaderUID.isNotEmpty && winningBidderUID.isNotEmpty && auctionTitle.isNotEmpty) { // 채팅방 생성 조건
 
-          // Create a chat room info object and add it to the list
-          chatRooms.add(ChatRoomInfo(chatRoomId: chatRoomId, chatTitle: auctionTitle));
+          String chatRoomId = createChatRoomId(uploaderUID, winningBidderUID);  // 채팅방 ID 생성
 
-          // Create chat messages document if it doesn't exist
-          await createChatMessagesDocument(chatRoomId);
+          chatRooms.add(ChatRoomInfo(chatRoomId: chatRoomId, chatTitle: auctionTitle)); // 채팅방 정보 추가
+
+          await createChatMessagesDocument(chatRoomId); // 채팅 메시지 문서 생성
         }
       }
     } catch (e) {
@@ -87,23 +82,21 @@ class ChatListScreen extends StatelessWidget {
   }
 
   Future<void> createChatMessagesDocument(String chatRoomId) async {
-    // Reference to the chat messages document in Firestore
+
     DocumentReference chatMessagesDocRef = FirebaseFirestore.instance
         .collection('chat_messages')
-        .doc(chatRoomId);
+        .doc(chatRoomId); // DB의 chat_messages 문서 참조
 
-    // Check if the document already exists
-    if (!(await chatMessagesDocRef.get()).exists) {
-      // If not, create the document with initial data
-      await chatMessagesDocRef.set({
+
+    if (!(await chatMessagesDocRef.get()).exists) { // 문서가 이미 존재하는지 확인
+      await chatMessagesDocRef.set({  // 없는 경우 문서 생성
         'created_at': FieldValue.serverTimestamp(),
       });
     }
   }
 
   String createChatRoomId(String uid1, String uid2) {
-    // Sort the UIDs to ensure consistency in the chat room ID
-    List<String> sortedUids = [uid1, uid2]..sort();
+    List<String> sortedUids = [uid1, uid2]..sort(); // UID 정렬
     return '${sortedUids[0]}_${sortedUids[1]}';
   }
 }
