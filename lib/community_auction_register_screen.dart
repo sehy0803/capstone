@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:capstone/community_user_register_screen.dart';
 import 'package:capstone/custom_widget.dart';
 import 'package:uuid/uuid.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -40,7 +39,7 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
   Timestamp createDate = Timestamp.now(); // 글을 올린 날짜와 시간
   Timestamp endTime = Timestamp.fromDate(
       DateTime.now().add(Duration(minutes: 1)));
-  String selectedValue = '1'; // 카테고리 처음 값 1 = 의류
+  String category = '1'; // 카테고리 초기값 1 = 의류
 
   // 경매 종료까지 남은 시간 : createDate + 1분
 
@@ -121,10 +120,10 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
                   child: SizedBox(
                     width: MediaQuery.of(context).size.width, // DropdownButton의 폭을 화면에 표시될 공간만큼으로 설정
                     child: DropdownButton<String>(
-                      value: selectedValue,
+                      value: category,
                       onChanged: (String? newValue) {
                         setState(() {
-                          selectedValue = newValue!;
+                          category = newValue!;
                         });
                       },
                       items: <DropdownMenuItem<String>>[
@@ -201,7 +200,7 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
             'winningBidderUID': winningBidderUID, // 낙찰자 uid
             'status': status,
             'endTime': endTime, // 경매 종료까지 남은 시간
-            'selectedValue': selectedValue, // 카테고리 값
+            'category': category, // 카테고리 값
           });
         } catch (e) {
           print('데이터 저장 오류: $e');

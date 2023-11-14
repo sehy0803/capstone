@@ -25,6 +25,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
   String winningBidderUID = '';
   String status = '';
   Timestamp endTime = Timestamp(0, 0);
+  String category = '1';
 
   @override
   void initState() {
@@ -96,8 +97,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                   winningBidderUID = documents[index]['winningBidderUID'] as String;
                   status = documents[index]['status'] as String;
                   endTime = documents[index]['endTime'] as Timestamp;
-
-
+                  category = documents[index]['category'] as String;
 
                   // 경매 커뮤니티 게시물 표시
                   return GestureDetector(
@@ -128,6 +128,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                 status: status,
                                 createDate: createDate,
                                 endTime: endTime,
+                                category: category,
                               );
                             },
                           ),

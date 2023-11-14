@@ -26,6 +26,8 @@ class CommunityAuctionDetailScreen extends StatefulWidget {
   final String status; // 경매 상태
   final Timestamp createDate; // 글을 올린 날짜와 시간
   final Timestamp endTime; // 경매 종료까지 남은 시간
+  final String category; // 경매 상태
+
 
   CommunityAuctionDetailScreen({
     required this.title,
@@ -47,6 +49,7 @@ class CommunityAuctionDetailScreen extends StatefulWidget {
     required this.winningBidderUID,
     required this.status,
     required this.endTime,
+    required this.category,
 
   });
   @override

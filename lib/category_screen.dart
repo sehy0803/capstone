@@ -1,5 +1,7 @@
+import 'package:capstone/community_auction_detail_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class CategoryScreen extends StatefulWidget {
   const CategoryScreen({Key? key}) : super(key: key);
@@ -11,16 +13,20 @@ class CategoryScreen extends StatefulWidget {
 class _CategoryScreenState extends State<CategoryScreen> {
   final _firestore = FirebaseFirestore.instance;
 
-  late Widget selectedPage;
+  int startBid = 0;
+  int winningBid = 0;
+  String winningBidder = '';
+  String winningBidderUID = '';
+  String status = '';
+  Timestamp endTime = Timestamp(0, 0);
 
   bool isButton1Selected = true;
   bool isButton2Selected = false;
   bool isButton3Selected = false;
   bool isButton4Selected = false;
 
-  void changePage(Widget page, bool button1, bool button2, bool button3, bool button4) {
+  void changePage(bool button1, bool button2, bool button3, bool button4) {
     setState(() {
-      selectedPage = page;
       isButton1Selected = button1;
       isButton2Selected = button2;
       isButton3Selected = button3;
@@ -31,10 +37,6 @@ class _CategoryScreenState extends State<CategoryScreen> {
   @override
   void initState() {
     super.initState();
-    selectedPage = Container(
-      height: 100,
-      color: Colors.black,
-    );
   }
 
   @override
@@ -42,12 +44,12 @@ class _CategoryScreenState extends State<CategoryScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text('카테고리', style: TextStyle(color: Colors.black, fontSize: 20)),
+        title:
+            Text('카테고리', style: TextStyle(color: Colors.black, fontSize: 20)),
         backgroundColor: Colors.white,
         automaticallyImplyLeading: false,
       ),
-      body: SingleChildScrollView(
-        child: Column(
+      body: Column(
           children: [
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
@@ -59,62 +61,254 @@ class _CategoryScreenState extends State<CategoryScreen> {
                 changePage: changePage,
               ),
             ),
-
-            //fireStore의 AuctionCommunity에 접근함
-            StreamBuilder(
-              stream: _firestore.collection('AuctionCommunity').snapshots(),
+            StreamBuilder<QuerySnapshot>(
+              stream: _getAuctionStream(),
               builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  var documents = snapshot.data?.docs;
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator());
+                }
 
-                  // 선택한 카테고리를 기준으로 경매 필터링함
-                  var filteredAuctions = documents
-                      ?.where((document) {
-                    String category = document?['selectedValue'];
-                    return (category == "1" && isButton1Selected) ||
-                        (category == "2" && isButton2Selected) ||
-                        (category == "3" && isButton3Selected) ||
-                        (category == "4" && isButton4Selected);
-                  }).toList();
+                if (snapshot.hasError) {
+                  return Center(child: Text('데이터를 불러올 수 없습니다.'));
+                }
 
-                  return ListView.builder(
-                    shrinkWrap: true,
-                    physics: NeverScrollableScrollPhysics(),
-                    itemCount: filteredAuctions?.length,
+                final documents = snapshot.data?.docs;
+
+                // 선택한 카테고리를 기준으로 경매 게시글 가져옴
+                final filteredAuctions = documents?.where((document) {
+                  String category = document['category'];
+                  return (category == "1" && isButton1Selected) ||
+                      (category == "2" && isButton2Selected) ||
+                      (category == "3" && isButton3Selected) ||
+                      (category == "4" && isButton4Selected);
+                }).toList();
+
+                return Expanded(
+                  child: ListView.builder(
+                    itemCount: filteredAuctions?.length ?? 0,
                     itemBuilder: (context, index) {
-                      var document = filteredAuctions?[index];
-                      return ListTile(
-                        title: Text(document?['title']),
-                        subtitle: Text(document?['content']),
+                      final title = filteredAuctions![index]['title'] as String;
+                      final content =
+                          filteredAuctions[index]['content'] as String;
+                      final uploaderUID =
+                          filteredAuctions[index]['uploaderUID'] as String;
+                      final uploaderEmail =
+                          filteredAuctions[index]['uploaderEmail'] as String;
+                      final uploaderImageURL =
+                          filteredAuctions[index]['uploaderImageURL'] as String;
+                      final uploaderNickname =
+                          filteredAuctions[index]['uploaderNickname'] as String;
+                      final documentId = getDocumentId(filteredAuctions![index]);
+                      final views = filteredAuctions[index]['views'] as int;
+                      final like = filteredAuctions[index]['like'] as int;
+                      final comments = filteredAuctions[index]['comments'] as int;
+                      final photoURL =
+                          filteredAuctions[index]['photoURL'] as String;
+                      final createDate =
+                          filteredAuctions[index]['createDate'] as Timestamp;
+                      final formattedDate = DateFormat('yyyy.MM.dd HH:mm').format(
+                        createDate.toDate(),
+                      );
+                      final startBid = filteredAuctions[index]['startBid'] as int;
+                      final winningBid =
+                          filteredAuctions[index]['winningBid'] as int;
+                      final winningBidder =
+                          filteredAuctions[index]['winningBidder'] as String;
+                      final winningBidderUID =
+                          filteredAuctions[index]['winningBidderUID'] as String;
+                      final status = filteredAuctions[index]['status'] as String;
+                      final endTime =
+                          filteredAuctions[index]['endTime'] as Timestamp;
+                      final category =
+                          filteredAuctions[index]['category'] as String;
+
+                      return GestureDetector(
                         onTap: () {
-                          String category = document?['selectedValue'];
-                          // 이 부분에 카테고리 화면에 나와있는 경매들을 클릭했을 때 어떻게 실행시킬지 구현
+                          increaseViews(getDocumentId(filteredAuctions[index]),
+                              'AuctionCommunity');
+                          try {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) {
+                                  return CommunityAuctionDetailScreen(
+                                    title: title,
+                                    content: content,
+                                    uploaderUID: uploaderUID,
+                                    uploaderEmail: uploaderEmail,
+                                    uploaderImageURL: uploaderImageURL,
+                                    uploaderNickname: uploaderNickname,
+                                    collectionName: 'AuctionCommunity',
+                                    documentId: documentId,
+                                    views: views + 1,
+                                    like: like,
+                                    comments: comments,
+                                    photoURL: photoURL,
+                                    startBid: startBid,
+                                    winningBid: winningBid,
+                                    winningBidder: winningBidder,
+                                    winningBidderUID: winningBidderUID,
+                                    status: status,
+                                    createDate: createDate,
+                                    endTime: endTime,
+                                    category: category,
+                                  );
+                                },
+                              ),
+                            );
+                          } catch (e) {
+                            print('$e');
+                          }
                         },
+                        child: Column(
+                          children: [
+                            Card(
+                              elevation: 0,
+                              child: Row(
+                                children: [
+                                  _buildAuctionImage(
+                                      filteredAuctions[index]['photoURL']),
+                                  SizedBox(width: 10),
+                                  Expanded(
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Container(
+                                              decoration: BoxDecoration(
+                                                color: _getStatusColor(
+                                                    filteredAuctions[index]
+                                                        ['status']),
+                                                borderRadius:
+                                                    BorderRadius.circular(10.0),
+                                                border: Border.all(
+                                                  color: Colors.yellow,
+                                                  width: 1.0,
+                                                ),
+                                              ),
+                                              child: Padding(
+                                                padding:
+                                                    const EdgeInsets.all(6.0),
+                                                child: Text(
+                                                  filteredAuctions[index]
+                                                      ['status'],
+                                                  style: TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                            SizedBox(width: 10),
+                                            Text(title,
+                                                style: TextStyle(fontSize: 16)),
+                                          ],
+                                        ),
+                                        SizedBox(height: 10),
+                                        Row(
+                                          children: [
+                                            Text(uploaderNickname,
+                                                style: TextStyle(
+                                                    fontSize: 12,
+                                                    color: Colors.grey)),
+                                            SizedBox(width: 5),
+                                            Text(formattedDate,
+                                                style: TextStyle(
+                                                    fontSize: 12,
+                                                    height: 1.3,
+                                                    color: Colors.grey)),
+                                            SizedBox(width: 5),
+                                            Text('조회 $views',
+                                                style: TextStyle(
+                                                    fontSize: 12,
+                                                    color: Colors.grey)),
+                                            SizedBox(width: 5),
+                                            Text('좋아요 $like',
+                                                style: TextStyle(
+                                                    fontSize: 12,
+                                                    color: Colors.grey)),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Container(height: 1, color: Colors.grey[200])
+                          ],
+                        ),
                       );
                     },
-                  );
-                } else if (snapshot.hasError) {
-                  return Center(
-                    child: Text('Error: ${snapshot.error}'),
-                  );
-                } else {
-                  return Center(
-                    child: CircularProgressIndicator(),
-                  );
-                }
+                  ),
+                );
               },
             ),
-            selectedPage,
           ],
         ),
+    );
+  }
+
+  // =========================================================
+
+  // 경매 게시판의 게시물을 가져오는 스트림
+  Stream<QuerySnapshot> _getAuctionStream() {
+    return _firestore
+        .collection('AuctionCommunity')
+        .orderBy('createDate', descending: true)
+        .snapshots();
+  }
+
+  // _getStatusColor 함수
+  Color _getStatusColor(String status) {
+    if (status == '진행중') {
+      return Colors.green; // 녹색
+    } else if (status == '낙찰') {
+      return Colors.red; // 빨간색
+    } else if (status == '경매 실패') {
+      return Colors.grey; // 회색
+    } else {
+      return Colors.black; // 기본값 (다른 상태일 때)
+    }
+  }
+
+  // 경매 상품 사진을 표시하는 함수
+  Widget _buildAuctionImage(String auctionImageURL) {
+    double _imageSize = 100.0;
+    return Center(
+      child: Container(
+        color: Colors.black,
+        width: _imageSize,
+        height: _imageSize,
+        child: Image.network(auctionImageURL,
+            width: _imageSize, height: _imageSize, fit: BoxFit.cover),
       ),
     );
   }
+
+  // 게시물의 Document ID를 가져오는 함수
+  String getDocumentId(QueryDocumentSnapshot document) {
+    return document.id;
+  }
+
+  // Firestore에서 조회수를 증가시키는 함수
+  Future<void> increaseViews(String documentId, String collectionName) async {
+    final documentReference =
+        _firestore.collection(collectionName).doc(documentId);
+    final document = await documentReference.get();
+
+    if (document.exists) {
+      final currentViews = document['views'] as int;
+      final updatedViews = currentViews + 1;
+      await documentReference.update({'views': updatedViews});
+    }
+  }
 }
-
-// Rest of
-
-// ========================================== 커스텀 위젯 ==========================================
 
 // 카테고리 버튼
 class CategoryButtons extends StatelessWidget {
@@ -122,7 +316,7 @@ class CategoryButtons extends StatelessWidget {
   final bool isButton2Selected;
   final bool isButton3Selected;
   final bool isButton4Selected;
-  final Function(Widget, bool, bool, bool, bool) changePage;
+  final Function(bool, bool, bool, bool) changePage;
 
   CategoryButtons({
     required this.isButton1Selected,
@@ -147,14 +341,9 @@ class CategoryButtons extends StatelessWidget {
   Widget buildCategoryButton(String text, bool isSelected) {
     return TextButton(
       onPressed: () {
-
         // changePage 함수를 호출하여 페이지를 변경
         if (text == "의류/패션") {
           changePage(
-            Container(
-              height: 50,
-              color: Colors.black,
-            ),
             true,
             false,
             false,
@@ -162,10 +351,6 @@ class CategoryButtons extends StatelessWidget {
           );
         } else if (text == "전자제품") {
           changePage(
-            Container(
-              height: 50,
-              color: Colors.black45,
-            ),
             false,
             true,
             false,
@@ -173,10 +358,6 @@ class CategoryButtons extends StatelessWidget {
           );
         } else if (text == "가전제품") {
           changePage(
-            Container(
-              height: 50,
-              color: Colors.black26,
-            ),
             false,
             false,
             true,
@@ -184,10 +365,6 @@ class CategoryButtons extends StatelessWidget {
           );
         } else if (text == "기타") {
           changePage(
-            Container(
-              height: 50,
-              color: Colors.black12,
-            ),
             false,
             false,
             false,
@@ -195,11 +372,6 @@ class CategoryButtons extends StatelessWidget {
           );
         }
       },
-      child: Text(text, style: TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.normal,
-        color: isSelected ? Colors.black : Colors.grey,
-      )),
       style: TextButton.styleFrom(
         padding: EdgeInsets.all(15),
         backgroundColor: isSelected ? Colors.black12 : Colors.transparent,
@@ -207,6 +379,12 @@ class CategoryButtons extends StatelessWidget {
           borderRadius: BorderRadius.circular(0),
         ),
       ),
+      child: Text(text,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.normal,
+            color: isSelected ? Colors.black : Colors.grey,
+          )),
     );
   }
 }
