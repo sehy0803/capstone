@@ -237,7 +237,7 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
                                                                 children: [
                                                                   Text(comment['commenterNickname'], style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
                                                                   // 댓글 삭제 버튼
-                                                                  _buildDeleteCommenterButton(comment['commenterEmail'], comments[index].id)
+                                                                  _buildDeleteCommenterButton(comment['commenterUID'], comments[index].id)
                                                                 ],
                                                               ),
                                                             ),
@@ -353,6 +353,7 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
         DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('User').doc(userUID).get();
 
         if (userDoc.exists) {
+          String commenterUID = userUID;
           String commenterEmail = userDoc.get('email');
           String commenterNickname = userDoc.get('nickname');
           String commenterImageURL = userDoc.get('imageURL');
@@ -362,6 +363,7 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
           // Firestore에 추가할 댓글 정보 묶음
           final commentData = {
             'text': commentText,
+            'commenterUID' : commenterUID,
             'commenterEmail' : commenterEmail,
             'commenterNickname': commenterNickname,
             'commenterImageURL': commenterImageURL,
@@ -445,8 +447,8 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
   }
 
   // 댓글 삭제 버튼
-  IconButton _buildDeleteCommenterButton(String commenterEmail, String commentId) {
-    if (isCheckCommenter(commenterEmail)) {
+  IconButton _buildDeleteCommenterButton(String commenterUID, String commentId) {
+    if (isCheckCommenter(commenterUID)) {
       return IconButton(
         onPressed: () {
           showDialogDeleteComment(context, commentId);
@@ -590,12 +592,12 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
 
   // 업로더의 uid와 현재 로그인한 사용자의 uid 비교
   bool isCheckUploader() {
-    return userUID == widget.uploaderEmail;
+    return userUID == widget.uploaderUID;
   }
 
   // 코멘터의 이메일과 현재 로그인한 사용자의 이메일 비교
-  bool isCheckCommenter(commenterEmail) {
-    return userUID == commenterEmail;
+  bool isCheckCommenter(commenterUID) {
+    return userUID == commenterUID;
   }
 
   //============================================================================

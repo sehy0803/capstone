@@ -38,7 +38,7 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
   String status = '진행중'; // 경매 상태 : 진행중, 낙찰, 경매 실패
   Timestamp createDate = Timestamp.now(); // 글을 올린 날짜와 시간
   Timestamp endTime = Timestamp.fromDate(
-      DateTime.now().add(Duration(minutes: 1)));
+      DateTime.now().add(Duration(minutes: 3)));
   String category = '1'; // 카테고리 초기값 1 = 의류
 
   // 경매 종료까지 남은 시간 : createDate + 1분

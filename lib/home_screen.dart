@@ -77,44 +77,44 @@ class HomeScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-                SizedBox(height: 30),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    IconButton(
-                      onPressed: () {},
-                      icon: Icon(Icons.add),
-                      iconSize: 50,
-                      padding: EdgeInsets.zero,
-                      // 패딩 설정
-                      constraints: BoxConstraints(), // 패딩 설정
-                    ),
-                    IconButton(
-                      onPressed: () {},
-                      icon: Icon(Icons.add),
-                      iconSize: 50,
-                      padding: EdgeInsets.zero,
-                      // 패딩 설정
-                      constraints: BoxConstraints(), // 패딩 설정
-                    ),
-                    IconButton(
-                      onPressed: () {},
-                      icon: Icon(Icons.add),
-                      iconSize: 50,
-                      padding: EdgeInsets.zero,
-                      // 패딩 설정
-                      constraints: BoxConstraints(), // 패딩 설정
-                    ),
-                    IconButton(
-                      onPressed: () {},
-                      icon: Icon(Icons.add),
-                      iconSize: 50,
-                      padding: EdgeInsets.zero,
-                      // 패딩 설정
-                      constraints: BoxConstraints(), // 패딩 설정
-                    ),
-                  ],
-                ),
+                //SizedBox(height: 30),
+                // Row(
+                //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                //   children: [
+                //     IconButton(
+                //       onPressed: () {},
+                //       icon: Icon(Icons.add),
+                //       iconSize: 50,
+                //       padding: EdgeInsets.zero,
+                //       // 패딩 설정
+                //       constraints: BoxConstraints(), // 패딩 설정
+                //     ),
+                //     IconButton(
+                //       onPressed: () {},
+                //       icon: Icon(Icons.add),
+                //       iconSize: 50,
+                //       padding: EdgeInsets.zero,
+                //       // 패딩 설정
+                //       constraints: BoxConstraints(), // 패딩 설정
+                //     ),
+                //     IconButton(
+                //       onPressed: () {},
+                //       icon: Icon(Icons.add),
+                //       iconSize: 50,
+                //       padding: EdgeInsets.zero,
+                //       // 패딩 설정
+                //       constraints: BoxConstraints(), // 패딩 설정
+                //     ),
+                //     IconButton(
+                //       onPressed: () {},
+                //       icon: Icon(Icons.add),
+                //       iconSize: 50,
+                //       padding: EdgeInsets.zero,
+                //       // 패딩 설정
+                //       constraints: BoxConstraints(), // 패딩 설정
+                //     ),
+                //   ],
+                // ),
               ],
             ), // 카테고리 이동 버튼,
           ),
