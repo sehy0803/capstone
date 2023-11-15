@@ -60,20 +60,16 @@ class CommunityAuctionDetailScreen extends StatefulWidget {
 class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScreen> {
   final _firestore = FirebaseFirestore.instance;
   final _authentication = FirebaseAuth.instance;
-  // 경매 종료까지 남은 시간을 저장하는 변수
-  Duration _timeRemaining = Duration();
+
   // 입찰가 컨트롤러
   TextEditingController bidController = TextEditingController();
   // 입찰가 초기값
   int bid = 0;
   // 좋아요 초기값
   bool isLiked = false;
-  // 타이머
-  late Timer _timer; // _timer를 선언하고 초기화
 
   @override
   void dispose() {
-    _timer.cancel(); // State가 소멸될 때 타이머도 종료
     super.dispose();
   }
 
@@ -82,46 +78,6 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
     super.initState();
     getCurrentUserUID();
     getLikeStatus();
-    getAuctionEndTime();
-
-    // 1초마다 시간을 업데이트하는 타이머 설정
-    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
-      updateRemainingTime();
-    });
-  }
-
-  // firestore에서 endTime을 가져오는 함수
-  Future<DateTime?> getAuctionEndTime() async {
-    final document = await FirebaseFirestore.instance
-        .collection(widget.collectionName)
-        .doc(widget.documentId)
-        .get();
-
-    final data = document.data();
-    if (data != null && data['endTime'] != null) {
-      // Firestore에서 endTime 가져오기
-      final endTimeTimestamp = data['endTime'] as Timestamp;
-      return endTimeTimestamp.toDate();
-    }
-    return null;
-  }
-
-  // 남은 시간을 업데이트하고, 타이머를 종료하는 함수
-  void updateRemainingTime() async {
-    DateTime? endTime = await getAuctionEndTime();
-    if (endTime != null) {
-      final now = DateTime.now();
-      _timeRemaining = endTime.difference(now);
-
-      if (_timeRemaining.isNegative) {
-        _timer.cancel();
-        _timeRemaining = Duration(); // 타이머가 종료되면 _timeRemaining을 0으로 설정
-
-        // 경매 종료 시 수행할 함수들
-        updateAuctionStatus();
-      }
-      setState(() {});
-    }
   }
 
   @override
@@ -167,6 +123,7 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
             int startBid = snapshot.data!.get('startBid') ?? 0;
             // 최고 입찰자 가져오기
             String winningBidder = snapshot.data!.get('winningBidder') ?? '';
+
             return GestureDetector(
               // 빈 곳 터치시 키패드 사라짐
               onTap: () {FocusScope.of(context).unfocus();},
@@ -249,8 +206,6 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
                                   Text('최고 입찰자', style: TextStyle(fontSize: 14)),
                                   Text(winningBidder.isEmpty ? '아직 입찰자가 없습니다.' : winningBidder,
                                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.amber)),
-                                  Text('남은 시간 ${_timeRemaining.inHours}시간 ${(_timeRemaining.inMinutes % 60)}분 ${(_timeRemaining.inSeconds % 60)}초',
-                                      style: TextStyle(fontSize: 14, color: Colors.redAccent)),
                                 ],
                               ),
                             ),
@@ -319,7 +274,7 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
                                                 );
                                               },
                                             ),
-                                            Text('$winningBid원', style: TextStyle(fontSize: 20, color: Colors.blue))
+                                            Text('$winningBid원', style: TextStyle(fontSize: 20, color: Colors.blue)),
                                           ],
                                         )
                                       ],

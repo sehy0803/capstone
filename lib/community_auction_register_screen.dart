@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:capstone/custom_widget.dart';
 import 'package:uuid/uuid.dart';
@@ -36,12 +37,10 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
   String winningBidder = ''; // 낙찰자
   String winningBidderUID = ''; // 낙찰자 uid
   String status = '진행중'; // 경매 상태 : 진행중, 낙찰, 경매 실패
-  Timestamp createDate = Timestamp.now(); // 글을 올린 날짜와 시간
+  Timestamp createDate = Timestamp.now(); // 게시글 작성일 = 경매 시작 시간
   Timestamp endTime = Timestamp.fromDate(
-      DateTime.now().add(Duration(minutes: 3)));
+      DateTime.now().add(Duration(minutes: 10)));
   String category = '1'; // 카테고리 초기값 1 = 의류
-
-  // 경매 종료까지 남은 시간 : createDate + 1분
 
   @override
   void initState() {
@@ -188,7 +187,6 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
             'uploaderEmail': uploaderEmail, // 업로더 이메일
             'uploaderImageURL': uploaderImageURL, // 프로필 사진 URL
             'uploaderNickname': uploaderNickname, // 업로더 닉네임
-            'createDate': createDate, // 게시글 작성일
             'views': views, // 조회수 초기값
             'like': like, // 좋아요 횟수 초기값
             'comments': comments, // 댓글 수 초기값
@@ -199,6 +197,7 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
             'winningBidder': winningBidder, // 낙찰자 닉네임
             'winningBidderUID': winningBidderUID, // 낙찰자 uid
             'status': status,
+            'createDate': createDate, // 게시글 작성일 = 경매 시작 시간
             'endTime': endTime, // 경매 종료까지 남은 시간
             'category': category, // 카테고리 값
           });

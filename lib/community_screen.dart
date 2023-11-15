@@ -26,6 +26,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
   String status = '';
   Timestamp endTime = Timestamp(0, 0);
   String category = '1';
+  String formattedEndTime = '';
 
   @override
   void initState() {
@@ -99,6 +100,8 @@ class _CommunityScreenState extends State<CommunityScreen> {
                   endTime = documents[index]['endTime'] as Timestamp;
                   category = documents[index]['category'] as String;
 
+                  formattedEndTime = DateFormat('MM월 dd일 HH시 mm분').format(endTime.toDate());
+
                   // 경매 커뮤니티 게시물 표시
                   return GestureDetector(
                     onTap: () {
@@ -156,10 +159,13 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                             decoration: BoxDecoration(
                                               color: _getStatusColor(status),
                                               borderRadius: BorderRadius.circular(10.0),
-                                              border: Border.all(
-                                                color: Colors.yellow, // 외곽선의 색상 설정
-                                                width: 1.0,          // 외곽선의 두께 설정
-                                              ),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.grey, // 그림자 색상
+                                                  offset: Offset(0, 2), // 그림자의 위치 (가로, 세로)
+                                                  blurRadius: 4.0, // 그림자의 흐림 정도
+                                                ),
+                                              ],
                                             ),
                                             child: Padding(
                                               padding: const EdgeInsets.all(6.0),
@@ -202,16 +208,13 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                       ],
                                     ),
                                     Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Text(uploaderNickname, style: TextStyle(fontSize: 12, color: Colors.grey)),
-                                        SizedBox(width: 5),
-                                        Text(formattedDate, style: TextStyle(fontSize: 12, height: 1.3, color: Colors.grey)),
-                                        SizedBox(width: 5),
-                                        Text('조회 $views', style: TextStyle(fontSize: 12, color: Colors.grey)),
-                                        SizedBox(width: 5),
-                                        Text('좋아요 $like', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                                        Text('경매 종료일', style: TextStyle(fontSize: 16)),
+                                        Text(formattedEndTime, style: TextStyle(fontSize: 16, color: Colors.redAccent))
                                       ],
-                                    ),
+                                    )
+
                                   ],
                                 ),
                               )
