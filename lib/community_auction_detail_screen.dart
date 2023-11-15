@@ -68,8 +68,14 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
   // 좋아요 초기값
   bool isLiked = false;
 
+  // 타이머
+  late Timer _timer;
+  // 경매 종료까지 남은 시간을 저장하는 변수
+  Duration _timeRemaining = Duration();
+
   @override
   void dispose() {
+    _timer.cancel(); // State가 소멸될 때 타이머도 종료
     super.dispose();
   }
 
@@ -78,6 +84,43 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
     super.initState();
     getCurrentUserUID();
     getLikeStatus();
+
+    // 1초마다 시간을 업데이트하는 타이머 설정
+    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      updateRemainingTime();
+    });
+
+  }
+
+  // firestore에서 endTime을 가져오는 함수
+  Future<DateTime?> getAuctionEndTime() async {
+    final document = await FirebaseFirestore.instance
+        .collection(widget.collectionName)
+        .doc(widget.documentId)
+        .get();
+
+    final data = document.data();
+    if (data != null && data['endTime'] != null) {
+      final endTimeTimestamp = data['endTime'] as Timestamp;
+      return endTimeTimestamp.toDate();
+    }
+    return null;
+  }
+
+  // 남은 시간을 업데이트하고, 타이머를 종료하는 함수
+  void updateRemainingTime() async {
+    DateTime? endTime = await getAuctionEndTime();
+    if (endTime != null) {
+      final now = DateTime.now();
+      _timeRemaining = endTime.difference(now);
+      if (_timeRemaining.isNegative) {
+        _timer.cancel();
+        _timeRemaining = Duration(); // 타이머가 종료되면 _timeRemaining을 0으로 설정
+
+        updateAuctionStatus();
+      }
+      setState(() {});
+    }
   }
 
   @override
@@ -195,21 +238,23 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
                           Container(height: 1, color: Colors.grey[300]),
                           Padding(
                             padding: const EdgeInsets.all(20.0),
-                            child: Center(
+                            child: SizedBox(
+                              width: double.infinity,
                               child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   // 게시글 제목
                                   Text(widget.title, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                                   // 게시글 내용
                                   Text(widget.content, style: TextStyle(fontSize: 14)),
-                                  SizedBox(height: 20),
-                                  Text('최고 입찰자', style: TextStyle(fontSize: 14)),
-                                  Text(winningBidder.isEmpty ? '아직 입찰자가 없습니다.' : winningBidder,
-                                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.amber)),
                                 ],
                               ),
                             ),
-                          )
+                          ),
+                          SizedBox(height: 50),
+                          Text('최고 입찰자', style: TextStyle(fontSize: 14)),
+                          Text(winningBidder.isEmpty ? '아직 입찰자가 없습니다.' : winningBidder,
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.amber)),
                         ],
                       ),
                     ),
@@ -242,6 +287,28 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
                                     child: Column(
                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
+                                        StreamBuilder<String>(
+                                            stream: getAuctionStatusStream(),
+                                            builder: (context, snapshot) {
+                                              if (!snapshot.hasData) {
+                                                return Center(child: CircularProgressIndicator());
+                                              }
+
+                                              String status = snapshot.data ?? '경매 상태 없음';
+
+                                              // 경매 상태에 따라 다른 Text 표시
+                                              if (status == '낙찰') {
+                                                return Text('낙찰되었습니다!', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.redAccent));
+                                              } else if (status == '경매 실패'){
+                                                return Text('입찰자가 나오지 않은 경매입니다.', style: TextStyle(fontSize: 16, color: Colors.grey));
+                                              } else {
+                                                return Text(
+                                                  '남은 시간 ${_timeRemaining.inHours}시간 ${(_timeRemaining.inMinutes % 60)}분 ${(_timeRemaining.inSeconds % 60)}초',
+                                                  style: TextStyle(fontSize: 16, color: Colors.redAccent),
+                                                );
+                                              }
+                                            }
+                                        ),
                                         Row(
                                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                           children: [

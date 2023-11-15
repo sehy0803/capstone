@@ -106,9 +106,6 @@ class _CategoryScreenState extends State<CategoryScreen> {
                           filteredAuctions[index]['photoURL'] as String;
                       final createDate =
                           filteredAuctions[index]['createDate'] as Timestamp;
-                      final formattedDate = DateFormat('yyyy.MM.dd HH:mm').format(
-                        createDate.toDate(),
-                      );
                       final startBid = filteredAuctions[index]['startBid'] as int;
                       final winningBid =
                           filteredAuctions[index]['winningBid'] as int;
@@ -121,6 +118,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                           filteredAuctions[index]['endTime'] as Timestamp;
                       final category =
                           filteredAuctions[index]['category'] as String;
+                      final formattedEndTime = DateFormat('MM월 dd일 HH시 mm분').format(endTime.toDate());
 
                       return GestureDetector(
                         onTap: () {
@@ -241,9 +239,13 @@ class _CategoryScreenState extends State<CategoryScreen> {
                                             Text('$winningBid원', style: TextStyle(fontSize: 16, color: Colors.blue)),
                                           ],
                                         ),
-                                        SizedBox(height: 10),
-
-                                        // 경매 종료 남은 시간 표시
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text('경매 종료일', style: TextStyle(fontSize: 16)),
+                                            Text(formattedEndTime, style: TextStyle(fontSize: 16, color: Colors.redAccent))
+                                          ],
+                                        )
 
                                       ],
                                     ),
