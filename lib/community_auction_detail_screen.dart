@@ -28,6 +28,8 @@ class CommunityAuctionDetailScreen extends StatefulWidget {
   final Timestamp endTime; // 경매 종료까지 남은 시간
   final String category; // 경매 상태
 
+  final int remainingTime; // 남은 시간
+
 
   CommunityAuctionDetailScreen({
     required this.title,
@@ -51,6 +53,8 @@ class CommunityAuctionDetailScreen extends StatefulWidget {
     required this.endTime,
     required this.category,
 
+    required this.remainingTime, // 남은 시간
+
   });
   @override
   State<CommunityAuctionDetailScreen> createState() =>
@@ -68,15 +72,13 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
   // 좋아요 초기값
   bool isLiked = false;
 
-  StreamController<DateTime> _timeStreamController = StreamController<DateTime>();
-  late Timer _timer;
-  Duration _timeRemaining = Duration();
+  Timer? _timer;
+  int _remainingTimeInSeconds = 0;
 
   @override
   void dispose() {
+    _timer?.cancel();
     super.dispose();
-    _timeStreamController.close();
-    _timer.cancel();
   }
 
   @override
@@ -84,27 +86,7 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
     super.initState();
     getCurrentUserUID();
     getLikeStatus();
-
-    // 1초마다 현재 시간을 스트림에 추가
-    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
-      _timeStreamController.add(DateTime.now());
-      updateRemainingTime(); // 경매 종료까지 남은 시간을 업데이트
-    });
-
-  }
-
-  // 경매 종료까지 남은 시간을 업데이트하는 함수
-  void updateRemainingTime() async {
-    DateTime? endTime = await getAuctionEndTime();
-    if (endTime != null) {
-      Duration difference = endTime.difference(DateTime.now());
-      if (difference.inSeconds <= 0) {
-        _timer.cancel(); // Timer를 멈추기
-      }
-      setState(() {
-        _timeRemaining = difference;
-      });
-    }
+    _startTimer();
   }
 
   // firestore에서 endTime을 가져오는 함수
@@ -120,6 +102,35 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
       return endTimeTimestamp.toDate();
     }
     return null;
+  }
+
+  void _startTimer() {
+    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      _updateRemainingTime();
+    });
+  }
+
+  void _updateRemainingTime() async {
+    DateTime? endTime = await getAuctionEndTime();
+
+    if (endTime != null) {
+      if (DateTime.now().isBefore(endTime)) {
+        int remainingSeconds = endTime.difference(DateTime.now()).inSeconds;
+        setState(() {
+          _remainingTimeInSeconds = remainingSeconds;
+        });
+
+        FirebaseFirestore.instance
+            .collection(widget.collectionName)
+            .doc(widget.documentId)
+            .update({'remainingTime': remainingSeconds});
+
+      } else {
+        // 경매 종료 시간이 지났을 경우 타이머 종료
+        _timer?.cancel();
+        updateAuctionStatus();
+      }
+    }
   }
 
   @override
@@ -301,18 +312,18 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
                                               } else if (status == '경매 실패'){
                                                 return Text('입찰자가 나오지 않은 경매입니다.', style: TextStyle(fontSize: 16, color: Colors.grey));
                                               } else {
-                                                return StreamBuilder<DateTime>(
-                                                  stream: _timeStreamController.stream,
+                                                return StreamBuilder<int>(
+                                                  stream: Stream<int>.value(_remainingTimeInSeconds),
                                                   builder: (context, snapshot) {
                                                     if (!snapshot.hasData) {
                                                       return Center(child: CircularProgressIndicator());
                                                     }
+                                                    int remainingTimeInSeconds = snapshot.data!;
+                                                    Duration remainingTime = Duration(seconds: remainingTimeInSeconds);
 
-                                                    return Text(
-                                                      '남은 시간 ${_timeRemaining.inHours}시간 ${(_timeRemaining.inMinutes % 60)}분 ${(_timeRemaining.inSeconds % 60)}초',
-                                                      style: TextStyle(fontSize: 16, color: Colors.redAccent),
-                                                    );
-                                                  }
+                                                    return Text('남은 시간 ${remainingTime.inHours}:${(remainingTime.inMinutes % 60).toString().padLeft(2, '0')}:${(remainingTime.inSeconds % 60).toString().padLeft(2, '0')}',
+                                                    style: TextStyle(fontSize: 16, color: Colors.redAccent));
+                                                  },
                                                 );
                                               }
                                             }

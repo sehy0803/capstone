@@ -39,8 +39,9 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
   String status = '진행중'; // 경매 상태 : 진행중, 낙찰, 경매 실패
   Timestamp createDate = Timestamp.now(); // 게시글 작성일 = 경매 시작 시간
   Timestamp endTime = Timestamp.fromDate(
-      DateTime.now().add(Duration(minutes: 1)));
+      DateTime.now().add(Duration(minutes: 10)));
   String category = '1'; // 카테고리 초기값 1 = 의류
+
 
   @override
   void initState() {
@@ -179,7 +180,12 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
       if (_pickedFile != null) {
         Navigator.of(context).pop();
         try {
+
           String photoURL = await uploadImageToStorage(_pickedFile!);
+
+          Duration timeDifference = endTime.toDate().difference(DateTime.now());
+          int remainingTime = timeDifference.inSeconds;
+
           await _firestore.collection('AuctionCommunity').add({
             'title': title, // 제목
             'content': content, // 상품 설명
@@ -198,8 +204,9 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
             'winningBidderUID': winningBidderUID, // 낙찰자 uid
             'status': status,
             'createDate': createDate, // 게시글 작성일 = 경매 시작 시간
-            'endTime': endTime, // 경매 종료까지 남은 시간
+            'endTime': endTime, // 경매가 종료될 시간
             'category': category, // 카테고리 값
+            'remainingTime': remainingTime, // 경매 종료까지 "남은 시간"
           });
         } catch (e) {
           print('데이터 저장 오류: $e');

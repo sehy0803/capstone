@@ -28,9 +28,32 @@ class _CommunityScreenState extends State<CommunityScreen> {
   String category = '1';
   String formattedEndTime = '';
 
+  // 남은 시간
+  int remainingTime = 0;
+
   @override
   void initState() {
     super.initState();
+  }
+
+  // 남은 시간을 받아와서 표시하는 함수
+  String getFormattedRemainingTime() {
+    // 남은 시간이 0 이거나 경매 상태가 낙찰 또는 경매 실패일 경우(경매가 종료됐을 때)
+    if (remainingTime <= 0 || status == '낙찰' || status == '경매 실패') {
+      return '경매 종료 ${DateFormat('MM월 dd일 HH시 mm분').format(endTime.toDate())}';
+    } else if (remainingTime < 60) {
+      // 남은 시간이 1분 미만일 경우
+      return '잠시 후 종료';
+    } else {
+      // 남은 시간 표시
+      Duration remainingDuration = Duration(seconds: remainingTime);
+
+      if (remainingDuration.inHours >= 1) {
+        return '${remainingDuration.inHours}시간 후 종료';
+      } else {
+        return '${remainingDuration.inMinutes}분 후 종료';
+      }
+    }
   }
 
   @override
@@ -99,8 +122,10 @@ class _CommunityScreenState extends State<CommunityScreen> {
                   status = documents[index]['status'] as String;
                   endTime = documents[index]['endTime'] as Timestamp;
                   category = documents[index]['category'] as String;
-
                   formattedEndTime = DateFormat('MM월 dd일 HH시 mm분').format(endTime.toDate());
+
+                  // 남은 시간
+                  remainingTime = documents[index]['remainingTime'] as int;
 
                   // 경매 커뮤니티 게시물 표시
                   return GestureDetector(
@@ -132,6 +157,9 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                 createDate: createDate,
                                 endTime: endTime,
                                 category: category,
+
+                                // 남은 시간
+                                remainingTime: remainingTime,
                               );
                             },
                           ),
@@ -207,13 +235,8 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                         Text('$winningBid원', style: TextStyle(fontSize: 16, color: Colors.blue)),
                                       ],
                                     ),
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text('경매 종료일', style: TextStyle(fontSize: 16)),
-                                        Text(formattedEndTime, style: TextStyle(fontSize: 16, color: Colors.redAccent))
-                                      ],
-                                    )
+                                    // 남은 시간 표시
+                                    buildRemainingTime(),
 
                                   ],
                                 ),
@@ -318,6 +341,34 @@ class _CommunityScreenState extends State<CommunityScreen> {
     );
   }
   //============================================================================
+
+  // 남은 시간 표시
+  Widget buildRemainingTime() {
+    if (remainingTime <= 0 || status == '낙찰' || status == '경매 실패') {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text('경매 종료', style: TextStyle(fontSize: 16, color: Colors.grey)),
+          Text('${DateFormat('MM월 dd일 HH시 mm분').format(endTime.toDate())}',
+              style: TextStyle(fontSize: 16, color: Colors.grey))
+        ],
+      );
+    } else if (remainingTime < 60) {
+      return Center(
+        child: Text(
+          '잠시 후 종료',
+          style: TextStyle(fontSize: 16, color: Colors.redAccent),
+        ),
+      );
+    } else {
+      return Center(
+        child: Text(
+          getFormattedRemainingTime(),
+          style: TextStyle(fontSize: 16, color: Colors.redAccent),
+        ),
+      );
+    }
+  }
 
   // 경매 상태를 가져오는 스트림
   Stream<String> getAuctionStatusStream(String documentId) {
