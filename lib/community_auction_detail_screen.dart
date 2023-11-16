@@ -68,15 +68,15 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
   // 좋아요 초기값
   bool isLiked = false;
 
-  // 타이머
+  StreamController<DateTime> _timeStreamController = StreamController<DateTime>();
   late Timer _timer;
-  // 경매 종료까지 남은 시간을 저장하는 변수
   Duration _timeRemaining = Duration();
 
   @override
   void dispose() {
-    _timer.cancel(); // State가 소멸될 때 타이머도 종료
     super.dispose();
+    _timeStreamController.close();
+    _timer.cancel();
   }
 
   @override
@@ -85,11 +85,26 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
     getCurrentUserUID();
     getLikeStatus();
 
-    // 1초마다 시간을 업데이트하는 타이머 설정
+    // 1초마다 현재 시간을 스트림에 추가
     _timer = Timer.periodic(Duration(seconds: 1), (timer) {
-      updateRemainingTime();
+      _timeStreamController.add(DateTime.now());
+      updateRemainingTime(); // 경매 종료까지 남은 시간을 업데이트
     });
 
+  }
+
+  // 경매 종료까지 남은 시간을 업데이트하는 함수
+  void updateRemainingTime() async {
+    DateTime? endTime = await getAuctionEndTime();
+    if (endTime != null) {
+      Duration difference = endTime.difference(DateTime.now());
+      if (difference.inSeconds <= 0) {
+        _timer.cancel(); // Timer를 멈추기
+      }
+      setState(() {
+        _timeRemaining = difference;
+      });
+    }
   }
 
   // firestore에서 endTime을 가져오는 함수
@@ -105,22 +120,6 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
       return endTimeTimestamp.toDate();
     }
     return null;
-  }
-
-  // 남은 시간을 업데이트하고, 타이머를 종료하는 함수
-  void updateRemainingTime() async {
-    DateTime? endTime = await getAuctionEndTime();
-    if (endTime != null) {
-      final now = DateTime.now();
-      _timeRemaining = endTime.difference(now);
-      if (_timeRemaining.isNegative) {
-        _timer.cancel();
-        _timeRemaining = Duration(); // 타이머가 종료되면 _timeRemaining을 0으로 설정
-
-        updateAuctionStatus();
-      }
-      setState(() {});
-    }
   }
 
   @override
@@ -302,9 +301,18 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
                                               } else if (status == '경매 실패'){
                                                 return Text('입찰자가 나오지 않은 경매입니다.', style: TextStyle(fontSize: 16, color: Colors.grey));
                                               } else {
-                                                return Text(
-                                                  '남은 시간 ${_timeRemaining.inHours}시간 ${(_timeRemaining.inMinutes % 60)}분 ${(_timeRemaining.inSeconds % 60)}초',
-                                                  style: TextStyle(fontSize: 16, color: Colors.redAccent),
+                                                return StreamBuilder<DateTime>(
+                                                  stream: _timeStreamController.stream,
+                                                  builder: (context, snapshot) {
+                                                    if (!snapshot.hasData) {
+                                                      return Center(child: CircularProgressIndicator());
+                                                    }
+
+                                                    return Text(
+                                                      '남은 시간 ${_timeRemaining.inHours}시간 ${(_timeRemaining.inMinutes % 60)}분 ${(_timeRemaining.inSeconds % 60)}초',
+                                                      style: TextStyle(fontSize: 16, color: Colors.redAccent),
+                                                    );
+                                                  }
                                                 );
                                               }
                                             }
