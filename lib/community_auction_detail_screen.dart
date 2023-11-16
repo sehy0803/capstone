@@ -276,7 +276,7 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
                     builder: (context, snapshot) {
                       if (!snapshot.hasData) {return Center(child: CircularProgressIndicator());}
                       int winningBid = snapshot.data ?? widget.startBid;
-
+                      print(winningBid);
                       return Stack(
                           children: [
                             Column(
@@ -402,7 +402,7 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
                                               height: 55,
                                               child:ElevatedButton(
                                                 onPressed: () {
-                                                  if (bid >= widget.winningBid) {
+                                                  if (bid >= winningBid) {
                                                     showDialogBid(context);
                                                   } else {
                                                     ScaffoldMessenger.of(context).showSnackBar(
@@ -414,6 +414,7 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
                                                         )
                                                     );
                                                   }
+
                                                 },
                                                 style: ElevatedButton.styleFrom(
                                                   backgroundColor: Colors.blue,
@@ -445,6 +446,68 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
   }
   //============================================================================
 
+  // 입찰을 수행할 함수
+  void _saveBidData() async {
+
+    final User? user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      // 현재 로그인한 사용자의 UID 가져오기
+      String userUID = user.uid;
+
+      // Firestore에서 사용자 정보 가져오기
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('User').doc(userUID).get();
+
+      if (userDoc.exists) {
+        String bidderNickname = userDoc.get('nickname');
+
+        // 입찰 정보를 추가할 게시물의 경로
+        String postDocumentPath = '${widget.collectionName}/${widget.documentId}';
+
+        // 현재 최소 입찰가, 최고 입찰자를 업데이트
+        await FirebaseFirestore.instance.doc(postDocumentPath).update({
+          'winningBid': bid,
+          'winningBidder': bidderNickname,
+          'winningBidderUID': userUID
+        });
+
+        // 입력 필드 지우기
+        bidController.clear();
+      }
+    }
+  }
+
+  // 최소 입찰가를 가져올 스트림
+  Stream<int> getWinningBidStream() {
+    return _firestore
+        .collection(widget.collectionName)
+        .doc(widget.documentId)
+        .snapshots()
+        .map((doc) {
+      if (doc.exists) {
+        return doc.get('winningBid') as int;
+      } else {
+        // 문서가 존재하지 않을 때 처리
+        return 0;
+      }
+    });
+  }
+
+  // 최고 입찰자를 가져오는 함수
+  Future<String> getWinningBidder() async {
+    final document = await _firestore
+        .collection(widget.collectionName)
+        .doc(widget.documentId)
+        .get();
+    final data = document.data();
+
+    if (data != null && data['winningBidder'] != null) {
+      return data['winningBidder'] as String;
+    } else {
+      return '';
+    }
+  }
+
   // 경매 상태를 가져오는 함수
   Stream<String> getAuctionStatusStream() {
     String postDocumentPath = '${widget.collectionName}/${widget.documentId}';
@@ -475,68 +538,6 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
       await FirebaseFirestore.instance.doc(postDocumentPath).update({
         'status': '경매 실패',
       });
-    }
-  }
-
-  // 최고 입찰자를 가져오는 함수
-  Future<String> getWinningBidder() async {
-    final document = await _firestore
-        .collection(widget.collectionName)
-        .doc(widget.documentId)
-        .get();
-    final data = document.data();
-
-    if (data != null && data['winningBidder'] != null) {
-      return data['winningBidder'] as String;
-    } else {
-      return '';
-    }
-  }
-
-  // 최소 입찰가를 가져올 스트림
-  Stream<int> getWinningBidStream() {
-    return _firestore
-        .collection(widget.collectionName)
-        .doc(widget.documentId)
-        .snapshots()
-        .map((doc) {
-      if (doc.exists) {
-        return doc.get('winningBid') as int;
-      } else {
-        // 문서가 존재하지 않을 때 처리
-        return 0;
-      }
-    });
-  }
-
-  // 입찰을 수행할 함수
-  void _saveBidData() async {
-
-    final User? user = FirebaseAuth.instance.currentUser;
-
-    if (user != null) {
-      // 현재 로그인한 사용자의 UID 가져오기
-      String userUID = user.uid;
-
-      // Firestore에서 사용자 정보 가져오기
-      DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('User').doc(userUID).get();
-
-      if (userDoc.exists) {
-        String bidderNickname = userDoc.get('nickname');
-
-        // 입찰 정보를 추가할 게시물의 경로
-        String postDocumentPath = '${widget.collectionName}/${widget.documentId}';
-
-        // 현재 최소 입찰가, 최고 입찰자를 업데이트
-        await FirebaseFirestore.instance.doc(postDocumentPath).update({
-          'winningBid': bid,
-          'winningBidder': bidderNickname,
-          'winningBidderUID': userUID
-        });
-
-        // 입력 필드 지우기
-        bidController.clear();
-      }
     }
   }
 
