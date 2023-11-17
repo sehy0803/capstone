@@ -41,9 +41,11 @@ class _CommunityRegisterScreenState extends State<CommunityRegisterScreen> {
       appBar: AppBar(
         backgroundColor: DarkColors.basic,
         title:
-        Text('유저 게시판', style: TextStyle(color: Colors.white, fontSize: 20)),
+            Text('유저 게시판', style: TextStyle(color: Colors.white, fontSize: 20)),
         leading: IconButton(
-          onPressed: () {Navigator.pop(context);},
+          onPressed: () {
+            Navigator.pop(context);
+          },
           icon: Icon(Icons.close),
           iconSize: 30,
           color: Colors.white,
@@ -54,7 +56,8 @@ class _CommunityRegisterScreenState extends State<CommunityRegisterScreen> {
             onPressed: () {
               showConfirmationDialog(context);
             },
-            child: Text('등록', style: TextStyle(fontSize: 18, color: Colors.amber)),
+            child:
+                Text('등록', style: TextStyle(fontSize: 18, color: Colors.amber)),
           )
         ],
       ),
@@ -63,26 +66,28 @@ class _CommunityRegisterScreenState extends State<CommunityRegisterScreen> {
           padding: const EdgeInsets.all(20),
           child: Column(
             children: [
-              Column(
-                children: [
-                  TextField(
-                    maxLength: 30,
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    decoration: InputDecoration(
-                        hintText: '제목',
-                        hintStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                    onChanged: (value) {title = value;},
-                  ),
-                  SizedBox(height: 10),
-                  TextField(
-                    maxLength: 300,
-                    style: TextStyle(fontSize: 18),
-                    decoration: InputDecoration(hintText: '내용', hintStyle: TextStyle(fontSize: 18)),
-                    keyboardType: TextInputType.multiline,
-                    maxLines: 30,
-                    onChanged: (value) {content = value;},
-                  ),
-                ],
+              TextField(
+                maxLength: 30,
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                decoration: InputDecoration(
+                    hintText: '제목',
+                    hintStyle:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                onChanged: (value) {
+                  title = value;
+                },
+              ),
+              SizedBox(height: 10),
+              TextField(
+                maxLength: 200,
+                style: TextStyle(fontSize: 18),
+                decoration: InputDecoration(
+                    hintText: '내용', hintStyle: TextStyle(fontSize: 18)),
+                keyboardType: TextInputType.multiline,
+                maxLines: 20,
+                onChanged: (value) {
+                  content = value;
+                },
               ),
             ],
           ),
@@ -90,6 +95,7 @@ class _CommunityRegisterScreenState extends State<CommunityRegisterScreen> {
       ),
     );
   }
+
   //============================================================================
   // Firestore에서 업로더 정보 가져오기
   void getCurrentUser() async {
@@ -97,7 +103,7 @@ class _CommunityRegisterScreenState extends State<CommunityRegisterScreen> {
       final user = _authentication.currentUser;
       if (user != null) {
         final userDocument =
-        await _firestore.collection('User').doc(user.uid).get();
+            await _firestore.collection('User').doc(user.uid).get();
         if (userDocument.exists) {
           uploaderUID = user.uid;
           uploaderEmail = userDocument['email'] ?? '';
@@ -140,7 +146,9 @@ class _CommunityRegisterScreenState extends State<CommunityRegisterScreen> {
             content: Text('제목과 내용을 모두 입력하세요.'),
             actions: [
               TextButton(
-                onPressed: () {Navigator.pop(context);},
+                onPressed: () {
+                  Navigator.pop(context);
+                },
                 child: Text('확인'),
               ),
             ],
@@ -160,7 +168,9 @@ class _CommunityRegisterScreenState extends State<CommunityRegisterScreen> {
           content: Text('게시물을 등록하시겠습니까?'),
           actions: [
             TextButton(
-              onPressed: () {Navigator.pop(context);},
+              onPressed: () {
+                Navigator.pop(context);
+              },
               child: Text('취소'),
             ),
             TextButton(
@@ -169,9 +179,10 @@ class _CommunityRegisterScreenState extends State<CommunityRegisterScreen> {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('게시물이 등록되었습니다.', style: TextStyle(fontSize: 16, color: Colors.white)),
+                    content: Text('게시물이 등록되었습니다.',
+                        style: TextStyle(fontSize: 16, color: Colors.white)),
                     dismissDirection: DismissDirection.up,
-                    duration: Duration(milliseconds: 15000),  // 경매 시간 제한
+                    duration: Duration(milliseconds: 15000), // 경매 시간 제한
                     backgroundColor: Colors.black,
                   ),
                 );

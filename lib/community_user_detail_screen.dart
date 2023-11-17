@@ -1,4 +1,5 @@
 import 'package:capstone/custom_widget.dart';
+import 'package:capstone/edit_post_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -78,9 +79,20 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
             PopupMenuButton<String>(
               icon: Icon(Icons.more_vert, color: Colors.grey, size: 30),
               offset: Offset(0, 60),
-              onSelected: (value) {if (value == 'delete') {showDialogDeletePost(context);}},
+              onSelected: (value) {
+                if (value == 'delete') {
+                  showDialogDeletePost(context);
+                } else if (value == 'edit') {
+                  // 수정 버튼을 눌렀을 때 수행할 작업 추가
+                  showDialogEditPost(context);
+                }
+              },
               itemBuilder: (BuildContext context) {
                 return [
+                  PopupMenuItem<String>(
+                    value: 'edit',
+                    child: Text('수정하기'),
+                  ),
                   PopupMenuItem<String>(
                     value: 'delete',
                     child: Text('삭제하기'),
@@ -106,6 +118,9 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
               int likeCount = snapshot.data!.get('like') ?? 0;
               int commentsCount = snapshot.data!.get('comments') ?? 0;
 
+              String title = snapshot.data!.get('title') ?? '';
+              String content = snapshot.data!.get('content') ?? '';
+
             return GestureDetector(
               // 빈 곳 터치시 키패드 사라짐
               onTap: () {FocusScope.of(context).unfocus();},
@@ -121,7 +136,7 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 // 게시글 제목
-                                Text(widget.title, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                                Text(title, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                                 SizedBox(height: 20),
                                 // 유저 정보
                                 Row(
@@ -185,7 +200,7 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(widget.content,
+                                Text(content,
                                     style: TextStyle(fontSize: 16)),
                                 SizedBox(height: 10),
                                 CommentLine(),
@@ -336,6 +351,37 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
 
   // ===========================================================================
 
+  // 게시물 수정 확인 AlertDialog 표시
+  void showDialogEditPost(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('수정하기'),
+          content: Text('게시물을 수정하시겠습니까?'),
+          actions: [
+            TextButton(
+              onPressed: () {Navigator.pop(context);},
+              child: Text('취소'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                // 수정 버튼을 눌렀을 때 게시물 수정 화면으로 이동
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => EditPostScreen(documentId: widget.documentId),
+                  ),
+                );
+              },
+              child: Text('확인'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   // 댓글을 등록하는 함수
   void addComment() async {

@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:capstone/community_auction_detail_screen.dart';
 import 'package:capstone/custom_widget.dart';
 import 'package:uuid/uuid.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -21,29 +20,11 @@ class _EditAuctionScreenState extends State<EditAuctionScreen> {
 
   File? _pickedFile;
 
-  // 게시글 정보를 저장할 변수
   String title = ''; // 제목
   String content = ''; // 내용
-  String uploaderUID = ''; // 업로더 uid
-  String uploaderEmail = ''; // 업로더 이메일
-  String uploaderImageURL = ''; // 업로더 프로필 사진 URL
-  String uploaderNickname = ''; // 업로더 닉네임
-  int views = 0; // 조회수
-  int like = 0; // 좋아요 횟수
-  int comments = 0; // 댓글 수
   String photoURL = ''; // 경매 상품 사진
-  // 경매 정보를 저장할 변수
   int startBid = 0; // 시작가
-  int winningBid = 0; // 낙찰가
-  String winningBidder = ''; // 낙찰자
-  String winningBidderUID = ''; // 낙찰자 uid
-  String status = '진행중'; // 경매 상태 : 진행중, 낙찰, 경매 실패
-  late Timestamp createDate; // 게시글 작성일 = 경매 시작 시간
-  late Timestamp endTime;
   String category = '1'; // 카테고리 초기값 1 = 의류
-
-  // 남은 시간
-  int remainingTime = 0;
 
   late Future<void> _fetchAuctionDataFuture;
 
@@ -63,24 +44,6 @@ class _EditAuctionScreenState extends State<EditAuctionScreen> {
           startBid = data['startBid'] ?? 0;
           content = data['content'] ?? '';
           category = data['category'] ?? '';
-
-          uploaderUID = data['uploaderUID'] ?? '';
-          uploaderEmail = data['uploaderEmail'] ?? '';
-          uploaderImageURL = data['uploaderImageURL'] ?? '';
-          uploaderNickname = data['uploaderNickname'] ?? '';
-          views = data['views'] ?? 0;
-          like = data['like'] ?? 0;
-          comments = data['comments'] ?? 0;
-          createDate = data['createDate'] ?? 0;
-
-          winningBid = data['winningBid'] ?? 0;
-          winningBidder = data['winningBidder'] ?? '';
-          winningBidderUID = data['winningBidderUID'] ?? '';
-          status = data['status'] ?? '';
-          endTime = data['endTime'] ?? 0;
-
-          // 남은 시간
-          remainingTime = data['remainingTime'] ?? 0;
         }
       }
     } catch (e) {
