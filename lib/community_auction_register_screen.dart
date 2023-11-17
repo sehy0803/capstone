@@ -185,8 +185,7 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
 
           // 시간 정보
           Timestamp createDate = Timestamp.now();
-          Timestamp waitingTime = Timestamp.fromDate(createDate.toDate().add(Duration(minutes: 10)));
-          Timestamp startTime = Timestamp.fromDate(waitingTime.toDate().add(Duration(seconds: 1)));
+          Timestamp startTime = Timestamp.fromDate(createDate.toDate().add(Duration(minutes: 10)));
           Timestamp endTime = Timestamp.fromDate(startTime.toDate().add(Duration(minutes: 30)));
           int remainingTime = endTime.toDate().difference(startTime.toDate()).inSeconds;
 
@@ -208,8 +207,7 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
 
             // 시간 정보
             'createDate': createDate, // 경매 등록 시간
-            'waitingTime': waitingTime, // 경매 대기 시간. 경매 등록 시간 + 10분
-            'startTime': startTime, // 경매 시작 시간. 경매 대기 시간 이후.
+            'startTime': startTime, // 경매 시작 시간. 경매 등록 시간 + 10분
             'endTime': endTime, // 경매 종료 시간. 경매 시작 시간 + 30분
             'remainingTime': remainingTime, // 경매 종료까지 "남은 시간"
           });

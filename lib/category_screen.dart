@@ -243,7 +243,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
     } else if (status == '경매 실패') {
       return Colors.grey; // 회색
     } else {
-      return Colors.black; // 기본값 (다른 상태일 때)
+      return Colors.black; // 대기중
     }
   }
 
