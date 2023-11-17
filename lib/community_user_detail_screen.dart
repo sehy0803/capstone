@@ -6,34 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class CommunityUserDetailScreen extends StatefulWidget {
-  final String title; // 제목
-  final String content; // 내용
-  final String uploaderUID; // 업로더 uid
-  final String uploaderEmail; // 업로더 이메일
-  final String uploaderImageURL; // 업로더 프로필 사진 URL
-  final String uploaderNickname; // 업로더 닉네임
-  final Timestamp createDate; // 글을 올린 날짜와 시간
-  final String collectionName; // 커뮤니티 종류
   final String documentId; // 게시물 고유 ID
-  final int views; // 조회수
-  final int like; // 좋아요
-  final int comments; // 댓글 수
-  final String photoURL; // 게시물 사진
 
   CommunityUserDetailScreen({
-    required this.title,
-    required this.content,
-    required this.uploaderUID,
-    required this.uploaderEmail,
-    required this.uploaderImageURL,
-    required this.uploaderNickname,
-    required this.createDate,
-    required this.collectionName,
     required this.documentId,
-    required this.views,
-    required this.like,
-    required this.comments,
-    required this.photoURL,
   });
 
   @override
@@ -54,14 +30,12 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
   @override
   void initState() {
     super.initState();
-    getCurrentUserUID();
     getLikeStatus();
   }
 
   @override
   Widget build(BuildContext context) {
-    // 'createDate'를 '2023.12.03 15:30' 형태로 포맷
-    final formattedDate = DateFormat('yyyy.MM.dd HH:mm').format(widget.createDate.toDate());
+    String userUID = _authentication.currentUser!.uid;
     return Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
@@ -74,7 +48,7 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
             color: Colors.white,
           ),
           // 게시물 삭제 기능
-          actions: isCheckUploader()
+          actions: isCheckUploader(userUID)
               ? [
             PopupMenuButton<String>(
               icon: Icon(Icons.more_vert, color: Colors.grey, size: 30),
@@ -83,7 +57,6 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
                 if (value == 'delete') {
                   showDialogDeletePost(context);
                 } else if (value == 'edit') {
-                  // 수정 버튼을 눌렀을 때 수행할 작업 추가
                   showDialogEditPost(context);
                 }
               },
@@ -95,254 +68,264 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
                   ),
                   PopupMenuItem<String>(
                     value: 'delete',
-                    child: Text('삭제하기'),
-                  ),
-                ];
-              },
-            ),
-          ]
+                    child: Text('삭제하기'))];})]
               : [],
         ),
         body: StreamBuilder<DocumentSnapshot>(
-            stream: _firestore.collection(widget.collectionName).doc(widget.documentId).snapshots(),
+            stream: _firestore.collection('UserCommunity').doc(widget.documentId).snapshots(),
             builder: (context, snapshot) {
-              if (!snapshot.hasData) {
-                return Center(child: CircularProgressIndicator());
-              }
+              if (!snapshot.hasData) {return Center(child: CircularProgressIndicator());}
 
-              // 댓글을 추가할 게시물의 경로
-              String postDocumentPath = '${widget.collectionName}/${widget.documentId}';
-              // 댓글 컬렉션 경로
-              String commentsCollectionPath = '$postDocumentPath/comments';
+              var data = snapshot.data!.data() as Map<String, dynamic>;
 
-              int likeCount = snapshot.data!.get('like') ?? 0;
-              int commentsCount = snapshot.data!.get('comments') ?? 0;
+              //String commentsPath = 'UserCommunity/${widget.documentId}/comments';
 
-              String title = snapshot.data!.get('title') ?? '';
-              String content = snapshot.data!.get('content') ?? '';
+              // 유저 정보
+              String uploaderUID = data['uploaderUID'] as String;
 
-            return GestureDetector(
-              // 빈 곳 터치시 키패드 사라짐
-              onTap: () {FocusScope.of(context).unfocus();},
-              child: Column(
-                children: [
-                  Expanded(
-                    child: SingleChildScrollView(
-                      child: Column(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(20.0),
+              // 경매 정보
+              String title = data['title'] as String;
+              String content = data['content'] as String;
+              int views = data['views'] + 1 as int;
+              int like = data['like'] as int;
+              int comments = data['comments'] as int;
+
+              // 시간 정보
+              Timestamp createDate = data['createDate'] as Timestamp;
+              String formattedCreateDate = DateFormat('yyyy.MM.dd HH:mm').format(createDate.toDate());
+
+            return StreamBuilder<DocumentSnapshot>(
+                stream: _firestore.collection('User').doc(uploaderUID).snapshots(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {return Center(child: CircularProgressIndicator());}
+
+                  var uploaderData = snapshot.data!.data() as Map<String, dynamic>;
+
+                  // 업로더 정보
+                  String uploaderImageURL = uploaderData['imageURL'] ?? '';
+                  String uploaderNickname = uploaderData['nickname'] ?? '';
+
+                  return GestureDetector(
+                    // 빈 곳 터치시 키패드 사라짐
+                    onTap: () {FocusScope.of(context).unfocus();},
+                    child: Column(
+                      children: [
+                        Expanded(
+                          child: SingleChildScrollView(
                             child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // 게시글 제목
-                                Text(title, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                                SizedBox(height: 20),
-                                // 유저 정보
-                                Row(
-                                  children: [
-                                    // 글을 올린 유저의 프로필 사진
-                                    _buildUploaderImage(widget.uploaderImageURL),
-                                    SizedBox(width: 10),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                Padding(
+                                  padding: const EdgeInsets.all(20.0),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      // 게시글 제목
+                                      Text(title, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                                      SizedBox(height: 20),
+                                      // 유저 정보
+                                      Row(
                                         children: [
-                                          // 글을 올린 유저의 닉네임
-                                          Text(widget.uploaderNickname, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                                          SizedBox(height: 5),
-                                          Row(
+                                          // 글을 올린 유저의 프로필 사진
+                                          _buildUploaderImage(uploaderImageURL),
+                                          SizedBox(width: 10),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                // 글을 올린 유저의 닉네임
+                                                Text(uploaderNickname, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                                                SizedBox(height: 5),
+                                                Row(
+                                                  children: [
+                                                    Text(formattedCreateDate, style: TextStyle(fontSize: 12, color: Colors.grey, height: 1.5)),
+                                                    SizedBox(width: 3),
+                                                    Text('조회', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                                                    SizedBox(width: 3),
+                                                    Text('$views', style: TextStyle(fontSize: 12, color: Colors.grey, height: 1.5))
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          // 좋아요 버튼
+                                          Column(
                                             children: [
-                                              Text(formattedDate, style: TextStyle(fontSize: 12, color: Colors.grey, height: 1.5)),
-                                              SizedBox(width: 3),
-                                              Text('조회', style: TextStyle(fontSize: 12, color: Colors.grey)),
-                                              SizedBox(width: 3),
-                                              Text('${widget.views}', style: TextStyle(fontSize: 12, color: Colors.grey, height: 1.5))
+                                              IconButton(
+                                                onPressed: () {
+                                                  setState(() {
+                                                    isLiked = !isLiked;
+                                                  });
+                                                  saveLikeStatus(isLiked);
+                                                  updateLikeCount(isLiked);
+                                                },
+                                                icon: Icon(
+                                                  isLiked ? Icons.favorite : Icons
+                                                      .favorite_border,
+                                                  color: isLiked ? Colors.red : Colors
+                                                      .grey,
+                                                ),
+                                                iconSize: 35,
+                                                padding: EdgeInsets.zero,
+                                                constraints: BoxConstraints(),
+                                              ),
+                                              // 좋아요 수 표시
+                                              Text('$like', style: TextStyle(fontSize: 12))
                                             ],
                                           ),
                                         ],
                                       ),
-                                    ),
-                                    // 좋아요 버튼
-                                    Column(
-                                      children: [
-                                        IconButton(
-                                          onPressed: () {
-                                            setState(() {
-                                              isLiked = !isLiked;
-                                            });
-                                            saveLikeStatus(isLiked);
-                                            updateLikeCount(isLiked);
-                                          },
-                                          icon: Icon(
-                                            isLiked ? Icons.favorite : Icons
-                                                .favorite_border,
-                                            color: isLiked ? Colors.red : Colors
-                                                .grey,
-                                          ),
-                                          iconSize: 35,
-                                          padding: EdgeInsets.zero,
-                                          constraints: BoxConstraints(),
-                                        ),
-                                        // 좋아요 수 표시
-                                        Text('$likeCount', style: TextStyle(fontSize: 12))
-                                      ],
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
-                              ],
-                            ),
-                          ),
-                          Container(height: 1, color: Colors.grey[300]),
-                          // 게시글 내용
-                          Padding(
-                            padding: const EdgeInsets.all(20.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(content,
-                                    style: TextStyle(fontSize: 16)),
-                                SizedBox(height: 10),
-                                CommentLine(),
-                                Row(
-                                  children: [
-                                    Text('댓글', style: TextStyle(fontSize: 14)),
-                                    SizedBox(width: 3),
-                                    Text('$commentsCount', style: TextStyle(fontSize: 14, height: 1.4))
-                                  ],
-                                ),
-                                SizedBox(height: 20),
-                                // 댓글창을 표시하는 부분
-                                StreamBuilder<QuerySnapshot>(
-                                  stream: _firestore.collection(commentsCollectionPath).orderBy('timestamp', descending: false).snapshots(),
-                                  builder: (context, snapshot) {
-                                    if (!snapshot.hasData) {
-                                      return Center(child: CircularProgressIndicator());
-                                    }
+                                Container(height: 1, color: Colors.grey[300]),
 
-                                    // 댓글 데이터가 있는 경우
-                                    final comments = snapshot.data!.docs;
-                                    return Column(
-                                      children: comments.asMap().entries.map((entry) {
-                                        final index = entry.key;
-                                        final comment = entry.value.data() as Map<String, dynamic>;
+                                // 게시글 내용
+                                Padding(
+                                  padding: const EdgeInsets.all(20.0),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(content, style: TextStyle(fontSize: 16)),
+                                      SizedBox(height: 10),
+                                      CommentLine(),
+                                      Row(
+                                        children: [
+                                          Text('댓글', style: TextStyle(fontSize: 14)),
+                                          SizedBox(width: 3),
+                                          Text('$comments', style: TextStyle(fontSize: 14, height: 1.4))
+                                        ],
+                                      ),
+                                      SizedBox(height: 20),
+                                      // 댓글창을 표시하는 부분
+                                      StreamBuilder<QuerySnapshot>(
+                                        stream: _firestore.collection('UserCommunity/${widget.documentId}/comments')
+                                            .orderBy('timestamp', descending: false).snapshots(),
+                                        builder: (context, snapshot) {
+                                          if (!snapshot.hasData) {return Center(child: CircularProgressIndicator());}
 
-                                        return Column(
-                                          children: [
-                                            Card(
-                                              elevation: 0,
-                                              child: Container(
-                                                child: Row(
-                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  children: [
-                                                    Row(
-                                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                                      children: [
-                                                        _buildCommenterImage(comment['commenterImageURL']),
-                                                        SizedBox(width: 10),
-                                                        Column(
-                                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                                          children: [
-                                                            SizedBox(
-                                                              width: MediaQuery.of(context).size.width- 100,
-                                                              child: Row(
+                                          // 댓글이 있는 경우
+                                          var comments = snapshot.data!.docs;
+                                          
+                                          return Column(
+                                            children: comments.asMap().entries.map((entry) {
+                                              final index = entry.key;
+                                              final commentData = entry.value.data() as Map<String, dynamic>;
+
+                                              return Column(
+                                                children: [
+                                                  Card(
+                                                    elevation: 0,
+                                                    child: Container(
+                                                      child: Row(
+                                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                        children: [
+                                                          Row(
+                                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                                            children: [
+                                                              _buildCommenterImage(commentData['commenterImageURL']),
+                                                              SizedBox(width: 10),
+                                                              Column(
                                                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                crossAxisAlignment: CrossAxisAlignment.start,
                                                                 children: [
-                                                                  Text(comment['commenterNickname'], style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-                                                                  // 댓글 삭제 버튼
-                                                                  _buildDeleteCommenterButton(comment['commenterUID'], comments[index].id)
+                                                                  SizedBox(
+                                                                    width: MediaQuery.of(context).size.width- 100,
+                                                                    child: Row(
+                                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                      children: [
+                                                                        Text(commentData['commenterNickname'], style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                                                                        // 댓글 삭제 버튼
+                                                                        _buildDeleteCommenterButton(commentData['commenterUID'], comments[index].id)
+                                                                      ],
+                                                                    ),
+                                                                  ),
+                                                                  SizedBox(height: 5),
+                                                                  SizedBox(
+                                                                      width: MediaQuery.of(context).size.width - 100,
+                                                                      child: Text(commentData['text'], style: TextStyle(fontSize: 14), maxLines: 5, overflow: TextOverflow.ellipsis)),
+                                                                  SizedBox(height: 5),
+                                                                  Text(commentData['timestamp'], style: TextStyle(fontSize: 12, color: Colors.grey)),
                                                                 ],
                                                               ),
-                                                            ),
-                                                            SizedBox(height: 5),
-                                                            SizedBox(
-                                                                width: MediaQuery.of(context).size.width - 100,
-                                                                child: Text(comment['text'], style: TextStyle(fontSize: 14), maxLines: 5, overflow: TextOverflow.ellipsis)),
-                                                            SizedBox(height: 5),
-                                                            Text(comment['timestamp'], style: TextStyle(fontSize: 12, color: Colors.grey)),
-                                                          ],
-                                                        ),
-                                                      ],
+                                                            ],
+                                                          ),
+                                                        ],
+                                                      ),
                                                     ),
-
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                            CommentLine()
-                                          ],
-                                        );
-                                      }).toList(),
-                                    );
-                                  },
-                                )
+                                                  ),
+                                                  CommentLine()
+                                                ],
+                                              );
+                                            }).toList(),
+                                          );
+                                        },
+                                      )
+                                    ],
+                                  ),
+                                ),
                               ],
                             ),
                           ),
-
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  // 댓글 입력 버튼
-                  Stack(children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextFormField(
-                            controller: commentController,
-                            decoration: InputDecoration(
-                                enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.grey[400]!),
-                                  borderRadius: BorderRadius.all(
-                                      Radius.circular(0.0)),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.grey[400]!),
-                                  borderRadius: BorderRadius.all(
-                                      Radius.circular(0.0)),
-                                ),
-                                hintText: '댓글을 남겨보세요',
-                                hintStyle: TextStyle(fontSize: 16, color: Colors
-                                    .grey[400]!),
-                                contentPadding: EdgeInsets.all(15)),
-                          ),
                         ),
-                        SizedBox(
-                          width: 80,
-                          height: 55,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              if(commentController.text.isEmpty){
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text('댓글을 입력해주세요.',
-                                          style: TextStyle(fontSize: 16, color: Colors.white)),
-                                      dismissDirection: DismissDirection.up,
-                                      duration: Duration(milliseconds: 1500),
-                                      backgroundColor: Colors.black,
-                                    )
-                                );
-                              } else {
-                                showDialogAddComment(context);
-                              }
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: DarkColors.basic,
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(0.0)),
-                            ),
-                            child: Text('등록', style: TextStyle(fontSize: 16)),
+
+                        // 댓글 입력 버튼
+                        Stack(children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextFormField(
+                                  controller: commentController,
+                                  decoration: InputDecoration(
+                                      enabledBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(color: Colors.grey[400]!),
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(0.0)),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(color: Colors.grey[400]!),
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(0.0)),
+                                      ),
+                                      hintText: '댓글을 남겨보세요',
+                                      hintStyle: TextStyle(fontSize: 16, color: Colors.grey[400]!),
+                                      contentPadding: EdgeInsets.all(15)),
+                                ),
+                              ),
+                              SizedBox(
+                                width: 80,
+                                height: 55,
+                                child: ElevatedButton(
+                                  onPressed: () {
+                                    if(commentController.text.isEmpty){
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text('댓글을 입력해주세요.',
+                                                style: TextStyle(fontSize: 16, color: Colors.white)),
+                                            dismissDirection: DismissDirection.up,
+                                            duration: Duration(milliseconds: 1500),
+                                            backgroundColor: Colors.black,
+                                          )
+                                      );
+                                    } else {
+                                      showDialogAddComment(context);
+                                    }
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: DarkColors.basic,
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(0.0)),
+                                  ),
+                                  child: Text('등록', style: TextStyle(fontSize: 16)),
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
+                        ]),
                       ],
                     ),
-                  ]),
-                ],
-              ),
+                  );
+                }
             );
           },
         ),
@@ -367,7 +350,6 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
-                // 수정 버튼을 눌렀을 때 게시물 수정 화면으로 이동
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -385,54 +367,31 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
 
   // 댓글을 등록하는 함수
   void addComment() async {
-    // 입력된 댓글 내용 가져오기
+    String userUID = _authentication.currentUser!.uid;
     final commentText = commentController.text;
 
     if (commentText.isNotEmpty) {
-      final User? user = FirebaseAuth.instance.currentUser;
+      // Firestore에서 사용자 정보 가져오기
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('User').doc(userUID).get();
 
-      if (user != null) {
-        // 현재 로그인한 사용자의 UID 가져오기
-        String userUID = user.uid;
+      String commenterUID = userUID;
+      String commenterNickname = userDoc.get('nickname');
+      String commenterImageURL = userDoc.get('imageURL');
+      Timestamp timestamp = Timestamp.fromDate(DateTime.now());
 
-        // Firestore에서 사용자 정보 가져오기
-        DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('User').doc(userUID).get();
+      // Firestore에 추가할 댓글 정보 묶음
+      final commentData = {
+        'text': commentText,
+        'commenterUID': commenterUID,
+        'commenterNickname': commenterNickname,
+        'commenterImageURL': commenterImageURL,
+        'timestamp': timestamp
+      };
 
-        if (userDoc.exists) {
-          String commenterUID = userUID;
-          String commenterEmail = userDoc.get('email');
-          String commenterNickname = userDoc.get('nickname');
-          String commenterImageURL = userDoc.get('imageURL');
+      await updateCommentCount();
 
-          setTimestamp();
-
-          // Firestore에 추가할 댓글 정보 묶음
-          final commentData = {
-            'text': commentText,
-            'commenterUID' : commenterUID,
-            'commenterEmail' : commenterEmail,
-            'commenterNickname': commenterNickname,
-            'commenterImageURL': commenterImageURL,
-            'timestamp' : timestamp
-          };
-
-          // 댓글을 추가할 게시물의 경로
-          String postDocumentPath = '${widget.collectionName}/${widget.documentId}';
-
-          // 댓글 컬렉션 경로
-          String commentsCollectionPath = '$postDocumentPath/comments';
-
-          // 댓글을 Firestore에 추가하고 commentId 얻기
-          DocumentReference commentRef = await _firestore.collection(commentsCollectionPath).add(commentData);
-          String commentId = commentRef.id;
-
-          // 댓글 추가 후 댓글 수 업데이트
-          await updateCommentCount();
-
-          // 입력 필드 지우기
-          commentController.clear();
-        }
-      }
+      // 입력 필드 지우기
+      commentController.clear();
     }
   }
 
@@ -478,15 +437,10 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
   // 댓글 수 업데이트 함수
   Future<void> updateCommentCount() async {
     try {
-      final postRef = _firestore.collection(widget.collectionName).doc(widget.documentId);
-
-      // 댓글 컬렉션에 있는 댓글 문서 수를 가져옵니다.
+      final postRef = _firestore.collection('UserCommunity').doc(widget.documentId);
       final commentsQuery = await postRef.collection('comments').get();
-
-      int commentCount = commentsQuery.docs.length;
-
-      // 게시물 문서의 'comments' 필드를 업데이트하여 댓글 수를 반영합니다.
-      await postRef.update({'comments': commentCount});
+      int comments = commentsQuery.docs.length;
+      await postRef.update({'comments': comments});
     } catch (e) {
       print('댓글 수 업데이트 오류: $e');
     }
@@ -494,7 +448,8 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
 
   // 댓글 삭제 버튼
   IconButton _buildDeleteCommenterButton(String commenterUID, String commentId) {
-    if (isCheckCommenter(commenterUID)) {
+    String userUID = _authentication.currentUser!.uid;
+    if (isCheckCommenter(userUID, commenterUID)) {
       return IconButton(
         onPressed: () {
           showDialogDeleteComment(context, commentId);
@@ -553,31 +508,13 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
 
   // 댓글 삭제 함수
   Future<void> deleteComment(String commentId) async {
-    // 댓글을 추가할 게시물의 경로
-    String postDocumentPath = '${widget.collectionName}/${widget.documentId}';
-
-    // 댓글 컬렉션 경로
-    String commentsCollectionPath = '$postDocumentPath/comments';
-
+    String commentsPath = 'UserCommunity/${widget.documentId}/comments';
     try {
-      // Firestore에서 댓글 삭제
-      await _firestore.collection(commentsCollectionPath).doc(commentId).delete();
-      // 댓글 삭제 후 댓글 수 업데이트
+      await _firestore.collection(commentsPath).doc(commentId).delete();
       updateCommentCount();
     } catch (e) {
       print('댓글 삭제 중 오류 발생: $e');
     }
-  }
-
-
-  //============================================================================
-
-  // 현재 시간으로 timestamp 설정
-  String timestamp = '';
-  void setTimestamp() {
-    final now = DateTime.now();
-    final formatter = DateFormat('yyyy.MM.dd HH:mm');
-    timestamp = formatter.format(now);
   }
 
   // 댓글 작성자의 프로필 사진을 표시하는 함수
@@ -627,22 +564,21 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
   }
 
   // =============================================================================
-  // 현재 로그인한 사용자의 UID 가져오기
-  String? userUID;
-  void getCurrentUserUID() {
-    final User? user = _authentication.currentUser;
-    if (user != null) {
-      userUID = user.uid;
-    }
+
+  // firestore에서 uploaderUID 값을 가져오는 함수
+  Future<String> getUploaderUID() async {
+    final document = await _firestore.collection('UserCommunity').doc(widget.documentId).get();
+    final data = document.data();
+    return data!['uploaderUID'] as String;
   }
 
   // 업로더의 uid와 현재 로그인한 사용자의 uid 비교
-  bool isCheckUploader() {
-    return userUID == widget.uploaderUID;
+  bool isCheckUploader(String userUID) {
+    return userUID == getUploaderUID();
   }
 
-  // 코멘터의 이메일과 현재 로그인한 사용자의 이메일 비교
-  bool isCheckCommenter(commenterUID) {
+  // 코멘터의 uid와 현재 로그인한 사용자의 uid 비교
+  bool isCheckCommenter(userUID, commenterUID) {
     return userUID == commenterUID;
   }
 
@@ -652,7 +588,7 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
     try {
       // Firestore에서 게시물 삭제
       await _firestore
-          .collection(widget.collectionName)
+          .collection('UserCommunity')
           .doc(documentId)
           .delete();
       Navigator.pop(context);
@@ -698,8 +634,9 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
   //============================================================================
   // Firestore에서 사용자의 좋아요 상태를 가져오는 함수
   void getLikeStatus() async {
+    String userUID = _authentication.currentUser!.uid;
     final likeDocument = await _firestore
-        .collection(widget.collectionName)
+        .collection('UserCommunity')
         .doc(widget.documentId)
         .collection('Like')
         .doc(userUID)
@@ -720,7 +657,7 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
   // 사용자의 좋아요 여부를 저장하는 함수
   void saveLikeStatus(bool isLiked) {
     // Firestore에 저장된 게시물 문서의 경로
-    String postDocumentPath = '${widget.collectionName}/${widget.documentId}';
+    String postDocumentPath = '${'UserCommunity'}/${widget.documentId}';
 
     // 사용자의 UID 가져오기
     String userUID = FirebaseAuth.instance.currentUser!.uid;
@@ -745,7 +682,7 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
   // Firestore에서 좋아요 수를 업데이트하는 함수
   Future<void> updateLikeCount(bool isLiked) async {
     try {
-      final postRef = _firestore.collection(widget.collectionName).doc(widget.documentId);
+      final postRef = _firestore.collection('UserCommunity').doc(widget.documentId);
 
       // 사용자의 동작에 따라 좋아요 수를 업데이트합니다.
       if (isLiked) {

@@ -181,8 +181,7 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
           String photoURL = await uploadImageToStorage(_pickedFile!);
           int views = 0;
           int like = 0;
-          int comments = 0;
-          String status = '진행중'; // 경매 상태 : 진행중, 낙찰, 경매 실패, 대기중
+          String status = '대기중'; // 경매 상태 : 대기중, 진행중, 낙찰, 경매 실패
 
           // 시간 정보
           Timestamp createDate = Timestamp.now();
@@ -203,7 +202,6 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
             'category': category, // 카테고리
             'views': views, // 조회수
             'like': like, // 좋아요
-            'comments': comments, // 댓글수
             'startBid': startBid, // 시작가
             'winningBid': startBid, // 낙찰가. 최소 입찰가(초기값은 시작가로)
             'status': status, // 경매 상태(대기중, 진행중, 낙찰, 경매 실패)

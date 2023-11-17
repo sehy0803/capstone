@@ -15,23 +15,15 @@ class _CommunityRegisterScreenState extends State<CommunityRegisterScreen> {
   final _authentication = FirebaseAuth.instance;
   final _firestore = FirebaseFirestore.instance;
 
-  // 유저가 입력한 게시글 정보를 저장할 변수
-  String title = ''; // 제목
-  String content = ''; // 내용
-  String uploaderUID = ''; // 업로더 uid
-  String uploaderEmail = ''; // 업로더 이메일
-  String uploaderImageURL = ''; // 업로더 프로필 사진 URL
-  String uploaderNickname = ''; // 업로더 닉네임
-  DateTime createDate = DateTime.now(); // 글을 올린 날짜와 시간
-  int views = 0; // 조회수
-  int like = 0; // 좋아요 횟수
-  int comments = 0; // 댓글 수
-  String photoURL = ''; // 게시글 사진
+  String uploaderUID = '';
+  String title = '';
+  String content = '';
+
 
   @override
   void initState() {
     super.initState();
-    getCurrentUser(); // Firestore에서 업로더 정보 가져오기
+    getCurrentUser();
   }
 
   @override
@@ -97,22 +89,12 @@ class _CommunityRegisterScreenState extends State<CommunityRegisterScreen> {
   }
 
   //============================================================================
-  // Firestore에서 업로더 정보 가져오기
+  // Firestore에서 uploaderUID(현재 로그인한 사용자의 UID)를 가져오는 함수
   void getCurrentUser() async {
-    try {
-      final user = _authentication.currentUser;
-      if (user != null) {
-        final userDocument =
-            await _firestore.collection('User').doc(user.uid).get();
-        if (userDocument.exists) {
-          uploaderUID = user.uid;
-          uploaderEmail = userDocument['email'] ?? '';
-          uploaderImageURL = userDocument['imageURL'] ?? '';
-          uploaderNickname = userDocument['nickname'] ?? '';
-        }
-      }
-    } catch (e) {
-      print('업로더 정보 가져오기 오류: $e');
+    final user = _authentication.currentUser;
+    final userDocument = await _firestore.collection('User').doc(user!.uid).get();
+    if (userDocument.exists) {
+      uploaderUID = user!.uid;
     }
   }
 
@@ -120,18 +102,18 @@ class _CommunityRegisterScreenState extends State<CommunityRegisterScreen> {
   void _saveCommunityData() async {
     if (title.isNotEmpty && content.isNotEmpty) {
       try {
+        int views = 0;
+        int like = 0;
+        int comments = 0;
+        Timestamp createDate = Timestamp.now();
         await _firestore.collection('UserCommunity').add({
+          'uploaderUID': uploaderUID,
           'title': title,
           'content': content,
-          'uploaderUID': uploaderUID, // 이메일 저장
-          'uploaderEmail': uploaderEmail, // 이메일 저장
-          'uploaderImageURL': uploaderImageURL, // 프로필 사진 URL 저장
-          'uploaderNickname': uploaderNickname, // 닉네임 저장
-          'createDate': createDate, // 작성일자 저장
-          'views': views, // 조회수 초기값
-          'like': like, // 좋아요 횟수 초기값
-          'comments': comments, // 댓글 수 초기값
-          'photoURL': photoURL,
+          'views': views,
+          'like': like,
+          'comments': comments,
+          'createDate': createDate,
         });
         Navigator.pop(context);
       } catch (e) {

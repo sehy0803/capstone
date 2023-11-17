@@ -8,11 +8,9 @@ import 'package:intl/intl.dart';
 
 class CommunityAuctionDetailScreen extends StatefulWidget {
   final String documentId; // 게시물 고유 ID
-  final int views; // 조회수
 
   CommunityAuctionDetailScreen({
     required this.documentId,
-    required this.views,
   });
 
   @override
@@ -23,21 +21,15 @@ class CommunityAuctionDetailScreen extends StatefulWidget {
 class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScreen> {
   final _firestore = FirebaseFirestore.instance;
   final _authentication = FirebaseAuth.instance;
+  TextEditingController bidController = TextEditingController();
 
   // 경매 대기 상태 여부
   bool isAuctionWaiting = true;
 
-  // 입찰가 컨트롤러
-  TextEditingController bidController = TextEditingController();
-
-  // 입찰가 초기값
   int bid = 0;
-
-  // 좋아요 초기값
   bool isLiked = false;
-
   Timer? _timer;
-  int _remainingTimeInSeconds = 0;
+  int differenceSeconds = 0;
 
   @override
   void dispose() {
@@ -48,20 +40,46 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
   @override
   void initState() {
     super.initState();
-    getCurrentUserUID();
     getLikeStatus();
-    _startTimer();
+    //_startTimer();
   }
 
-  // firestore에서 endTime을 가져오는 함수
-  Future<DateTime?> getAuctionEndTime() async {
-    final document = await FirebaseFirestore.instance.collection('AuctionCommunity').doc(widget.documentId).get();
+  // firestore에서 시간 정보를 가져오는 함수
+  Future<Map<String, dynamic>> getAuctionTimes() async {
+    final document = await _firestore.collection('AuctionCommunity').doc(widget.documentId).get();
     final data = document.data();
-    if (data != null && data['endTime'] != null) {
-      final endTimeTimestamp = data['endTime'] as Timestamp;
-      return endTimeTimestamp.toDate();
+
+    final createDate = (data!['createDate'] as Timestamp).toDate();
+    final waitingTime = (data['waitingTime'] as Timestamp).toDate();
+    final startTime = (data['startTime'] as Timestamp).toDate();
+    final endTime = (data['endTime'] as Timestamp).toDate();
+    final remainingTime = data['remainingTime'] as int;
+
+    return {
+      'createDate': createDate,
+      'waitingTime': waitingTime,
+      'startTime': startTime,
+      'endTime': endTime,
+      'remainingTime': remainingTime,
+    };
+  }
+
+  // 남은 시간을 업데이트하는 함수
+  void _updateRemainingTime() async {
+    Map<String, dynamic> times = await getAuctionTimes();
+    DateTime endTime = times['endTime'];
+    int remainingTime = endTime.difference(DateTime.now()).inSeconds;
+
+    if (DateTime.now().isBefore(endTime)) {
+      setState(() {
+        differenceSeconds = remainingTime;
+      });
+      _firestore.collection('AuctionCommunity').doc(widget.documentId).update({'remainingTime': remainingTime});
+    } else {
+      // 경매 종료 시간이 지났을 경우 타이머 종료
+      _timer?.cancel();
+      updateAuctionStatus();
     }
-    return null;
   }
 
   // 타이머 시작 - 1초마다 남은 시간 업데이트
@@ -69,27 +87,9 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
     _timer = Timer.periodic(Duration(seconds: 1), (timer) {_updateRemainingTime();});
   }
 
-  // 남은 시간을 업데이트하는 함수
-  void _updateRemainingTime() async {
-    DateTime? endTime = await getAuctionEndTime();
-
-    if (endTime != null) {
-      if (DateTime.now().isBefore(endTime)) {
-        int remainingSeconds = endTime.difference(DateTime.now()).inSeconds;
-        setState(() {_remainingTimeInSeconds = remainingSeconds;});
-        FirebaseFirestore.instance.collection('AuctionCommunity').doc(widget.documentId).update({'remainingTime': remainingSeconds});
-      } else {
-        // 경매 종료 시간이 지났을 경우 타이머 종료
-        _timer?.cancel();
-        updateAuctionStatus();
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final formattedDate =
-        DateFormat('yyyy.MM.dd HH:mm').format(widget.createDate.toDate());
+    String userUID = _authentication.currentUser!.uid;
     return Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
@@ -102,262 +102,249 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
             color: Colors.white,
           ),
           // 게시물 삭제 및 수정 기능
-          actions: isCheckUploader()
+          actions: isCheckUploader(userUID)
               ? [
-                  PopupMenuButton<String>(
-                    icon: Icon(Icons.more_vert, color: Colors.grey, size: 30),
-                    offset: Offset(0, 60),
-                    onSelected: (value) {
-                      if (value == 'delete') {
-                        showDialogDeletePost(context);
-                      } else if (value == 'edit') {
-                        showDialogEditPost(context);
-                      }
-                    },
-                    itemBuilder: (BuildContext context) {
-                      return [
-                        PopupMenuItem<String>(value: 'edit', child: Text('수정하기'),),
-                        PopupMenuItem<String>(value: 'delete', child: Text('삭제하기'))];})] : [],
+            PopupMenuButton<String>(
+                icon: Icon(Icons.more_vert, color: Colors.grey, size: 30),
+                offset: Offset(0, 60),
+                onSelected: (value) {
+                  if (value == 'delete') {
+                    showDialogDeletePost(context);
+                  } else if (value == 'edit') {
+                    showDialogEditPost(context);
+                  }
+                },
+                itemBuilder: (BuildContext context) {
+                  return [
+                    PopupMenuItem<String>(value: 'edit', child: Text('수정하기'),),
+                    PopupMenuItem<String>(value: 'delete', child: Text('삭제하기'))];})] : [],
         ),
         body: StreamBuilder<DocumentSnapshot>(
-          stream: _firestore.collection(widget.collectionName).doc(widget.documentId).snapshots(),
+          stream: _firestore.collection('AuctionCommunity').doc(widget.documentId).snapshots(),
           builder: (context, snapshot) {
             if (!snapshot.hasData) {return Center(child: CircularProgressIndicator());}
-            int likeCount = snapshot.data!.get('like') ?? 0;
-            int startBid = snapshot.data!.get('startBid') ?? 0;
-            String winningBidder = snapshot.data!.get('winningBidder') ?? '';
-            String photoURL = snapshot.data!.get('photoURL') as String;
-            String title = snapshot.data!.get('title') as String;
-            String content = snapshot.data!.get('content') as String;
 
-            return GestureDetector(
-              // 빈 곳 터치시 키패드 사라짐
-              onTap: () {FocusScope.of(context).unfocus();},
-              child: Column(
-                children: [
-                  Expanded(
-                    child: SingleChildScrollView(
-                      child: Column(
-                        children: [
-                          // 경매 상품 이미지
-                          _buildAuctionImage(photoURL),
-                          Padding(
-                            padding: const EdgeInsets.all(20.0),
+            var auctionData = snapshot.data!.data() as Map<String, dynamic>;
+
+            // 유저 정보
+            String uploaderUID = auctionData['uploaderUID'] as String;
+            String winningBidderUID = auctionData['winningBidderUID'] ?? '';
+
+            // 경매 정보
+            String photoURL = auctionData['photoURL'] as String;
+            String title = auctionData['title'] as String;
+            String content = auctionData['content'] as String;
+            int views = auctionData['views'] + 1 as int;
+            int like = auctionData['like'] as int;
+            int startBid = auctionData['startBid'] as int;
+            int winningBid = auctionData['winningBid'] as int;
+            String status = auctionData['status'] as String;
+
+            // 시간 정보
+            Timestamp createDate = auctionData['createDate'] as Timestamp;
+            String formattedCreateDate = DateFormat('yyyy.MM.dd HH:mm').format(createDate.toDate());
+            int remainingTime = auctionData['remainingTime'] as int;
+            Duration remainingTimeSeconds = Duration(seconds: remainingTime);
+
+            
+            return StreamBuilder<DocumentSnapshot>(
+                stream: _firestore.collection('User').doc(uploaderUID).snapshots(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {return Center(child: CircularProgressIndicator());}
+
+                  var uploaderData = snapshot.data!.data() as Map<String, dynamic>;
+
+                  // 업로더 정보
+                  String uploaderImageURL = uploaderData['imageURL'] ?? '';
+                  String uploaderNickname = uploaderData['nickname'] ?? '';
+
+                  return StreamBuilder<DocumentSnapshot>(
+                    stream: _firestore.collection('User').doc(winningBidderUID).snapshots(),
+                      builder: (context, snapshot) {
+                        if (!snapshot.hasData) {return Center(child: CircularProgressIndicator());}
+
+                        var winningBidderData = snapshot.data!.data() as Map<String, dynamic>;
+
+                        // 낙찰자(최고 입찰자) 정보
+                        String winningBidderNickname = winningBidderData['nickname'] ?? '';
+
+                        return GestureDetector(
+                          // 빈 곳 터치시 키패드 사라짐
+                            onTap: () {FocusScope.of(context).unfocus();},
                             child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // 유저 정보 및 좋아요
-                                Row(
-                                  children: [
-                                    // 글을 올린 유저의 프로필 사진
-                                    _buildUploaderImage(widget.uploaderImageURL),
-                                    SizedBox(width: 10),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          // 글을 올린 유저의 닉네임
-                                          Text(widget.uploaderNickname,
-                                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                                          SizedBox(height: 5),
-                                          Row(
-                                            children: [
-                                              Text(formattedDate,
-                                                  style: TextStyle(fontSize: 12, color: Colors.grey, height: 1.5)),
-                                              SizedBox(width: 3),
-                                              Text('조회',
-                                                  style: TextStyle(fontSize: 12, color: Colors.grey)),
-                                              SizedBox(width: 3),
-                                              Text('${widget.views}',
-                                                  style: TextStyle(fontSize: 12, color: Colors.grey, height: 1.5))],),],),),
-
-                                    // 좋아요 버튼
-                                    Column(
-                                      children: [
-                                        IconButton(
-                                          onPressed: () {
-                                            setState(() {isLiked = !isLiked;});
-                                            saveLikeStatus(isLiked);
-                                            updateLikeCount(isLiked);
-                                          },
-                                          icon: Icon(isLiked ? Icons.favorite : Icons.favorite_border,
-                                            color: isLiked ? Colors.red : Colors.grey,
-                                          ),
-                                          iconSize: 35,
-                                          padding: EdgeInsets.zero,
-                                          constraints: BoxConstraints(),
-                                        ),
-                                        // 좋아요 수 표시
-                                        Text('$likeCount', style: TextStyle(fontSize: 12))])])])),
-
-                          Container(height: 1, color: Colors.grey[300]),
-                          Padding(
-                            padding: const EdgeInsets.all(20.0),
-                            child: SizedBox(
-                              width: double.infinity,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(title,
-                                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                                  Text(content, style: TextStyle(fontSize: 14))]))),
-                          SizedBox(height: 50),
-                          Text('최고 입찰자', style: TextStyle(fontSize: 14)),
-                          Text(winningBidder.isEmpty ? '아직 입찰자가 없습니다.' : winningBidder,
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.amber))]))),
+                                  Expanded(
+                                      child: SingleChildScrollView(
+                                          child: Column(
+                                              children: [
+                                                // 경매 상품 이미지
+                                                _buildAuctionImage(photoURL),
+                                                Padding(
+                                                    padding: const EdgeInsets.all(20.0),
+                                                    child: Column(
+                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                        children: [
+                                                          // 유저 정보 및 좋아요
+                                                          Row(
+                                                              children: [
+                                                                // 글을 올린 유저의 프로필 사진
+                                                                _buildUploaderImage(uploaderImageURL),
+                                                                SizedBox(width: 10),
+                                                                Expanded(
+                                                                    child: Column(
+                                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                                        children: [
+                                                                          // 글을 올린 유저의 닉네임
+                                                                          Text(uploaderNickname,
+                                                                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                                                                          SizedBox(height: 5),
+                                                                          Row(
+                                                                              children: [
+                                                                                Text(formattedCreateDate,
+                                                                                    style: TextStyle(fontSize: 12, color: Colors.grey, height: 1.5)),
+                                                                                SizedBox(width: 3),
+                                                                                Text('조회',
+                                                                                    style: TextStyle(fontSize: 12, color: Colors.grey)),
+                                                                                SizedBox(width: 3),
+                                                                                Text('$views',
+                                                                                    style: TextStyle(fontSize: 12, color: Colors.grey, height: 1.5))])])),
 
-                  // 입찰가 입력
-                  StreamBuilder<int>(
-                    stream: getWinningBidStream(),
-                    builder: (context, snapshot) {
-                      if (!snapshot.hasData) {
-                        return Center(child: CircularProgressIndicator());
-                      }
-                      int winningBid = snapshot.data ?? widget.startBid;
-                      return Stack(children: [
-                        Column(
-                          children: [
-                            Container(
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                boxShadow: [
-                                  BoxShadow(color: Color(0xffeeeeee), offset: Offset(0, -10), blurRadius: 10.0,),
-                                ],
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(10.0),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    StreamBuilder<String>(
-                                        stream: getAuctionStatusStream(),
-                                        builder: (context, snapshot) {
-                                          if (!snapshot.hasData) {return Center(child: CircularProgressIndicator());}
-                                          String status = snapshot.data ?? '경매 상태 없음';
+                                                                // 좋아요 버튼
+                                                                Column(
+                                                                    children: [
+                                                                      IconButton(
+                                                                        onPressed: () {
+                                                                          setState(() {isLiked = !isLiked;});
+                                                                          saveLikeStatus(isLiked);
+                                                                          updateLikeCount(isLiked);
+                                                                        },
+                                                                        icon: Icon(isLiked ? Icons.favorite : Icons.favorite_border,
+                                                                          color: isLiked ? Colors.red : Colors.grey,
+                                                                        ),
+                                                                        iconSize: 35,
+                                                                        padding: EdgeInsets.zero,
+                                                                        constraints: BoxConstraints(),
+                                                                      ),
+                                                                      // 좋아요 수 표시
+                                                                      Text('$like', style: TextStyle(fontSize: 12))])])])),
 
-                                          if (status == '낙찰') {
-                                            return Text('낙찰되었습니다!',
-                                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.redAccent));
-                                          } else if (status == '경매 실패') {
-                                            return Text('입찰자가 나오지 않은 경매입니다.',
-                                                style: TextStyle(fontSize: 16, color: Colors.grey));
-                                          } else {
-                                            return StreamBuilder<int>(
-                                              stream: Stream<int>.value(_remainingTimeInSeconds),
-                                              builder: (context, snapshot) {
-                                                if (!snapshot.hasData) {return Center(child: CircularProgressIndicator());}
-                                                int remainingTimeInSeconds = snapshot.data!;
-                                                Duration remainingTime = Duration(seconds: remainingTimeInSeconds);
+                                                Container(height: 1, color: Colors.grey[300]),
+                                                Padding(
+                                                    padding: const EdgeInsets.all(20.0),
+                                                    child: SizedBox(
+                                                        width: double.infinity,
+                                                        child: Column(
+                                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                                            children: [
+                                                              Text(title,
+                                                                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                                                              Text(content, style: TextStyle(fontSize: 14))]))),
+                                                SizedBox(height: 50),
+                                                Text('최고 입찰자', style: TextStyle(fontSize: 14)),
+                                                Text(winningBidderNickname.isEmpty ? '아직 입찰자가 없습니다.' : winningBidderNickname,
+                                                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.amber))]))),
 
-                                                return Text('남은 시간 ${remainingTime.inHours}:${(remainingTime.inMinutes % 60).toString().padLeft(2, '0')}:${(remainingTime.inSeconds % 60).toString().padLeft(2, '0')}',
-                                                    style: TextStyle(fontSize: 16, color: Colors.redAccent));});}}),
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  // 입찰가 입력
+                                  Stack(
                                       children: [
-                                        Text('시작가',
-                                            style: TextStyle(fontSize: 16, color: Colors.grey)),
-                                        Text('$startBid원',
-                                            style: TextStyle(fontSize: 16, color: Colors.grey)),
-                                      ],
-                                    ),
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        StreamBuilder<String>(
-                                          stream: getAuctionStatusStream(),
-                                          builder: (context, snapshot) {
-                                            if (!snapshot.hasData) {
-                                              return Center(child: CircularProgressIndicator());}
-                                            String status = snapshot.data ?? '경매 상태 없음';
-
-                                            String textToShow = (status == '낙찰') ? '낙찰가' : (status == '경매 실패') ? '경매 실패' : '최소 입찰가';
-
-                                            return Text(textToShow, style: TextStyle(fontSize: 20),);
-                                          },
-                                        ),
-                                        Text('$winningBid원', style: TextStyle(fontSize: 20, color: Colors.blue))])]))),
-
-                            StreamBuilder<int>(
-                                stream: getRemainingTimeStream(),
-                                builder: (context, snapshotRemainingTime) {
-                                  if (!snapshotRemainingTime.hasData) {return Center(child: CircularProgressIndicator());}
-                                  int remainingTime = snapshotRemainingTime.data!;
-                                  return StreamBuilder<String>(
-                                      stream: getAuctionStatusStream(),
-                                      builder: (context, snapshot) {
-                                        if (!snapshot.hasData) {return Center(child: CircularProgressIndicator());}
-                                        String status = snapshot.data ?? '경매 상태 없음';
-                                        return Visibility(
-                                          visible: !(status == '낙찰' || status == '경매 실패' || isCheckUploader() || remainingTime >= 1200),
-                                          child: Row(
-                                            children: [
-                                              Expanded(
-                                                child: TextFormField(
-                                                  controller: bidController,
-                                                  onChanged: (value) {bid = int.tryParse(value) ?? 0;},
-                                                  keyboardType: TextInputType.number,
-                                                  decoration: InputDecoration(
-                                                      enabledBorder: OutlineInputBorder(
-                                                        borderSide: BorderSide(color: Colors.white),
-                                                        borderRadius: BorderRadius.all(Radius.circular(0.0)),
-                                                      ),
-                                                      focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.white),
-                                                        borderRadius: BorderRadius.all(Radius.circular(0.0)),
-                                                      ),
-                                                      hintText: '입찰가 입력',
-                                                      hintStyle: TextStyle(fontSize: 16, color: Colors.grey),
-                                                      contentPadding: EdgeInsets.all(15)),
-                                                ),
+                                    Column(
+                                        children: [
+                                          Container(
+                                              decoration: BoxDecoration(
+                                                color: Colors.white,
+                                                boxShadow: [
+                                                  BoxShadow(color: Color(0xffeeeeee), offset: Offset(0, -10), blurRadius: 10.0,),
+                                                ],
                                               ),
-                                              SizedBox(
-                                                width: 80,
-                                                height: 55,
-                                                child: ElevatedButton(
-                                                  onPressed: () {
-                                                    if (bid >= winningBid) {
-                                                      showDialogBid(context);
-                                                    } else {
-                                                      ScaffoldMessenger.of(context).showSnackBar(
-                                                          SnackBar(content: Text('최소 입찰가 이상부터 입찰이 가능합니다.',
-                                                              style: TextStyle(fontSize: 16, color: Colors.white)),
-                                                            dismissDirection: DismissDirection.up,
-                                                            duration: Duration(milliseconds: 1500),
-                                                            backgroundColor: Colors.black,
-                                                          ));
-                                                    }
-                                                  },
-                                                  style: ElevatedButton.styleFrom(backgroundColor: Colors.blue,
-                                                    shape: RoundedRectangleBorder(
-                                                      side: BorderSide(color: Colors.blue),
-                                                      borderRadius: BorderRadius.circular(0.0),
+                                              child: Padding(
+                                                  padding: const EdgeInsets.all(10.0),
+                                                  child: Column(
+                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                      children: [
+                                                        _buildStatusText(status, remainingTimeSeconds),
+                                                        Row(
+                                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                          children: [
+                                                            Text('시작가',
+                                                                style: TextStyle(fontSize: 16, color: Colors.grey)),
+                                                            Text('$startBid원',
+                                                                style: TextStyle(fontSize: 16, color: Colors.grey)),
+                                                          ],
+                                                        ),
+                                                        Row(
+                                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                            children: [
+                                                              Text((status == '낙찰') ? '낙찰가'
+                                                                  : (status == '경매 실패') ? '경매 실패'
+                                                                  : '최소 입찰가',
+                                                                style: TextStyle(fontSize: 20)),
+                                                              Text('$winningBid원', style: TextStyle(fontSize: 20, color: Colors.blue))])]))),
+
+                                          Visibility(
+                                              visible: !(status == '낙찰' || status == '경매 실패' || isCheckUploader(userUID) || remainingTime >= 1200),
+                                              child: Row(
+                                                  children: [
+                                                    Expanded(
+                                                      child: TextFormField(
+                                                        controller: bidController,
+                                                        onChanged: (value) {bid = int.tryParse(value) ?? 0;},
+                                                        keyboardType: TextInputType.number,
+                                                        decoration: InputDecoration(
+                                                            enabledBorder: OutlineInputBorder(
+                                                              borderSide: BorderSide(color: Colors.white),
+                                                              borderRadius: BorderRadius.all(Radius.circular(0.0)),
+                                                            ),
+                                                            focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.white),
+                                                              borderRadius: BorderRadius.all(Radius.circular(0.0)),
+                                                            ),
+                                                            hintText: '입찰가 입력',
+                                                            hintStyle: TextStyle(fontSize: 16, color: Colors.grey),
+                                                            contentPadding: EdgeInsets.all(15)),
+                                                      ),
                                                     ),
-                                                  ),
-                                                  child: Text('입찰', style: TextStyle(fontSize: 16)),))]));});
-                                })
-                          ])]);})]));}),
+                                                    SizedBox(
+                                                        width: 80,
+                                                        height: 55,
+                                                        child: ElevatedButton(
+                                                            onPressed: () {
+                                                              if (bid >= winningBid) {
+                                                                showDialogBid(context);
+                                                              } else {
+                                                                ScaffoldMessenger.of(context).showSnackBar(
+                                                                    SnackBar(content: Text('최소 입찰가 이상부터 입찰이 가능합니다.',
+                                                                        style: TextStyle(fontSize: 16, color: Colors.white)),
+                                                                      dismissDirection: DismissDirection.up,
+                                                                      duration: Duration(milliseconds: 1500),
+                                                                      backgroundColor: Colors.black,
+                                                                    ));
+                                                              }
+                                                            },
+                                                            style: ElevatedButton.styleFrom(backgroundColor: Colors.blue,
+                                                              shape: RoundedRectangleBorder(
+                                                                side: BorderSide(color: Colors.blue),
+                                                                borderRadius: BorderRadius.circular(0.0),
+                                                              ),
+                                                            ),
+                                                            child: Text('입찰', style: TextStyle(fontSize: 16))))])
+                                          )
+                                        ]
+                                    )
+                                  ])
+                                ]
+                            )
+                        );
+                      }
+                  );
+                }
+            );}),
         bottomNavigationBar: BottomAppBar());
   }
 
   //============================================================================
 
-  // 경매 상태를 가져오는 스트림
-  Stream<String> getAuctionStatusStream() {
-    String postDocumentPath = '${widget.collectionName}/${widget.documentId}';
-    return FirebaseFirestore.instance
-        .doc(postDocumentPath)
-        .snapshots()
-        .map((doc) {
-      if (doc.exists) {
-        return doc.get('status') as String; // 'status' 필드의 값을 반환
-      } else {
-        return '경매 상태 없음'; // 문서가 존재하지 않을 때의 기본값 설정
-      }
-    });
-  }
-
   // 남은 시간을 가져오는 스트림
   Stream<int> getRemainingTimeStream() {
-    String postDocumentPath = '${widget.collectionName}/${widget.documentId}';
+    String postDocumentPath = '${'AuctionCommunity'}/${widget.documentId}';
     return FirebaseFirestore.instance
         .doc(postDocumentPath)
         .snapshots()
@@ -370,66 +357,46 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
     });
   }
 
-  // 최소 입찰가를 가져올 스트림
-  Stream<int> getWinningBidStream() {
-    return _firestore
-        .collection(widget.collectionName)
-        .doc(widget.documentId)
-        .snapshots()
-        .map((doc) {
-      if (doc.exists) {
-        return doc.get('winningBid') as int;
-      } else {
-        // 문서가 존재하지 않을 때 처리
-        return 0;
-      }
-    });
-  }
-
   // 입찰을 수행할 함수
   void _saveBidData() async {
-    final User? user = FirebaseAuth.instance.currentUser;
+    // 현재 로그인한 사용자의 UID 가져오기
+    String userUID = _authentication.currentUser!.uid;
 
-    if (user != null) {
-      // 현재 로그인한 사용자의 UID 가져오기
-      String userUID = user.uid;
+    // Firestore에서 사용자 정보 가져오기
+    DocumentSnapshot userDoc = await FirebaseFirestore.instance
+        .collection('User')
+        .doc(userUID)
+        .get();
 
-      // Firestore에서 사용자 정보 가져오기
-      DocumentSnapshot userDoc = await FirebaseFirestore.instance
-          .collection('User')
-          .doc(userUID)
-          .get();
+    if (userDoc.exists) {
+      String bidderNickname = userDoc.get('nickname');
 
-      if (userDoc.exists) {
-        String bidderNickname = userDoc.get('nickname');
+      // 입찰 정보를 추가할 게시물의 경로
+      String postDocumentPath =
+          '${'AuctionCommunity'}/${widget.documentId}';
 
-        // 입찰 정보를 추가할 게시물의 경로
-        String postDocumentPath =
-            '${widget.collectionName}/${widget.documentId}';
+      // 현재 최소 입찰가, 최고 입찰자를 업데이트
+      await FirebaseFirestore.instance.doc(postDocumentPath).update({
+        'winningBid': bid,
+        'winningBidder': bidderNickname,
+        'winningBidderUID': userUID
+      });
 
-        // 현재 최소 입찰가, 최고 입찰자를 업데이트
-        await FirebaseFirestore.instance.doc(postDocumentPath).update({
-          'winningBid': bid,
-          'winningBidder': bidderNickname,
-          'winningBidderUID': userUID
-        });
-
-        // 입력 필드 지우기
-        bidController.clear();
-      }
+      // 입력 필드 지우기
+      bidController.clear();
     }
   }
 
   // 최고 입찰자를 가져오는 함수
   Future<String> getWinningBidder() async {
     final document = await _firestore
-        .collection(widget.collectionName)
+        .collection('AuctionCommunity')
         .doc(widget.documentId)
         .get();
     final data = document.data();
 
-    if (data != null && data['winningBidder'] != null) {
-      return data['winningBidder'] as String;
+    if (data != null && data['winningBidderUID'] != null) {
+      return data['winningBidderUID'] as String;
     } else {
       return '';
     }
@@ -437,9 +404,9 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
 
   // 경매 종료시 경매 상태를 업데이트 하는 함수
   void updateAuctionStatus() async {
-    String postDocumentPath = '${widget.collectionName}/${widget.documentId}';
-    final winningBidder = await getWinningBidder();
-    if (winningBidder.isNotEmpty) {
+    String postDocumentPath = 'AuctionCommunity/${widget.documentId}';
+    final winningBidderUID = await getWinningBidder();
+    if (winningBidderUID.isNotEmpty) {
       // 최고 입찰자가 있는 경우
       await FirebaseFirestore.instance.doc(postDocumentPath).update({
         'status': '낙찰',
@@ -492,6 +459,26 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
   }
 
   //============================================================================
+
+  // 경매 상태에 따라 경매 상태 또는 남은 시간을 표시
+  Widget _buildStatusText(String status, Duration remainingTimeSeconds) {
+    if (status == '낙찰') {
+      return Text(
+        '낙찰되었습니다!',
+        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.redAccent),
+      );
+    } else if (status == '경매 실패') {
+      return Text(
+        '입찰자가 나오지 않은 경매입니다.',
+        style: TextStyle(fontSize: 16, color: Colors.grey),
+      );
+    } else {
+      return Text(
+        '남은 시간 ${remainingTimeSeconds.inHours}:${(remainingTimeSeconds.inMinutes % 60).toString().padLeft(2, '0')}:${(remainingTimeSeconds.inSeconds % 60).toString().padLeft(2, '0')}',
+        style: TextStyle(fontSize: 16, color: Colors.redAccent),
+      );
+    }
+  }
 
   // 경매 상품 사진을 표시하는 함수
   Widget _buildAuctionImage(String auctionImageURL) {
@@ -546,14 +533,14 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
     try {
       // Firestore에서 경매 삭제하기 전에 해당 경매의 DocumentSnapshot을 가져오기
       final postSnapshot = await _firestore
-          .collection(widget.collectionName)
+          .collection('AuctionCommunity')
           .doc(documentId)
           .get();
 
       if (postSnapshot.exists) {
         // DocumentSnapshot이 존재하는 경우에만 게시물을 삭제
         await _firestore
-            .collection(widget.collectionName)
+            .collection('AuctionCommunity')
             .doc(documentId)
             .delete();
       } else {
@@ -606,16 +593,9 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
 
   // 파이어스토어에서 remainingTime 값을 가져오는 함수
   Future<int> getRemainingTime() async {
-    final document = await _firestore
-        .collection(widget.collectionName)
-        .doc(widget.documentId)
-        .get();
+    final document = await _firestore.collection('AuctionCommunity').doc(widget.documentId).get();
     final data = document.data();
-    if (data != null && data['remainingTime'] != null) {
-      return data['remainingTime'] as int;
-    } else {
-      return 0;
-    }
+    return data!['remainingTime'] as int;
   }
 
   // 게시물 수정 확인 AlertDialog 표시
@@ -668,25 +648,23 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
     }
   }
 
-  // 현재 로그인한 사용자의 UID 가져오기
-  String? userUID;
-
-  void getCurrentUserUID() {
-    final User? user = _authentication.currentUser;
-    if (user != null) {
-      userUID = user.uid;
-    }
+  // firestore에서 uploaderUID 값을 가져오는 함수
+  Future<String> getUploaderUID() async {
+    final document = await _firestore.collection('AuctionCommunity').doc(widget.documentId).get();
+    final data = document.data();
+    return data!['uploaderUID'] as String;
   }
 
   // 업로더의 uid와 현재 로그인한 사용자의 uid 비교
-  bool isCheckUploader() {
-    return userUID == widget.uploaderUID;
+  bool isCheckUploader(String userUID) {
+    return userUID == getUploaderUID();
   }
 
   // Firestore에서 사용자의 좋아요 상태를 가져오는 함수
   void getLikeStatus() async {
+    String userUID = _authentication.currentUser!.uid;
     final likeDocument = await _firestore
-        .collection(widget.collectionName)
+        .collection('AuctionCommunity')
         .doc(widget.documentId)
         .collection('Like')
         .doc(userUID)
@@ -701,49 +679,36 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
       });
     }
   }
-
-  // Firestore에서 좋아요 수를 업데이트하는 함수
+//=============================================
+  // Firestore에 좋아요 수를 업데이트하는 함수
   Future<void> updateLikeCount(bool isLiked) async {
-    try {
-      final postRef =
-          _firestore.collection(widget.collectionName).doc(widget.documentId);
-
-      // 사용자의 동작에 따라 좋아요 수를 업데이트합니다.
-      if (isLiked) {
-        await postRef.update({
-          'like': FieldValue.increment(1), // 좋아요 수를 1 증가시킴
-        });
-      } else {
-        await postRef.update({
-          'like': FieldValue.increment(-1), // 좋아요 수를 1 감소시킴
-        });
-      }
-    } catch (e) {
-      print('좋아요 수 업데이트 오류: $e');
+    final postRef = _firestore.collection('AuctionCommunity').doc(widget.documentId);
+    if (isLiked) {
+      await postRef.update({
+        'like': FieldValue.increment(1), // 좋아요 수를 1 증가시킴
+      });
+    } else {
+      await postRef.update({
+        'like': FieldValue.increment(-1), // 좋아요 수를 1 감소시킴
+      });
     }
   }
 
   // 사용자의 좋아요 여부를 저장하는 함수
   void saveLikeStatus(bool isLiked) {
-    // Firestore에 저장된 게시물 문서의 경로
-    String postDocumentPath = '${widget.collectionName}/${widget.documentId}';
-
     // 사용자의 UID 가져오기
-    String userUID = FirebaseAuth.instance.currentUser!.uid;
-
-    // 좋아요 상태를 저장할 컬렉션 경로
-    String likeCollectionPath = '$postDocumentPath/Like';
+    String userUID = _authentication.currentUser!.uid;
 
     // 사용자별 좋아요 정보를 저장
-    _firestore.collection(likeCollectionPath).doc(userUID).set({
-      'liked': isLiked, // 사용자의 좋아요 상태
+    _firestore.collection('AuctionCommunity/${widget.documentId}/Like').doc(userUID).set({
+      'liked': isLiked
     });
 
-    // 만약 좋아요를 눌렀다면, 사용자의 "좋아요" 목록에 게시물 ID를 추가
+    // 좋아요를 누르면 사용자의 "좋아요" 목록에 게시물 ID를 추가
     if (isLiked) {
       addPostToUserLikes(userUID, widget.documentId);
     } else {
-      // 만약 좋아요를 취소했다면, 사용자의 "좋아요" 목록에서 게시물 ID를 제거
+      // 좋아요를 취소하면 사용자의 "좋아요" 목록에서 게시물 ID를 제거
       removePostFromUserLikes(userUID, widget.documentId);
     }
   }
@@ -764,17 +729,14 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
 
   // 사용자의 "좋아요" 목록에 게시물 ID를 삭제하는 함수
   Future<void> removePostFromUserLikes(String userUID, String postID) async {
-    try {
-      // User 컬렉션에서 사용자의 UID로 업로더 문서 가져오기
-      final userDocument = _firestore.collection('User').doc(userUID);
+    // User 컬렉션에서 사용자의 UID로 업로더 문서 가져오기
+    final userDocument = _firestore.collection('User').doc(userUID);
 
-      // userLikes 컬렉션 참조 가져오기
-      final userLikesCollection = userDocument.collection('userLikes');
+    // userLikes 컬렉션 참조 가져오기
+    final userLikesCollection = userDocument.collection('userLikes');
 
-      // 사용자의 "좋아요" 목록에서 게시물 ID를 제거
-      await userLikesCollection.doc(postID).delete();
-    } catch (e) {
-      print('게시물을 사용자 "좋아요" 목록에서 제거 중 오류 발생: $e');
-    }
+    // 사용자의 "좋아요" 목록에서 게시물 ID를 제거
+    await userLikesCollection.doc(postID).delete();
   }
+
 }

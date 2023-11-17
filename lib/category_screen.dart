@@ -13,18 +13,6 @@ class CategoryScreen extends StatefulWidget {
 class _CategoryScreenState extends State<CategoryScreen> {
   final _firestore = FirebaseFirestore.instance;
 
-  int startBid = 0;
-  int winningBid = 0;
-  String winningBidder = '';
-  String winningBidderUID = '';
-  String status = '';
-  Timestamp endTime = Timestamp(0, 0);
-
-
-  // 남은 시간
-  int remainingTime = 0;
-
-
   bool isButton1Selected = true;
   bool isButton2Selected = false;
   bool isButton3Selected = false;
@@ -42,26 +30,6 @@ class _CategoryScreenState extends State<CategoryScreen> {
   @override
   void initState() {
     super.initState();
-  }
-
-  // 남은 시간을 받아와서 표시하는 함수
-  String getFormattedRemainingTime(int remainingTime, String status, endTime) {
-    // 남은 시간이 0 이거나 경매 상태가 낙찰 또는 경매 실패일 경우(경매가 종료됐을 때)
-    if (remainingTime <= 0 || status == '낙찰' || status == '경매 실패') {
-      return '경매 종료 ${DateFormat('MM월 dd일 HH시 mm분').format(endTime.toDate())}';
-    } else if (remainingTime < 60) {
-      // 남은 시간이 1분 미만일 경우
-      return '잠시 후 종료';
-    } else {
-      // 남은 시간 표시
-      Duration remainingDuration = Duration(seconds: remainingTime);
-
-      if (remainingDuration.inHours >= 1) {
-        return '${remainingDuration.inHours}시간 후 종료';
-      } else {
-        return '${remainingDuration.inMinutes}분 후 종료';
-      }
-    }
   }
 
   @override
@@ -87,7 +55,10 @@ class _CategoryScreenState extends State<CategoryScreen> {
               ),
             ),
             StreamBuilder<QuerySnapshot>(
-              stream: _getAuctionStream(),
+              stream: _firestore
+                  .collection('AuctionCommunity')
+                  .orderBy('createDate', descending: true)
+                  .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return Center(child: CircularProgressIndicator());
@@ -121,83 +92,27 @@ class _CategoryScreenState extends State<CategoryScreen> {
 
                 return Expanded(
                   child: ListView.builder(
-                    itemCount: filteredAuctions?.length ?? 0,
+                    itemCount: filteredAuctions.length,
                     itemBuilder: (context, index) {
-                      final title = filteredAuctions![index]['title'] as String;
-                      final content =
-                          filteredAuctions[index]['content'] as String;
-                      final uploaderUID =
-                          filteredAuctions[index]['uploaderUID'] as String;
-                      final uploaderEmail =
-                          filteredAuctions[index]['uploaderEmail'] as String;
-                      final uploaderImageURL =
-                          filteredAuctions[index]['uploaderImageURL'] as String;
-                      final uploaderNickname =
-                          filteredAuctions[index]['uploaderNickname'] as String;
+                      // 경매 정보
                       final documentId = getDocumentId(filteredAuctions![index]);
-                      final views = filteredAuctions[index]['views'] as int;
-                      final like = filteredAuctions[index]['like'] as int;
-                      final comments = filteredAuctions[index]['comments'] as int;
-                      final photoURL =
-                          filteredAuctions[index]['photoURL'] as String;
-                      final createDate =
-                          filteredAuctions[index]['createDate'] as Timestamp;
-                      final startBid = filteredAuctions[index]['startBid'] as int;
-                      final winningBid =
-                          filteredAuctions[index]['winningBid'] as int;
-                      final winningBidder =
-                          filteredAuctions[index]['winningBidder'] as String;
-                      final winningBidderUID =
-                          filteredAuctions[index]['winningBidderUID'] as String;
+                      final photoURL = filteredAuctions[index]['photoURL'] as String;
+                      final title = filteredAuctions[index]['title'] as String;
+                      final int winningBid = filteredAuctions[index]['winningBid'] as int;
                       final status = filteredAuctions[index]['status'] as String;
-                      final endTime =
-                          filteredAuctions[index]['endTime'] as Timestamp;
-                      final category =
-                          filteredAuctions[index]['category'] as String;
 
-                      // 남은 시간
+                      // 시간 정보
+                      final endTime = filteredAuctions[index]['endTime'] as Timestamp;
                       final remainingTime = filteredAuctions[index]['remainingTime'] as int;
-
 
                       return GestureDetector(
                         onTap: () {
                           increaseViews(getDocumentId(filteredAuctions[index]), 'AuctionCommunity');
-                          try {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) {
-                                  return CommunityAuctionDetailScreen(
-                                    title: title,
-                                    content: content,
-                                    uploaderUID: uploaderUID,
-                                    uploaderEmail: uploaderEmail,
-                                    uploaderImageURL: uploaderImageURL,
-                                    uploaderNickname: uploaderNickname,
-                                    collectionName: 'AuctionCommunity',
-                                    documentId: documentId,
-                                    views: views + 1,
-                                    like: like,
-                                    comments: comments,
-                                    photoURL: photoURL,
-                                    startBid: startBid,
-                                    winningBid: winningBid,
-                                    winningBidder: winningBidder,
-                                    winningBidderUID: winningBidderUID,
-                                    status: status,
-                                    createDate: createDate,
-                                    endTime: endTime,
-                                    category: category,
-
-                                    // 남은 시간
-                                    remainingTime: remainingTime,
-                                  );
-                                },
-                              ),
-                            );
-                          } catch (e) {
-                            print('$e');
-                          }
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) {
+                                return CommunityAuctionDetailScreen(documentId: documentId,);},),);
                         },
                         child: Column(
                           children: [
@@ -205,87 +120,58 @@ class _CategoryScreenState extends State<CategoryScreen> {
                               elevation: 0,
                               child: Row(
                                 children: [
-                                  _buildAuctionImage(
-                                      filteredAuctions[index]['photoURL']),
+                                  _buildAuctionImage(photoURL),
                                   SizedBox(width: 10),
                                   Expanded(
                                     child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Row(
                                           children: [
+                                            // 경매 상태
                                             Container(
-                                              decoration: BoxDecoration(
-                                                color: _getStatusColor(
-                                                    filteredAuctions[index]
-                                                        ['status']),
-                                                borderRadius:
-                                                    BorderRadius.circular(10.0),
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: Colors.grey, // 그림자 색상
-                                                    offset: Offset(0, 2), // 그림자의 위치 (가로, 세로)
-                                                    blurRadius: 4.0, // 그림자의 흐림 정도
-                                                  ),
-                                                ],
-                                              ),
-                                              child: Padding(
-                                                padding:
-                                                    const EdgeInsets.all(6.0),
-                                                child: Text(
-                                                  filteredAuctions[index]
-                                                      ['status'],
-                                                  style: TextStyle(
-                                                    fontSize: 16,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Colors.white,
-                                                  ),
+                                                decoration: BoxDecoration(
+                                                  color: _getStatusColor(status),
+                                                  borderRadius: BorderRadius.circular(10.0),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.grey, // 그림자 색상
+                                                      offset: Offset(0, 2), // 그림자의 위치 (가로, 세로)
+                                                      blurRadius: 4.0, // 그림자의 흐림 정도
+                                                    ),
+                                                  ],
                                                 ),
-                                              ),
+                                                child: Padding(
+                                                  padding: const EdgeInsets.all(6.0),
+                                                  child: Text(status,
+                                                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)
+                                                  ),
+                                                )
                                             ),
                                             SizedBox(width: 10),
-                                            Text(title,
-                                                style: TextStyle(fontSize: 16)),
+                                            Text(title, style: TextStyle(fontSize: 16)),
                                           ],
                                         ),
                                         SizedBox(height: 10),
                                         Row(
                                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                           children: [
-                                            // 경매 상태에 따라 Text 위젯의 텍스트를 동적으로 변경
-                                            StreamBuilder<String>(
-                                              stream: getAuctionStatusStream(documentId),
-                                              builder: (context, snapshot) {
-                                                if (!snapshot.hasData) {
-                                                  return Center(child: CircularProgressIndicator());
-                                                }
-                                                String status = snapshot.data ?? '경매 상태 없음';
-
-                                                // Text 위젯의 텍스트를 동적으로 변경
-                                                String textToShow = (status == '낙찰')
-                                                    ? '낙찰가'
-                                                    : (status == '경매 실패')
-                                                    ? '경매 실패'
-                                                    : '최소 입찰가';
-
-                                                return Text(
-                                                  textToShow,
-                                                  style: TextStyle(fontSize: 16),
-                                                );
-                                              },
-                                            ),
+                                            Text((status == '낙찰')
+                                                ? '낙찰가'
+                                                : (status == '경매 실패')
+                                                ? '경매 실패'
+                                                : '최소 입찰가',
+                                                style: TextStyle(fontSize: 16)),
                                             Text('$winningBid원', style: TextStyle(fontSize: 16, color: Colors.blue)),
                                           ],
                                         ),
                                         // 남은 시간 표시
-                                        buildRemainingTime(remainingTime, status, endTime),
+                                        buildRemainingTime(status, endTime, remainingTime),
 
                                       ],
                                     ),
-                                  ),
+                                  )
                                 ],
                               ),
                             ),
@@ -305,8 +191,30 @@ class _CategoryScreenState extends State<CategoryScreen> {
 
   // =========================================================
 
-  // 남은 시간 표시
-  Widget buildRemainingTime(int remainingTime, String status, Timestamp endTime) {
+  // 남은 시간을 표시하는 조건
+  String getFormattedRemainingTime(status, endTime, remainingTime) {
+    DateTime endTimeDateTime = endTime.toDate(); // Timestamp를 DateTime으로 변환
+    int remainingTime = endTimeDateTime.difference(DateTime.now()).inSeconds;
+    if (remainingTime <= 0 || status == '낙찰' || status == '경매 실패') {
+      return '경매 종료 ${DateFormat('MM월 dd일 HH시 mm분').format(endTime.toDate())}';
+    } else if (remainingTime < 60) {
+      // 10분 미만
+      return '잠시 후 종료';
+    } else if (remainingTime < 3600) {
+      // 10분 이상, 1시간 미만
+      Duration remainingDuration = Duration(seconds: remainingTime);
+      return '${remainingDuration.inMinutes}분 후 종료';
+    } else {
+      // 1시간 이상
+      Duration remainingDuration = Duration(seconds: remainingTime);
+      return '${remainingDuration.inHours}시간 후 종료';
+    }
+  }
+
+  // 남은 시간 표시 위젯
+  Widget buildRemainingTime(status, endTime, remainingTime) {
+    DateTime endTimeDateTime = endTime.toDate(); // Timestamp를 DateTime으로 변환
+    int remainingTime = endTimeDateTime.difference(DateTime.now()).inSeconds;
     if (remainingTime <= 0 || status == '낙찰' || status == '경매 실패') {
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -316,44 +224,14 @@ class _CategoryScreenState extends State<CategoryScreen> {
               style: TextStyle(fontSize: 16, color: Colors.grey))
         ],
       );
-    } else if (remainingTime < 60) {
-      return Center(
-        child: Text(
-          '잠시 후 종료',
-          style: TextStyle(fontSize: 16, color: Colors.redAccent),
-        ),
-      );
     } else {
       return Center(
         child: Text(
-          getFormattedRemainingTime(remainingTime, status, endTime),
+          getFormattedRemainingTime(status, endTime, remainingTime),
           style: TextStyle(fontSize: 16, color: Colors.redAccent),
         ),
       );
     }
-  }
-
-  // 경매 상태를 가져오는 스트림
-  Stream<String> getAuctionStatusStream(String documentId) {
-    String postDocumentPath = 'AuctionCommunity/$documentId';
-    return FirebaseFirestore.instance
-        .doc(postDocumentPath)
-        .snapshots()
-        .map((doc) {
-      if (doc.exists) {
-        return doc.get('status') as String; // 'status' 필드의 값을 반환
-      } else {
-        return '경매 상태 없음'; // 문서가 존재하지 않을 때의 기본값 설정
-      }
-    });
-  }
-
-  // 경매 게시판의 게시물을 가져오는 스트림
-  Stream<QuerySnapshot> _getAuctionStream() {
-    return _firestore
-        .collection('AuctionCommunity')
-        .orderBy('createDate', descending: true)
-        .snapshots();
   }
 
   // _getStatusColor 함수
