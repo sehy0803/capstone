@@ -32,15 +32,16 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
   int comments = 0; // 댓글 수
   String photoURL = ''; // 경매 상품 사진
   // 경매 정보를 저장할 변수
+  String category = '1'; // 카테고리 초기값 1 = 의류
   int startBid = 0; // 시작가
   int winningBid = 0; // 낙찰가
   String winningBidder = ''; // 낙찰자
   String winningBidderUID = ''; // 낙찰자 uid
-  String status = '진행중'; // 경매 상태 : 진행중, 낙찰, 경매 실패
-  Timestamp createDate = Timestamp.now(); // 게시글 작성일 = 경매 시작 시간
-  Timestamp endTime = Timestamp.fromDate(
-      DateTime.now().add(Duration(minutes: 30)));
-  String category = '1'; // 카테고리 초기값 1 = 의류
+  String status = '진행중'; // 경매 상태 : 진행중, 낙찰, 경매 실패, 대기중
+  late Timestamp createDate; // 경매 등록 시간. now 메서드를 사용해 현재 시간을 저장
+  late Timestamp waitingTime; // 경매 대기 시간. 경매 등록 시간 + 10분
+  late Timestamp startTime; // 경매 시작 시간. 경매 대기 시간 이후
+  late Timestamp endTime; // 경매 종료 시간. 경매 시작 시간 + 30분
 
 
   @override
@@ -186,6 +187,12 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
           Duration timeDifference = endTime.toDate().difference(DateTime.now());
           int remainingTime = timeDifference.inSeconds;
 
+          // createDate, waitingTime, startTime, endTime 설정
+          createDate = Timestamp.now();
+          waitingTime = Timestamp.fromDate(createDate.toDate().add(Duration(minutes: 10)));
+          startTime = Timestamp.fromDate(waitingTime.toDate().add(Duration(seconds: 1)));
+          endTime = Timestamp.fromDate(startTime.toDate().add(Duration(minutes: 30)));
+
           await _firestore.collection('AuctionCommunity').add({
             'title': title, // 제목
             'content': content, // 상품 설명
@@ -198,14 +205,16 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
             'comments': comments, // 댓글 수 초기값
             'photoURL': photoURL, // Firebase Storage에서 받은 URL로 업데이트
             // ==========================================================
+            'category': category, // 카테고리
             'startBid': startBid, // 시작가
             'winningBid': startBid, // 낙찰가. 최소 입찰가(초기값은 시작가로)
             'winningBidder': winningBidder, // 낙찰자 닉네임
             'winningBidderUID': winningBidderUID, // 낙찰자 uid
-            'status': status,
-            'createDate': createDate, // 게시글 작성일 = 경매 시작 시간
-            'endTime': endTime, // 경매가 종료될 시간
-            'category': category, // 카테고리 값
+            'status': status, // 경매 상태
+            'createDate': createDate,
+            'waitingTime': waitingTime, // 경매 대기 시간. 경매 등록 시간 + 10분
+            'startTime': startTime, // 경매 시작 시간. 경매 대기 시간 이후.
+            'endTime': endTime, // 경매 종료 시간. 경매 시작 시간 + 30분
             'remainingTime': remainingTime, // 경매 종료까지 "남은 시간"
           });
         } catch (e) {

@@ -137,29 +137,8 @@ class _CommunityScreenState extends State<CommunityScreen> {
                           MaterialPageRoute(
                             builder: (context) {
                               return CommunityAuctionDetailScreen(
-                                title: title,
-                                content: content,
-                                uploaderUID: uploaderUID,
-                                uploaderEmail: uploaderEmail,
-                                uploaderImageURL: uploaderImageURL,
-                                uploaderNickname: uploaderNickname,
-                                collectionName: getCollectionName(),
                                 documentId: documentId,
                                 views: views + 1,
-                                like: like,
-                                comments: comments,
-                                photoURL: photoURL,
-                                startBid: startBid,
-                                winningBid: winningBid,
-                                winningBidder: winningBidder,
-                                winningBidderUID: winningBidderUID,
-                                status: status,
-                                createDate: createDate,
-                                endTime: endTime,
-                                category: category,
-
-                                // 남은 시간
-                                remainingTime: remainingTime,
                               );
                             },
                           ),
@@ -210,7 +189,6 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                     Row(
                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
-                                        // 경매 상태에 따라 Text 위젯의 텍스트를 동적으로 변경
                                         StreamBuilder<String>(
                                           stream: getAuctionStatusStream(documentId),
                                           builder: (context, snapshot) {
@@ -219,7 +197,6 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                             }
                                             String status = snapshot.data ?? '경매 상태 없음';
 
-                                            // Text 위젯의 텍스트를 동적으로 변경
                                             String textToShow = (status == '낙찰')
                                                 ? '낙찰가'
                                                 : (status == '경매 실패')
