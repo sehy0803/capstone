@@ -435,7 +435,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
     if (status == '진행중') {
       return Colors.green; // 녹색
     } else if (status == '낙찰') {
-      return Colors.red; // 빨간색
+      return Colors.blue; // 파란색
     } else if (status == '경매 실패') {
       return Colors.grey; // 회색
     } else {

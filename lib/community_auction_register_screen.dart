@@ -18,7 +18,7 @@ class AuctionRegisterScreen extends StatefulWidget {
 class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
   final _authentication = FirebaseAuth.instance;
   final _firestore = FirebaseFirestore.instance;
-  File? _pickedFile;
+  File? _pickedFile; // 상품 이미지
 
   // 게시글 정보를 저장할 변수
   String title = ''; // 제목

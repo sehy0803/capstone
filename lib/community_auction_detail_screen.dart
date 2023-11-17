@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:capstone/custom_widget.dart';
+import 'package:capstone/edit_auction_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -147,15 +148,26 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
             iconSize: 30,
             color: Colors.white,
           ),
-          // 게시물 삭제 기능
+          // 게시물 삭제 및 수정 기능
           actions: isCheckUploader()
               ? [
             PopupMenuButton<String>(
               icon: Icon(Icons.more_vert, color: Colors.grey, size: 30),
               offset: Offset(0, 60),
-              onSelected: (value) {if (value == 'delete') {showDialogDeletePost(context);}},
+              onSelected: (value) {
+                if (value == 'delete') {
+                  showDialogDeletePost(context);
+                } else if (value == 'edit') {
+                  // 수정 버튼을 눌렀을 때 수행할 작업 추가
+                  showDialogEditPost(context);
+                }
+              },
               itemBuilder: (BuildContext context) {
                 return [
+                  PopupMenuItem<String>(
+                    value: 'edit',
+                    child: Text('수정하기'),
+                  ),
                   PopupMenuItem<String>(
                     value: 'delete',
                     child: Text('삭제하기'),
@@ -177,6 +189,11 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
             // 최고 입찰자 가져오기
             String winningBidder = snapshot.data!.get('winningBidder') ?? '';
 
+            // 사진, 제목, 설명
+            String photoURL = snapshot.data!.get('photoURL') as String;
+            String title = snapshot.data!.get('title') as String;
+            String content = snapshot.data!.get('content') as String;
+
             return GestureDetector(
               // 빈 곳 터치시 키패드 사라짐
               onTap: () {FocusScope.of(context).unfocus();},
@@ -187,7 +204,7 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
                       child: Column(
                         children: [
                           // 경매 상품 이미지
-                          _buildAuctionImage(widget.photoURL),
+                          _buildAuctionImage(photoURL),
                           Padding(
                             padding: const EdgeInsets.all(20.0),
                             child: Column(
@@ -254,9 +271,9 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   // 게시글 제목
-                                  Text(widget.title, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                                  Text(title, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                                   // 게시글 내용
-                                  Text(widget.content, style: TextStyle(fontSize: 14)),
+                                  Text(content, style: TextStyle(fontSize: 14)),
                                 ],
                               ),
                             ),
@@ -276,7 +293,6 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
                     builder: (context, snapshot) {
                       if (!snapshot.hasData) {return Center(child: CircularProgressIndicator());}
                       int winningBid = snapshot.data ?? widget.startBid;
-                      print(winningBid);
                       return Stack(
                           children: [
                             Column(
@@ -446,6 +462,37 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
   }
   //============================================================================
 
+  // 경매 상태를 가져오는 함수
+  Stream<String> getAuctionStatusStream() {
+    String postDocumentPath = '${widget.collectionName}/${widget.documentId}';
+    return FirebaseFirestore.instance
+        .doc(postDocumentPath)
+        .snapshots()
+        .map((doc) {
+      if (doc.exists) {
+        return doc.get('status') as String; // 'status' 필드의 값을 반환
+      } else {
+        return '경매 상태 없음'; // 문서가 존재하지 않을 때의 기본값 설정
+      }
+    });
+  }
+
+  // 최소 입찰가를 가져올 스트림
+  Stream<int> getWinningBidStream() {
+    return _firestore
+        .collection(widget.collectionName)
+        .doc(widget.documentId)
+        .snapshots()
+        .map((doc) {
+      if (doc.exists) {
+        return doc.get('winningBid') as int;
+      } else {
+        // 문서가 존재하지 않을 때 처리
+        return 0;
+      }
+    });
+  }
+
   // 입찰을 수행할 함수
   void _saveBidData() async {
 
@@ -477,21 +524,7 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
     }
   }
 
-  // 최소 입찰가를 가져올 스트림
-  Stream<int> getWinningBidStream() {
-    return _firestore
-        .collection(widget.collectionName)
-        .doc(widget.documentId)
-        .snapshots()
-        .map((doc) {
-      if (doc.exists) {
-        return doc.get('winningBid') as int;
-      } else {
-        // 문서가 존재하지 않을 때 처리
-        return 0;
-      }
-    });
-  }
+
 
   // 최고 입찰자를 가져오는 함수
   Future<String> getWinningBidder() async {
@@ -508,20 +541,7 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
     }
   }
 
-  // 경매 상태를 가져오는 함수
-  Stream<String> getAuctionStatusStream() {
-    String postDocumentPath = '${widget.collectionName}/${widget.documentId}';
-    return FirebaseFirestore.instance
-        .doc(postDocumentPath)
-        .snapshots()
-        .map((doc) {
-      if (doc.exists) {
-        return doc.get('status') as String; // 'status' 필드의 값을 반환
-      } else {
-        return '경매 상태 없음'; // 문서가 존재하지 않을 때의 기본값 설정
-      }
-    });
-  }
+
 
   // 경매 종료시 경매 상태를 업데이트 하는 함수
   void updateAuctionStatus() async {
@@ -666,6 +686,38 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
                     dismissDirection: DismissDirection.up,
                     duration: Duration(milliseconds: 1500),
                     backgroundColor: Colors.black,
+                  ),
+                );
+              },
+              child: Text('확인'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // 게시물 수정 확인 AlertDialog 표시
+  void showDialogEditPost(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('수정하기'),
+          content: Text('경매 내용을 수정하시겠습니까?'),
+          actions: [
+            TextButton(
+              onPressed: () {Navigator.pop(context);},
+              child: Text('취소'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                // 수정 버튼을 눌렀을 때 게시물 수정 화면으로 이동
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => EditAuctionScreen(documentId: widget.documentId),
                   ),
                 );
               },

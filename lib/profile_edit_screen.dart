@@ -132,7 +132,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                       // 유효성 검사를 통과했을 시
                       if (_formKey.currentState!.validate()) {
                         // 프로필 업데이트 수행
-                        final updatedInfo = await _updateProfile();
+                        await _updateProfile();
                         ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text('변경 사항이 저장되었습니다.',
