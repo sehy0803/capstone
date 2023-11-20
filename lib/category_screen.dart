@@ -12,6 +12,12 @@ class CategoryScreen extends StatefulWidget {
 
 class _CategoryScreenState extends State<CategoryScreen> {
   final _firestore = FirebaseFirestore.instance;
+  int startBid = 0;
+  int winningBid = 0;
+  String winningBidder = '';
+  String winningBidderUID = '';
+  String status = '';
+  Timestamp endTime = Timestamp(0, 0);
 
   bool isButton1Selected = true;
   bool isButton2Selected = false;
@@ -55,10 +61,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
               ),
             ),
             StreamBuilder<QuerySnapshot>(
-              stream: _firestore
-                  .collection('AuctionCommunity')
-                  .orderBy('createDate', descending: true)
-                  .snapshots(),
+              stream: _getAuctionStream(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return Center(child: CircularProgressIndicator());
@@ -79,40 +82,82 @@ class _CategoryScreenState extends State<CategoryScreen> {
                       (category == "4" && isButton4Selected);
                 }).toList();
 
-                if (filteredAuctions == null || filteredAuctions.isEmpty) {
-                  // 해당하는 경매가 없는 경우
-                  return Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Center(
-                        child: Text('아직 해당하는 경매가 없습니다.\n경매를 등록해보세요!',
-                            style: TextStyle(fontSize: 16, color: Colors.grey),
-                            textAlign: TextAlign.center)),
-                  );
-                }
-
                 return Expanded(
                   child: ListView.builder(
-                    itemCount: filteredAuctions.length,
+                    itemCount: filteredAuctions?.length ?? 0,
                     itemBuilder: (context, index) {
-                      // 경매 정보
+                      final title = filteredAuctions![index]['title'] as String;
+                      final content =
+                          filteredAuctions[index]['content'] as String;
+                      final uploaderUID =
+                          filteredAuctions[index]['uploaderUID'] as String;
+                      final uploaderEmail =
+                          filteredAuctions[index]['uploaderEmail'] as String;
+                      final uploaderImageURL =
+                          filteredAuctions[index]['uploaderImageURL'] as String;
+                      final uploaderNickname =
+                          filteredAuctions[index]['uploaderNickname'] as String;
                       final documentId = getDocumentId(filteredAuctions![index]);
-                      final photoURL = filteredAuctions[index]['photoURL'] as String;
-                      final title = filteredAuctions[index]['title'] as String;
-                      final int winningBid = filteredAuctions[index]['winningBid'] as int;
+                      final views = filteredAuctions[index]['views'] as int;
+                      final like = filteredAuctions[index]['like'] as int;
+                      final comments = filteredAuctions[index]['comments'] as int;
+                      final photoURL =
+                          filteredAuctions[index]['photoURL'] as String;
+                      final createDate =
+                          filteredAuctions[index]['createDate'] as Timestamp;
+                      final formattedDate = DateFormat('yyyy.MM.dd HH:mm').format(
+                        createDate.toDate(),
+                      );
+                      final startBid = filteredAuctions[index]['startBid'] as int;
+                      final winningBid =
+                          filteredAuctions[index]['winningBid'] as int;
+                      final winningBidder =
+                          filteredAuctions[index]['winningBidder'] as String;
+                      final winningBidderUID =
+                          filteredAuctions[index]['winningBidderUID'] as String;
                       final status = filteredAuctions[index]['status'] as String;
-
-                      // 시간 정보
-                      final endTime = filteredAuctions[index]['endTime'] as Timestamp;
-                      final remainingTime = filteredAuctions[index]['remainingTime'] as int;
+                      final endTime =
+                          filteredAuctions[index]['endTime'] as Timestamp;
+                      final category =
+                          filteredAuctions[index]['category'] as String;
 
                       return GestureDetector(
                         onTap: () {
-                          increaseViews(getDocumentId(filteredAuctions[index]), 'AuctionCommunity');
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) {
-                                return CommunityAuctionDetailScreen(documentId: documentId,);},),);
+                          increaseViews(getDocumentId(filteredAuctions[index]),
+                              'AuctionCommunity');
+                          try {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) {
+                                  return CommunityAuctionDetailScreen(
+                                    title: title,
+                                    content: content,
+                                    uploaderUID: uploaderUID,
+                                    uploaderEmail: uploaderEmail,
+                                    uploaderImageURL: uploaderImageURL,
+                                    uploaderNickname: uploaderNickname,
+                                    collectionName: 'AuctionCommunity',
+                                    documentId: documentId,
+                                    views: views + 1,
+                                    like: like,
+                                    comments: comments,
+                                    photoURL: photoURL,
+                                    startBid: startBid,
+                                    winningBid: winningBid,
+                                    winningBidder: winningBidder,
+                                    winningBidderUID: winningBidderUID,
+                                    status: status,
+                                    createDate: createDate,
+                                    endTime: endTime,
+                                    category: category,
+                                  );
+                                },
+                              ),
+                            );
+                          } catch (e) {
+                            print('$e');
+                          }
                         },
                         child: Column(
                           children: [
@@ -120,58 +165,77 @@ class _CategoryScreenState extends State<CategoryScreen> {
                               elevation: 0,
                               child: Row(
                                 children: [
-                                  _buildAuctionImage(photoURL),
+                                  _buildAuctionImage(
+                                      filteredAuctions[index]['photoURL']),
                                   SizedBox(width: 10),
                                   Expanded(
                                     child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Row(
                                           children: [
-                                            // 경매 상태
                                             Container(
-                                                decoration: BoxDecoration(
-                                                  color: _getStatusColor(status),
-                                                  borderRadius: BorderRadius.circular(10.0),
-                                                  boxShadow: [
-                                                    BoxShadow(
-                                                      color: Colors.grey, // 그림자 색상
-                                                      offset: Offset(0, 2), // 그림자의 위치 (가로, 세로)
-                                                      blurRadius: 4.0, // 그림자의 흐림 정도
-                                                    ),
-                                                  ],
+                                              decoration: BoxDecoration(
+                                                color: _getStatusColor(
+                                                    filteredAuctions[index]
+                                                        ['status']),
+                                                borderRadius:
+                                                    BorderRadius.circular(10.0),
+                                                border: Border.all(
+                                                  color: Colors.yellow,
+                                                  width: 1.0,
                                                 ),
-                                                child: Padding(
-                                                  padding: const EdgeInsets.all(6.0),
-                                                  child: Text(status,
-                                                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)
+                                              ),
+                                              child: Padding(
+                                                padding:
+                                                    const EdgeInsets.all(6.0),
+                                                child: Text(
+                                                  filteredAuctions[index]
+                                                      ['status'],
+                                                  style: TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.white,
                                                   ),
-                                                )
+                                                ),
+                                              ),
                                             ),
                                             SizedBox(width: 10),
-                                            Text(title, style: TextStyle(fontSize: 16)),
+                                            Text(title,
+                                                style: TextStyle(fontSize: 16)),
                                           ],
                                         ),
                                         SizedBox(height: 10),
                                         Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                           children: [
-                                            Text((status == '낙찰')
-                                                ? '낙찰가'
-                                                : (status == '경매 실패')
-                                                ? '경매 실패'
-                                                : '최소 입찰가',
-                                                style: TextStyle(fontSize: 16)),
-                                            Text('$winningBid원', style: TextStyle(fontSize: 16, color: Colors.blue)),
+                                            Text(uploaderNickname,
+                                                style: TextStyle(
+                                                    fontSize: 12,
+                                                    color: Colors.grey)),
+                                            SizedBox(width: 5),
+                                            Text(formattedDate,
+                                                style: TextStyle(
+                                                    fontSize: 12,
+                                                    height: 1.3,
+                                                    color: Colors.grey)),
+                                            SizedBox(width: 5),
+                                            Text('조회 $views',
+                                                style: TextStyle(
+                                                    fontSize: 12,
+                                                    color: Colors.grey)),
+                                            SizedBox(width: 5),
+                                            Text('좋아요 $like',
+                                                style: TextStyle(
+                                                    fontSize: 12,
+                                                    color: Colors.grey)),
                                           ],
                                         ),
-                                        // 남은 시간 표시
-                                        buildRemainingTime(status, endTime, remainingTime),
-
                                       ],
                                     ),
-                                  )
+                                  ),
                                 ],
                               ),
                             ),
@@ -191,42 +255,12 @@ class _CategoryScreenState extends State<CategoryScreen> {
 
   // =========================================================
 
-  // 남은 시간을 표시하는 조건
-  String getFormattedRemainingTime(status, endTime, remainingTime) {
-    Duration remainingTimeInSeconds = Duration(seconds: remainingTime);
-    if (status == '대기중') {
-      return '${remainingTimeInSeconds.inMinutes}분 후 시작';
-    } else if (remainingTime < 60) {
-      // 10분 미만
-      return '잠시 후 종료';
-    } else if (remainingTime < 3600) {
-      // 10분 이상, 1시간 미만
-      return '${remainingTimeInSeconds.inMinutes}분 후 종료';
-    } else {
-      // 1시간 이상
-      return '${remainingTimeInSeconds.inHours}시간 후 종료';
-    }
-  }
-
-  // 남은 시간 표시 위젯
-  Widget buildRemainingTime(String status, Timestamp endTime, int remainingTime) {
-    if (status == '낙찰' || status == '경매 실패') {
-      return Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text('경매 종료', style: TextStyle(fontSize: 16, color: Colors.grey)),
-          Text('${DateFormat('MM월 dd일 HH시 mm분').format(endTime.toDate())}',
-              style: TextStyle(fontSize: 16, color: Colors.grey))
-        ],
-      );
-    } else {
-      return Center(
-        child: Text(
-          getFormattedRemainingTime(status, endTime, remainingTime),
-          style: TextStyle(fontSize: 16, color: Colors.redAccent),
-        ),
-      );
-    }
+  // 경매 게시판의 게시물을 가져오는 스트림
+  Stream<QuerySnapshot> _getAuctionStream() {
+    return _firestore
+        .collection('AuctionCommunity')
+        .orderBy('createDate', descending: true)
+        .snapshots();
   }
 
   // _getStatusColor 함수
@@ -234,11 +268,11 @@ class _CategoryScreenState extends State<CategoryScreen> {
     if (status == '진행중') {
       return Colors.green; // 녹색
     } else if (status == '낙찰') {
-      return Colors.blue; // 파란색
+      return Colors.red; // 빨간색
     } else if (status == '경매 실패') {
       return Colors.grey; // 회색
     } else {
-      return Colors.black; // 대기중
+      return Colors.black; // 기본값 (다른 상태일 때)
     }
   }
 

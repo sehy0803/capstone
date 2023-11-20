@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:io';
 import 'package:capstone/custom_widget.dart';
 import 'package:uuid/uuid.dart';
@@ -18,18 +17,31 @@ class AuctionRegisterScreen extends StatefulWidget {
 class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
   final _authentication = FirebaseAuth.instance;
   final _firestore = FirebaseFirestore.instance;
+  File? _pickedFile;
 
-  // 유저 정보
-  String uploaderUID = ''; // 업로더 uid
-  String winningBidderUID = ''; // 낙찰자 uid
-
-  // 경매 정보
-  File? _pickedFile; // 사진 파일
-  String photoURL = ''; // 경매 상품 사진
+  // 게시글 정보를 저장할 변수
   String title = ''; // 제목
-  String content = ''; // 설명
-  String category = '1'; // 카테고리 초기값 1 = 의류
+  String content = ''; // 내용
+  String uploaderUID = ''; // 업로더 uid
+  String uploaderEmail = ''; // 업로더 이메일
+  String uploaderImageURL = ''; // 업로더 프로필 사진 URL
+  String uploaderNickname = ''; // 업로더 닉네임
+  int views = 0; // 조회수
+  int like = 0; // 좋아요 횟수
+  int comments = 0; // 댓글 수
+  String photoURL = ''; // 경매 상품 사진
+  // 경매 정보를 저장할 변수
   int startBid = 0; // 시작가
+  int winningBid = 0; // 낙찰가
+  String winningBidder = ''; // 낙찰자
+  String winningBidderUID = ''; // 낙찰자 uid
+  String status = '진행중'; // 경매 상태 : 진행중, 낙찰, 경매 실패
+  Timestamp createDate = Timestamp.now(); // 글을 올린 날짜와 시간
+  Timestamp endTime = Timestamp.fromDate(
+      DateTime.now().add(Duration(minutes: 1)));
+  String category = '1'; // 카테고리 초기값 1 = 의류
+
+  // 경매 종료까지 남은 시간 : createDate + 1분
 
   @override
   void initState() {
@@ -59,12 +71,12 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
           padding: const EdgeInsets.all(20.0),
           child: Column(
               children: [
-                // 사진 업로드
+                // 상품 사진 업로드
                 _buildAuctionImage(),
 
                 SizedBox(height: 20),
 
-                // 제목
+                // 경매 제목
                 TextField(
                   maxLength: 30,
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -77,7 +89,7 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
                   },
                 ),
 
-                // 시작가(최소 입찰가)
+                // 경매 시작가(최소 입찰가)
                 TextField(
                   keyboardType: TextInputType.number,
                   style: TextStyle(fontSize: 18),
@@ -88,7 +100,7 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
                   },
                 ),
 
-                // 설명
+                // 경매 설명
                 TextField(
                   maxLength: 200,
                   maxLines: 7,
@@ -102,7 +114,7 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
 
                 SizedBox(height: 20),
 
-                // 카테고리
+                //카테고리 항목들
                 Container(
                   alignment: Alignment.centerLeft,
                   child: SizedBox(
@@ -162,55 +174,33 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
 
   //============================================================================
 
-  // Firestore에서 uploaderUID(현재 로그인한 사용자의 UID)를 가져오는 함수
-  void getCurrentUser() async {
-    final user = _authentication.currentUser;
-    if (user != null) {
-      setState(() {
-        uploaderUID = user.uid;
-      });
-    }
-  }
-
   // firestore에 경매 정보 저장
   void _saveAuctionData() async {
     if (title.isNotEmpty && content.isNotEmpty) {
       if (_pickedFile != null) {
         Navigator.of(context).pop();
         try {
-          // 경매 정보
           String photoURL = await uploadImageToStorage(_pickedFile!);
-          int views = 0;
-          int like = 0;
-          String status = '대기중'; // 경매 상태 : 대기중, 진행중, 낙찰, 경매 실패
-
-          // 시간 정보
-          Timestamp createDate = Timestamp.now();
-          Timestamp startTime = Timestamp.fromDate(createDate.toDate().add(Duration(minutes: 10)));
-          Timestamp endTime = Timestamp.fromDate(startTime.toDate().add(Duration(minutes: 30)));
-          int remainingTime = createDate.toDate().difference(startTime.toDate()).inSeconds;
-
           await _firestore.collection('AuctionCommunity').add({
-            // 유저 정보
-            'uploaderUID': uploaderUID, // 업로더 uid
-            'winningBidderUID': winningBidderUID, // 낙찰자 uid
-
-            // 경매 정보
-            'photoURL': photoURL, // 사진
             'title': title, // 제목
-            'content': content, // 설명
-            'category': category, // 카테고리
-            'views': views, // 조회수
-            'like': like, // 좋아요
+            'content': content, // 상품 설명
+            'uploaderUID': uploaderUID, // 업로더 uid
+            'uploaderEmail': uploaderEmail, // 업로더 이메일
+            'uploaderImageURL': uploaderImageURL, // 프로필 사진 URL
+            'uploaderNickname': uploaderNickname, // 업로더 닉네임
+            'createDate': createDate, // 게시글 작성일
+            'views': views, // 조회수 초기값
+            'like': like, // 좋아요 횟수 초기값
+            'comments': comments, // 댓글 수 초기값
+            'photoURL': photoURL, // Firebase Storage에서 받은 URL로 업데이트
+            // ==========================================================
             'startBid': startBid, // 시작가
             'winningBid': startBid, // 낙찰가. 최소 입찰가(초기값은 시작가로)
-            'status': status, // 경매 상태(대기중, 진행중, 낙찰, 경매 실패)
-
-            // 시간 정보
-            'createDate': createDate, // 경매 등록 시간
-            'startTime': startTime, // 경매 시작 시간. 경매 등록 시간 + 10분
-            'endTime': endTime, // 경매 종료 시간. 경매 시작 시간 + 30분
-            'remainingTime': remainingTime, // 경매 종료까지 "남은 시간"
+            'winningBidder': winningBidder, // 낙찰자 닉네임
+            'winningBidderUID': winningBidderUID, // 낙찰자 uid
+            'status': status,
+            'endTime': endTime, // 경매 종료까지 남은 시간
+            'category': category, // 카테고리 값
           });
         } catch (e) {
           print('데이터 저장 오류: $e');
@@ -292,15 +282,43 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
     );
   }
 
-  // 사진을 스토리지에 업로드하는 함수
+  // 상품 사진을 스토리지에 업로드하는 함수
   Future<String> uploadImageToStorage(File imageFile) async {
-    final storageReference = FirebaseStorage.instance.ref().child('images/${Uuid().v4()}');
-    await storageReference.putFile(imageFile);
-    final photoURL = await storageReference.getDownloadURL();
-    return photoURL;
+    try {
+      final storageReference = FirebaseStorage.instance.ref().child(
+          'images/${Uuid().v4()}');
+      await storageReference.putFile(imageFile);
+      final photoURL = await storageReference.getDownloadURL();
+      return photoURL;
+    } catch (e) {
+      print('이미지 업로드 오류: $e');
+      return '';
+    }
   }
 
-  // 사진 표시 위젯
+  // Firestore에서 업로더의 정보를 가져오는 함수
+  void getCurrentUser() async {
+    try {
+      final user = _authentication.currentUser;
+      if (user != null) {
+        final userDocument =
+        await _firestore
+            .collection('User')
+            .doc(user.uid)
+            .get();
+        if (userDocument.exists) {
+          uploaderUID = user.uid;
+          uploaderEmail = userDocument['email'];
+          uploaderImageURL = userDocument['imageURL'];
+          uploaderNickname = userDocument['nickname'];
+        }
+      }
+    } catch (e) {
+      print('업로더 정보 가져오기 오류: $e');
+    }
+  }
+
+  // 상품 사진을 표시하는 함수
   Widget _buildAuctionImage() {
     double _imageSize = 150.0;
 

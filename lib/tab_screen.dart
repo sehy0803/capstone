@@ -2,12 +2,11 @@ import 'package:capstone/category_screen.dart';
 import 'package:capstone/chat_list_screen.dart';
 import 'package:capstone/community_screen.dart';
 import 'package:capstone/custom_widget.dart';
-import 'package:capstone/favorite_screen.dart';
+import 'package:capstone/favorite_list_screen.dart';
 import 'package:capstone/home_screen.dart';
 import 'package:capstone/my_page_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
 class TabScreen extends StatefulWidget {
 
   @override

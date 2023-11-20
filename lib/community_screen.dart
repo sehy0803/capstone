@@ -83,6 +83,9 @@ class _CommunityScreenState extends State<CommunityScreen> {
                 String documentId = getDocumentId(documents[index]); // 이건 전달해야할 정보
                 String title = documents[index]['title'] as String;
 
+
+
+
                 if (getCollectionName() == 'AuctionCommunity') {
                   String photoURL = documents[index]['photoURL'] as String;
                   int winningBid = documents[index]['winningBid'] as int;
