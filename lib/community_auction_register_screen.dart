@@ -165,9 +165,10 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
   // Firestore에서 uploaderUID(현재 로그인한 사용자의 UID)를 가져오는 함수
   void getCurrentUser() async {
     final user = _authentication.currentUser;
-    final userDocument = await _firestore.collection('User').doc(user!.uid).get();
-    if (userDocument.exists) {
-      uploaderUID = user!.uid;
+    if (user != null) {
+      setState(() {
+        uploaderUID = user.uid;
+      });
     }
   }
 
@@ -187,7 +188,7 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
           Timestamp createDate = Timestamp.now();
           Timestamp startTime = Timestamp.fromDate(createDate.toDate().add(Duration(minutes: 10)));
           Timestamp endTime = Timestamp.fromDate(startTime.toDate().add(Duration(minutes: 30)));
-          int remainingTime = endTime.toDate().difference(startTime.toDate()).inSeconds;
+          int remainingTime = createDate.toDate().difference(startTime.toDate()).inSeconds;
 
           await _firestore.collection('AuctionCommunity').add({
             // 유저 정보

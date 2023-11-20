@@ -168,10 +168,7 @@ class _ProfileSettingScreenState extends State<ProfileSettingScreen> {
                                   fontSize: 16,
                                   color: Colors.white)),
                           margin: EdgeInsets.only(
-                              bottom: MediaQuery.of(context)
-                                  .size
-                                  .height -
-                                  120,
+                              bottom: MediaQuery.of(context).size.height - 90,
                               left: 10,
                               right: 10),
                           dismissDirection: DismissDirection.up,

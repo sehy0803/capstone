@@ -314,28 +314,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                               // 회원가입 성공시 LoginScreen으로 이동
                               if (newUser.user != null) {
+                                Navigator.pop(context);
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      '회원가입이 완료되었습니다. 로그인을 해주세요.',
-                                      style: TextStyle(fontSize: 16, color: Colors.white),
-                                    ),
-                                    margin: EdgeInsets.only(
-                                      bottom: MediaQuery.of(context).size.height - 90,
-                                      left: 10,
-                                      right: 10,
-                                    ),
-                                    dismissDirection: DismissDirection.up,
-                                    duration: Duration(milliseconds: 1500),
-                                    behavior: SnackBarBehavior.floating,
-                                    backgroundColor: Colors.green,
-                                  ),
+                                    SnackBar(
+                                      content: Text('환영합니다!',
+                                          style: TextStyle(fontSize: 16, color: Colors.white)),
+                                      dismissDirection: DismissDirection.up,
+                                      duration: Duration(milliseconds: 1500),
+                                      backgroundColor: Colors.black,
+                                    )
                                 );
-                                Navigator.push(context, MaterialPageRoute(
-                                  builder: (context) {
-                                    return LoginScreen();
-                                  },
-                                ));
                               }
                             } catch (e) {
                               print(e);

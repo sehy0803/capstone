@@ -28,11 +28,9 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
   int bid = 0;
   bool isLiked = false;
 
+  // 타이머
   Timer? _timer;
-  Timer? waitingTimer;
-  Timer? remainingTimer;
-
-  Duration remainingTime = Duration.zero;
+  Duration remainingTimeInSeconds = Duration.zero;
 
   @override
   void dispose() {
@@ -109,7 +107,7 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
             int remainingTime = auctionData['remainingTime'] as int;
             Duration remainingTimeSeconds = Duration(seconds: remainingTime);
 
-            
+
             return StreamBuilder<DocumentSnapshot>(
                 stream: _firestore.collection('User').doc(uploaderUID).snapshots(),
                 builder: (context, snapshot) {
@@ -234,7 +232,8 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
                                                 child: Column(
                                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                     children: [
-                                                      _buildStatusText(status, createDate, startTime, remainingTimeSeconds),
+                                                      // 남은 시간 표시
+                                                      _buildStatusText(status, remainingTimeSeconds),
                                                       Row(
                                                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                         children: [
@@ -312,21 +311,121 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
   }
 
   //============================================================================
+  // 타이머
+  // firestore에서 시간 정보를 가져오는 함수
+  Future<Map<String, dynamic>> getAuctionTimes() async {
+    final document = await _firestore.collection('AuctionCommunity').doc(widget.documentId).get();
+    final data = document.data();
 
-  // 남은 시간을 가져오는 스트림
-  Stream<int> getRemainingTimeStream() {
-    String postPath = 'AuctionCommunity/${widget.documentId}';
-    return FirebaseFirestore.instance
-        .doc(postPath)
-        .snapshots()
-        .map((doc) {
-      if (doc.exists) {
-        return doc.get('remainingTime') as int;
-      } else {
-        return 0;
-      }
+    final createDate = (data!['createDate'] as Timestamp).toDate();
+    final startTime = (data['startTime'] as Timestamp).toDate();
+    final endTime = (data['endTime'] as Timestamp).toDate();
+    final remainingTime = data['remainingTime'] as int;
+
+    return {
+      'createDate': createDate,
+      'startTime': startTime,
+      'endTime': endTime,
+      'remainingTime': remainingTime,
+    };
+  }
+
+  // 타이머 시작 - 1초마다 남은 시간 업데이트
+  void _startTimer() {
+    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      _updateRemainingTime();
     });
   }
+
+  // 남은 시간을 업데이트하는 함수
+  void _updateRemainingTime() async {
+    Map<String, dynamic> times = await getAuctionTimes();
+    DateTime startTime = times['startTime'];
+    DateTime endTime = times['endTime'];
+
+    // 시간에 따라 경매 상태를 업데이트 하는 함수(대기중 -> 진행중)
+    updateAuctionStatus();
+
+    // 현재 시간이 경매 시작 시간보다 전일 경우 : 경매 상태가 대기중일 때
+    if (DateTime.now().isBefore(startTime)) {
+      int remainingTime = startTime.difference(DateTime.now()).inSeconds;
+      setState(() {
+        remainingTimeInSeconds = Duration(seconds: remainingTime);
+      });
+      FirebaseFirestore.instance.collection('AuctionCommunity').doc(widget.documentId)
+          .update({'remainingTime': remainingTime});
+    }
+    // 현재 시간이 경매 시작 시간 이후, 종료 시간 이전일 경우 : 경매 상태가 진행중일 때
+    else if (DateTime.now().isBefore(endTime)) {
+      int remainingTime = endTime.difference(DateTime.now()).inSeconds;
+      setState(() {
+        remainingTimeInSeconds = Duration(seconds: remainingTime);
+      });
+      FirebaseFirestore.instance.collection('AuctionCommunity').doc(widget.documentId)
+          .update({'remainingTime': remainingTime});
+    } else {
+      // 경매 종료 시간이 지났을 경우 타이머 종료
+      _timer?.cancel();
+      updateAuctionEndStatus();
+    }
+  }
+
+  // 경매 종료시 경매 상태를 업데이트 하는 함수
+  void updateAuctionEndStatus() async {
+    String postPath = 'AuctionCommunity/${widget.documentId}';
+    final winningBidderUID = await getWinningBidderUID();
+    if (winningBidderUID.isNotEmpty) {
+      // 최고 입찰자가 있는 경우
+      await _firestore.doc(postPath).update({
+        'status': '낙찰',
+      });
+    } else {
+      // 최고 입찰자가 없는 경우
+      await _firestore.doc(postPath).update({
+        'status': '경매 실패',
+      });
+    }
+  }
+
+  // 시간에 따라 경매 상태를 업데이트 하는 함수
+  void updateAuctionStatus() async {
+    final postPath = _firestore.collection('AuctionCommunity').doc(widget.documentId);
+    Map<String, dynamic> times = await getAuctionTimes();
+    DateTime startTime = times['startTime'];
+
+    if (DateTime.now().isAfter(startTime)) {
+      await postPath.update({'status': '진행중'});
+    }
+  }
+
+  // 경매 상태에 따라 경매 상태 또는 남은 시간을 표시
+  Widget _buildStatusText(String status, Duration remainingTimeSeconds) {
+    if (status == '낙찰') {
+      return Text(
+        '낙찰되었습니다!',
+        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.redAccent),
+      );
+    } else if (status == '경매 실패') {
+      return Text(
+        '입찰자가 나오지 않은 경매입니다.',
+        style: TextStyle(fontSize: 16, color: Colors.grey),
+      );
+    } else if (status == '대기중'){
+      return Text(
+        // 경매 시작까지 남은 시간
+        '대기 시간 ${remainingTimeInSeconds.inHours}:${(remainingTimeInSeconds.inMinutes % 60).toString().padLeft(2, '0')}:${(remainingTimeInSeconds.inSeconds % 60).toString().padLeft(2, '0')}',
+        style: TextStyle(fontSize: 16, color: Colors.redAccent),
+      );
+    } else {
+      return Text(
+        // 경매 종료까지 남은 시간
+        '남은 시간 ${remainingTimeInSeconds.inHours}:${(remainingTimeInSeconds.inMinutes % 60).toString().padLeft(2, '0')}:${(remainingTimeInSeconds.inSeconds % 60).toString().padLeft(2, '0')}',
+        style: TextStyle(fontSize: 16, color: Colors.redAccent),
+      );
+    }
+  }
+
+  //============================================================================
 
   // 입찰을 수행할 함수
   void _saveBidData() async {
@@ -363,23 +462,6 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
       return data['winningBidderUID'] as String;
     } else {
       return '';
-    }
-  }
-
-  // 경매 종료시 경매 상태를 업데이트 하는 함수
-  void updateAuctionEndStatus() async {
-    String postPath = 'AuctionCommunity/${widget.documentId}';
-    final winningBidderUID = await getWinningBidderUID();
-    if (winningBidderUID.isNotEmpty) {
-      // 최고 입찰자가 있는 경우
-      await _firestore.doc(postPath).update({
-        'status': '낙찰',
-      });
-    } else {
-      // 최고 입찰자가 없는 경우
-      await _firestore.doc(postPath).update({
-        'status': '경매 실패',
-      });
     }
   }
 
@@ -420,68 +502,6 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
         );
       },
     );
-  }
-
-  //============================================================================
-
-  // 시간에 따라 경매 상태를 업데이트 하는 함수
-  void updateAuctionStatus() async {
-    final postPath = _firestore.collection('AuctionCommunity').doc(widget.documentId);
-    Map<String, dynamic> times = await getAuctionTimes();
-    DateTime startTime = times['startTime'];
-
-    if (DateTime.now().isAfter(startTime)) {
-      await postPath.update({'status': '진행중'});
-    }
-  }
-
-  // 경매 상태에 따라 경매 상태 또는 남은 시간을 표시
-  Widget _buildStatusText(String status, Timestamp createDate, Timestamp startTime, Duration remainingTimeSeconds) {
-    Duration waitingTime = startTime.toDate().difference(createDate.toDate());
-
-    if (status == '낙찰') {
-      return Text(
-        '낙찰되었습니다!',
-        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.redAccent),
-      );
-    } else if (status == '경매 실패') {
-      return Text(
-        '입찰자가 나오지 않은 경매입니다.',
-        style: TextStyle(fontSize: 16, color: Colors.grey),
-      );
-    } else if (status == '대기중'){
-      return Text(
-        // 경매 시작까지 남은 시간
-        '대기 시간 ${waitingTime.inHours}:${(waitingTime.inMinutes % 60).toString().padLeft(2, '0')}:${(waitingTime.inSeconds % 60).toString().padLeft(2, '0')}',
-        style: TextStyle(fontSize: 16, color: Colors.redAccent),
-      );
-    } else {
-      return Text(
-        // 경매 종료까지 남은 시간
-        '남은 시간 ${remainingTimeSeconds.inHours}:${(remainingTimeSeconds.inMinutes % 60).toString().padLeft(2, '0')}:${(remainingTimeSeconds.inSeconds % 60).toString().padLeft(2, '0')}',
-        style: TextStyle(fontSize: 16, color: Colors.redAccent),
-      );
-    }
-  }
-
-  // firestore에서 시간 정보를 가져오는 함수
-  Future<Map<String, dynamic>> getAuctionTimes() async {
-    final document = await _firestore.collection('AuctionCommunity').doc(widget.documentId).get();
-    final data = document.data();
-
-    final createDate = (data!['createDate'] as Timestamp).toDate();
-    final waitingTime = (data['waitingTime'] as Timestamp).toDate();
-    final startTime = (data['startTime'] as Timestamp).toDate();
-    final endTime = (data['endTime'] as Timestamp).toDate();
-    final remainingTime = data['remainingTime'] as int;
-
-    return {
-      'createDate': createDate,
-      'waitingTime': waitingTime,
-      'startTime': startTime,
-      'endTime': endTime,
-      'remainingTime': remainingTime,
-    };
   }
 
   // 경매 상품 사진을 표시하는 함수
@@ -694,7 +714,6 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
     await userLikesCollection.doc(postID).delete();
   }
 
-  //===================================================
 
   // 게시물 수정 확인 AlertDialog 표시
   void showDialogEditPost(BuildContext context) async {
@@ -744,51 +763,4 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
     }
   }
 
-  // 남은 시간을 업데이트하는 함수
-  void _updateRemainingTime() async {
-    Map<String, dynamic> times = await getAuctionTimes();
-    DateTime endTime = times['endTime'];
-    int waitingTime = times['waitingTime'];
-
-    if (DateTime.now().isBefore(endTime)) {
-      _firestore.collection('AuctionCommunity').doc(widget.documentId).update({'remainingTime': remainingTime.inSeconds});
-
-      if (waitingTime > 0 && waitingTimer == null) {
-        waitingTimer = Timer.periodic(Duration(seconds: 1), (timer) {
-          if (waitingTime > 0) {
-            setState(() {
-              waitingTime--;
-            });
-          } else {
-            waitingTimer?.cancel();
-            _startRemainingTimer();
-          }
-        });
-      }
-    } else {
-      _timer?.cancel();
-      updateAuctionEndStatus();
-    }
-  }
-
-  // 타이머 시작 - 1초마다 남은 시간 업데이트
-  void _startTimer() {
-    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
-      _updateRemainingTime();
-    });
-  }
-
-  // 남은 시간 타이머
-  void _startRemainingTimer() {
-    remainingTimer = Timer.periodic(Duration(seconds: 1), (timer) {
-      if (remainingTime.inSeconds > 0) {
-        setState(() {
-          remainingTime = remainingTime - Duration(seconds: 1);
-        });
-      } else {
-        remainingTimer?.cancel();
-        updateAuctionEndStatus();
-      }
-    });
-  }
 }

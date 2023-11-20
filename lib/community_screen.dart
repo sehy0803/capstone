@@ -265,33 +265,28 @@ class _CommunityScreenState extends State<CommunityScreen> {
 
   // 남은 시간을 표시하는 조건
   String getFormattedRemainingTime(status, endTime, remainingTime) {
-    DateTime endTimeDateTime = endTime.toDate(); // Timestamp를 DateTime으로 변환
-    int remainingTime = endTimeDateTime.difference(DateTime.now()).inSeconds;
-    if (remainingTime <= 0 || status == '낙찰' || status == '경매 실패') {
-      return '경매 종료 ${DateFormat('MM월 dd일 HH시 mm분').format(endTime.toDate())}';
+    Duration remainingTimeInSeconds = Duration(seconds: remainingTime);
+    if (status == '대기중') {
+      return '${remainingTimeInSeconds.inMinutes}분 후 시작';
     } else if (remainingTime < 60) {
       // 10분 미만
       return '잠시 후 종료';
     } else if (remainingTime < 3600) {
       // 10분 이상, 1시간 미만
-      Duration remainingDuration = Duration(seconds: remainingTime);
-      return '${remainingDuration.inMinutes}분 후 종료';
+      return '${remainingTimeInSeconds.inMinutes}분 후 종료';
     } else {
       // 1시간 이상
-      Duration remainingDuration = Duration(seconds: remainingTime);
-      return '${remainingDuration.inHours}시간 후 종료';
+      return '${remainingTimeInSeconds.inHours}시간 후 종료';
     }
   }
 
   // 남은 시간 표시 위젯
-  Widget buildRemainingTime(status, endTime, remainingTime) {
-    DateTime endTimeDateTime = endTime.toDate(); // Timestamp를 DateTime으로 변환
-    int remainingTime = endTimeDateTime.difference(DateTime.now()).inSeconds;
-    if (remainingTime <= 0 || status == '낙찰' || status == '경매 실패') {
+  Widget buildRemainingTime(String status, Timestamp endTime, int remainingTime) {
+    if (status == '낙찰' || status == '경매 실패') {
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text('경매 종료', style: TextStyle(fontSize: 16, color: Colors.grey)),
+            Text('경매 종료', style: TextStyle(fontSize: 16, color: Colors.grey)),
           Text('${DateFormat('MM월 dd일 HH시 mm분').format(endTime.toDate())}',
               style: TextStyle(fontSize: 16, color: Colors.grey))
         ],
