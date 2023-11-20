@@ -27,15 +27,19 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
   // 좋아요 초기값
   bool isLiked = false;
 
+  String userID = '';
+  String uploaderUID = '';
+
   @override
   void initState() {
     super.initState();
+    getCurrentUser();
+    getUploaderUID();
     getLikeStatus();
   }
 
   @override
   Widget build(BuildContext context) {
-    String userUID = _authentication.currentUser!.uid;
     return Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
@@ -48,7 +52,7 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
             color: Colors.white,
           ),
           // 게시물 삭제 기능
-          actions: isCheckUploader(userUID)
+          actions: isCheckUploader(uploaderUID)
               ? [
             PopupMenuButton<String>(
               icon: Icon(Icons.more_vert, color: Colors.grey, size: 30),
@@ -77,8 +81,6 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
               if (!snapshot.hasData) {return Center(child: CircularProgressIndicator());}
 
               var data = snapshot.data!.data() as Map<String, dynamic>;
-
-              //String commentsPath = 'UserCommunity/${widget.documentId}/comments';
 
               // 유저 정보
               String uploaderUID = data['uploaderUID'] as String;
@@ -205,57 +207,76 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
 
                                           // 댓글이 있는 경우
                                           var comments = snapshot.data!.docs;
-                                          
+
                                           return Column(
                                             children: comments.asMap().entries.map((entry) {
                                               final index = entry.key;
                                               final commentData = entry.value.data() as Map<String, dynamic>;
 
-                                              return Column(
-                                                children: [
-                                                  Card(
-                                                    elevation: 0,
-                                                    child: Container(
-                                                      child: Row(
-                                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                                        children: [
-                                                          Row(
-                                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                                            children: [
-                                                              _buildCommenterImage(commentData['commenterImageURL']),
-                                                              SizedBox(width: 10),
-                                                              Column(
-                                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                                children: [
-                                                                  SizedBox(
-                                                                    width: MediaQuery.of(context).size.width- 100,
-                                                                    child: Row(
+                                              // 코맨터 정보
+                                              String commenterUID = commentData['commenterUID'] as String;
+                                              String text = commentData['text'] as String;
+                                              Timestamp timestamp = commentData['timestamp'] as Timestamp;
+                                              String formattedTimestamp = DateFormat('yyyy.MM.dd HH:mm').format(timestamp.toDate());
+
+                                              return StreamBuilder<DocumentSnapshot>(
+                                                  stream: _firestore.collection('User').doc(commenterUID).snapshots(),
+                                                  builder: (context, snapshot) {
+                                                    if (!snapshot.hasData) {return Center(child: CircularProgressIndicator());}
+
+                                                    var commenterData = snapshot.data!.data() as Map<String, dynamic>;
+
+                                                    // 업로더 정보
+                                                    String commenterImageURL = commenterData['imageURL'] ?? '';
+                                                    String commenterNickname = commenterData['nickname'] ?? '';
+
+                                                    return Column(
+                                                      children: [
+                                                        Card(
+                                                          elevation: 0,
+                                                          child: Container(
+                                                            child: Row(
+                                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                                              children: [
+                                                                Row(
+                                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                                  children: [
+                                                                    _buildCommenterImage(commenterImageURL),
+                                                                    SizedBox(width: 10),
+                                                                    Column(
                                                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                      crossAxisAlignment: CrossAxisAlignment.start,
                                                                       children: [
-                                                                        Text(commentData['commenterNickname'], style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-                                                                        // 댓글 삭제 버튼
-                                                                        _buildDeleteCommenterButton(commentData['commenterUID'], comments[index].id)
+                                                                        SizedBox(
+                                                                          width: MediaQuery.of(context).size.width- 100,
+                                                                          child: Row(
+                                                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                            children: [
+                                                                              Text(commenterNickname, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                                                                              // 댓글 삭제 버튼
+                                                                              _buildDeleteCommenterButton(commenterUID, comments[index].id)
+                                                                            ],
+                                                                          ),
+                                                                        ),
+                                                                        SizedBox(height: 5),
+                                                                        SizedBox(
+                                                                            width: MediaQuery.of(context).size.width - 100,
+                                                                            child: Text(text, style: TextStyle(fontSize: 14), maxLines: 5, overflow: TextOverflow.ellipsis)),
+                                                                        SizedBox(height: 5),
+                                                                        Text(formattedTimestamp, style: TextStyle(fontSize: 12, color: Colors.grey)),
                                                                       ],
                                                                     ),
-                                                                  ),
-                                                                  SizedBox(height: 5),
-                                                                  SizedBox(
-                                                                      width: MediaQuery.of(context).size.width - 100,
-                                                                      child: Text(commentData['text'], style: TextStyle(fontSize: 14), maxLines: 5, overflow: TextOverflow.ellipsis)),
-                                                                  SizedBox(height: 5),
-                                                                  Text(commentData['timestamp'], style: TextStyle(fontSize: 12, color: Colors.grey)),
-                                                                ],
-                                                              ),
-                                                            ],
+                                                                  ],
+                                                                ),
+                                                              ],
+                                                            ),
                                                           ),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  CommentLine()
-                                                ],
+                                                        ),
+                                                        CommentLine()
+                                                      ],
+                                                    );
+                                                  }
                                               );
                                             }).toList(),
                                           );
@@ -334,6 +355,43 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
 
   // ===========================================================================
 
+  // 현재 로그인한 유저의 UID 저장
+  void getCurrentUser() async {
+    final user = _authentication.currentUser;
+    if (user != null) {
+      setState(() {
+        userID = user.uid;
+      });
+    }
+  }
+
+  // uploaderUID를 가져오는 함수
+  void getUploaderUID() async {
+    final document = await _firestore
+        .collection('UserCommunity')
+        .doc(widget.documentId)
+        .get();
+    final data = document.data();
+
+    if (data != null && data['uploaderUID'] != null) {
+      setState(() {
+        uploaderUID = data['uploaderUID'] as String;
+      });
+    }
+  }
+
+  // 업로더의 uid와 현재 로그인한 사용자의 uid 비교
+  bool isCheckUploader(String uploaderUID) {
+    return userID == uploaderUID;
+  }
+
+  // 코멘터의 uid와 현재 로그인한 사용자의 uid 비교
+  bool isCheckCommenter(String commenterUID) {
+    return userID == commenterUID;
+  }
+
+  //============================================================================
+
   // 게시물 수정 확인 AlertDialog 표시
   void showDialogEditPost(BuildContext context) {
     showDialog(
@@ -367,26 +425,26 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
 
   // 댓글을 등록하는 함수
   void addComment() async {
-    String userUID = _authentication.currentUser!.uid;
     final commentText = commentController.text;
-
     if (commentText.isNotEmpty) {
       // Firestore에서 사용자 정보 가져오기
-      DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('User').doc(userUID).get();
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('User').doc(userID).get();
 
-      String commenterUID = userUID;
-      String commenterNickname = userDoc.get('nickname');
-      String commenterImageURL = userDoc.get('imageURL');
+      String commenterUID = userID;
       Timestamp timestamp = Timestamp.fromDate(DateTime.now());
 
       // Firestore에 추가할 댓글 정보 묶음
       final commentData = {
         'text': commentText,
         'commenterUID': commenterUID,
-        'commenterNickname': commenterNickname,
-        'commenterImageURL': commenterImageURL,
         'timestamp': timestamp
       };
+
+      await FirebaseFirestore.instance
+          .collection('UserCommunity')
+          .doc(widget.documentId)
+          .collection('comments')
+          .add(commentData);
 
       await updateCommentCount();
 
@@ -448,8 +506,7 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
 
   // 댓글 삭제 버튼
   IconButton _buildDeleteCommenterButton(String commenterUID, String commentId) {
-    String userUID = _authentication.currentUser!.uid;
-    if (isCheckCommenter(userUID, commenterUID)) {
+    if (isCheckCommenter(commenterUID)) {
       return IconButton(
         onPressed: () {
           showDialogDeleteComment(context, commentId);
@@ -561,25 +618,6 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
         ),
       );
     }
-  }
-
-  // =============================================================================
-
-  // firestore에서 uploaderUID 값을 가져오는 함수
-  Future<String> getUploaderUID() async {
-    final document = await _firestore.collection('UserCommunity').doc(widget.documentId).get();
-    final data = document.data();
-    return data!['uploaderUID'] as String;
-  }
-
-  // 업로더의 uid와 현재 로그인한 사용자의 uid 비교
-  bool isCheckUploader(String userUID) {
-    return userUID == getUploaderUID();
-  }
-
-  // 코멘터의 uid와 현재 로그인한 사용자의 uid 비교
-  bool isCheckCommenter(userUID, commenterUID) {
-    return userUID == commenterUID;
   }
 
   //============================================================================
