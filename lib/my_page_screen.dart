@@ -16,9 +16,22 @@ class _MyPageScreenState extends State<MyPageScreen> {
   final _authentication = FirebaseAuth.instance;
   final _firestore = FirebaseFirestore.instance;
 
+  String userID = '';
+
+  // 현재 로그인한 유저의 UID 저장
+  void getCurrentUser() async {
+    final user = _authentication.currentUser;
+    if (user != null) {
+      setState(() {
+        userID = user.uid;
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
+    getCurrentUser();
   }
 
   @override
@@ -43,21 +56,16 @@ class _MyPageScreenState extends State<MyPageScreen> {
               icon: Icon(Icons.settings, color: Colors.grey, size: 30))
         ],
       ),
-      body: StreamBuilder(
-        stream: _fetchUserProfileStream(),
+      body: StreamBuilder<DocumentSnapshot>(
+        stream: _firestore.collection('User').doc(userID).snapshots(),
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          }
+          if (!snapshot.hasData) {return Center(child: CircularProgressIndicator());}
+          if (snapshot.hasError) {return Center(child: Text('데이터를 불러올 수 없습니다.'));}
 
-          if (snapshot.hasError) {
-            return Center(child: Text('데이터를 불러올 수 없습니다.'));
-          }
+          var userData = snapshot.data!.data() as Map<String, dynamic>;
 
-          final userData = snapshot.data as Map<String, dynamic>;
-
-          final imageURL = userData['imageURL'];
-          final nickname = userData['nickname'];
+          String imageURL = userData['imageURL'] as String;
+          String nickname = userData['nickname'] as String;
 
           return SingleChildScrollView(
             child: Padding(
@@ -88,13 +96,18 @@ class _MyPageScreenState extends State<MyPageScreen> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => ProfileEditScreen()),
+                              builder: (context) {
+                                return ProfileEditScreen(
+                                  userID: userID,
+                                );
+                              },
+                            ),
                           );
                         },
-                        child: Text('프로필 수정', style: TextStyle(fontSize: 16)),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: DarkColors.basic,
                         ),
+                        child: Text('프로필 수정', style: TextStyle(fontSize: 16)),
                       ),
                     ],
                   ),
@@ -108,21 +121,6 @@ class _MyPageScreenState extends State<MyPageScreen> {
     );
   }
   //============================================================================
-  // 유저 정보를 실시간 업데이트하는 함수
-  Stream<Map<String, dynamic>> _fetchUserProfileStream() {
-    final user = _authentication.currentUser;
-    if (user != null) {
-      return _firestore
-          .collection('User')
-          .doc(user.uid)
-          .snapshots()
-          .map((snapshot) {
-        return snapshot.data() as Map<String, dynamic>;
-      });
-    } else {
-      return Stream.value({});
-    }
-  }
 
   // 사용자의 프로필사진을 표시하는 함수
   Widget _buildUserProfileImage(String imageURL) {

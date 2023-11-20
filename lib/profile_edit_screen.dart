@@ -1,38 +1,37 @@
 import 'dart:io';
 import 'package:capstone/custom_widget.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class ProfileEditScreen extends StatefulWidget {
-  const ProfileEditScreen({super.key});
+  final String userID; // 유저 uid
+
+  ProfileEditScreen({
+    required this.userID,
+  });
 
   @override
   State<ProfileEditScreen> createState() => _ProfileEditScreenState();
 }
 
 class _ProfileEditScreenState extends State<ProfileEditScreen> {
-  final _authentication = FirebaseAuth.instance;
   final _firestore = FirebaseFirestore.instance;
+  final _storage = FirebaseStorage.instance;
   final _formKey = GlobalKey<FormState>();
 
-  bool isLoading = false;
+  TextEditingController nicknameController = TextEditingController();
 
-  String? imageURL;
-  String email = '';
-  String nickname = '';
+  bool isProfileChanged = false;
 
   File? _pickedFile;
+  String nickname = '';
 
   @override
   void initState() {
     super.initState();
-    _fetchUserData();
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -57,113 +56,120 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
               color: Colors.black,
             ),
           ),
-          body: Padding(
-            padding: const EdgeInsets.all(30.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  children: [
-                    // 유저 프로필 사진
-                    Center(child: _buildProfileImage()),
-                    SizedBox(height: 30),
-                    // 이메일 정보
-                    Row(
-                      children: [
-                        Text('이메일', style: TextStyle(fontSize: 16)),
-                        SizedBox(width: 30),
-                        Text(email,
-                            style: TextStyle(fontSize: 16, color: Colors.grey)),
-                      ],
-                    ),
+          body: StreamBuilder<DocumentSnapshot>(
+            stream: _firestore.collection('User').doc(widget.userID).snapshots(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {return Center(child: CircularProgressIndicator());}
+                if (snapshot.hasError) {return Center(child: Text('데이터를 불러올 수 없습니다.'));}
 
-                    // 수정할 값을 입력받을 텍스트필드
-                    Row(
-                      children: [
-                        Text("닉네임", style: TextStyle(fontSize: 16)),
-                        SizedBox(width: 30),
-                        Form(
-                          key: _formKey,
-                          child: Expanded(
-                            child: // 닉네임 텍스트필드
-                                TextFormField(
-                                    validator: (value) {
-                                      if (value!.length < 2) {
-                                        return '닉네임을 2글자 이상 입력해주세요.';
-                                      }
-                                      if (RegExp(r'[!@#\$%^&*]')
-                                          .hasMatch(value)) {
-                                        return '닉네임에 특수문자를 포함할 수 없습니다.';
-                                      }
-                                      return null;
-                                    },
-                                    onSaved: (value) {
-                                      nickname = value!;
-                                    },
-                                    onChanged: (value) {
-                                      nickname = value;
-                                    },
+                var userData = snapshot.data!.data() as Map<String, dynamic>;
+
+                String email = userData['email'] as String;
+                String imageURL = userData['imageURL'] as String;
+                String nickname = userData['nickname'] as String;
+
+                return Padding(
+                  padding: const EdgeInsets.all(30.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        children: [
+                          // 유저 프로필 사진
+                          Center(child: _buildProfileImage(imageURL)),
+                          SizedBox(height: 30),
+
+                          // 이메일 정보
+                          Row(
+                            children: [
+                              Text('이메일', style: TextStyle(fontSize: 16)),
+                              SizedBox(width: 30),
+                              Text(email, style: TextStyle(fontSize: 16, color: Colors.grey)),
+                            ],
+                          ),
+
+                          // 수정할 값을 입력받을 텍스트필드
+                          Row(
+                            children: [
+                              Text("닉네임", style: TextStyle(fontSize: 16)),
+                              SizedBox(width: 30),
+                              Form(
+                                key: _formKey,
+                                child: Expanded(
+                                  child: // 닉네임 텍스트필드
+                                  TextFormField(
+                                    controller: nicknameController,
                                     decoration: InputDecoration(
-                                      hintText: '닉네임',
-                                      hintStyle: TextStyle(
-                                          fontSize: 16,
-                                          color: Colors.grey[400]!),
-                                    )),
+                                        hintText: nickname,
+                                        hintStyle: TextStyle(fontSize: 16, color: Colors.grey)),
+                                      validator: (value) {
+                                        if (value!.length < 2) {
+                                          return '닉네임을 2글자 이상 입력해주세요.';
+                                        }
+                                        if (RegExp(r'[!@#\$%^&*]')
+                                            .hasMatch(value)) {
+                                          return '닉네임에 특수문자를 포함할 수 없습니다.';
+                                        }
+                                        return null;
+                                      },
+                                      onSaved: (value) {
+                                        nickname = value!;
+                                      },
+                                      onChanged: (value) {
+                                        nickname = value;
+                                      },
+                                  )
+                                ),
+                              )
+                            ],
                           ),
-                        )
-                      ],
-                    ),
-                  ],
-                ),
+                        ],
+                      ),
 
-                // 프로필 수정 버튼
-                SizedBox(
-                  width: double.infinity,
-                  height: 55,
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      setState(() {
-                        isLoading = true; // 버튼 클릭 시 로딩 상태를 활성화
-                      });
-
-                      // 유효성 검사 수행
-                      _tryValidation();
-
-                      // 유효성 검사를 통과했을 시
-                      if (_formKey.currentState!.validate()) {
-                        // 프로필 업데이트 수행
-                        await _updateProfile();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('변경 사항이 저장되었습니다.',
-                                  style: TextStyle(fontSize: 16, color: Colors.white)),
-                              dismissDirection: DismissDirection.up,
-                              duration: Duration(milliseconds: 1500),
-                              backgroundColor: Colors.black,
-                            )
-                        );
-                        Navigator.pop(context);
-                      }
-                      setState(() {
-                        isLoading = false;
-                      });
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: DarkColors.basic,
-                      elevation: 5,
-                      shape: StadiumBorder(),
-                    ),
-                    child: isLoading
-                        ? CircularProgressIndicator() // 로딩 중일 때 표시할 위젯
-                        : Text(
-                            "저장하기",
-                            style: TextStyle(fontSize: 18),
+                      // 프로필 수정 버튼
+                      SizedBox(
+                        width: double.infinity,
+                        height: 55,
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            final updatedInfo = await _updateProfile();
+                            if(updatedInfo.isNotEmpty){
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('변경 사항이 저장되었습니다.',
+                                        style: TextStyle(fontSize: 16, color: Colors.white)),
+                                    dismissDirection: DismissDirection.up,
+                                    duration: Duration(milliseconds: 1500),
+                                    backgroundColor: Colors.black,
+                                  )
+                              );
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('변경된 내용이 없습니다.',
+                                        style: TextStyle(fontSize: 16, color: Colors.white)),
+                                    dismissDirection: DismissDirection.up,
+                                    duration: Duration(milliseconds: 1500),
+                                    backgroundColor: Colors.black,
+                                  )
+                              );
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: DarkColors.basic,
+                            elevation: 5,
+                            shape: StadiumBorder(),
                           ),
+                          child: Text("저장하기", style: TextStyle(fontSize: 18),
+                          ),
+                        ),
+                      )
+                    ],
                   ),
-                )
-              ],
-            ),
-          )),
+                );
+              }
+          )
+      ),
     );
   }
   //============================================================================
@@ -176,77 +182,40 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     }
   }
 
-  // 사용자의 정보를 Firebase 및 Firestore에서 가져오는 함수
-  void _fetchUserData() async {
-    final user = _authentication.currentUser;
-    if (user != null) {
-      imageURL = user.photoURL ?? '';
-      email = user.email ?? '';
-      final userDoc = await _firestore.collection('User').doc(user.uid).get();
-      if (userDoc.exists) {
-        final userData = userDoc.data() as Map<String, dynamic>;
-        setState(() {
-          nickname = userData['nickname'];
-        });
-      }
-    }
-  }
-
-  // 프로필 업데이트 함수
+  // firestore에 게시글 정보 저장
   Future<Map<String, dynamic>> _updateProfile() async {
-    Map<String, dynamic> updatedInfo = {}; // 업데이트된 정보를 담을 Map
+    Map<String, dynamic> updatedInfo = {};
+    String newNickname = nicknameController.text.trim();
 
-    final user = _authentication.currentUser;
+    if (_pickedFile != null) {
+      // 프로필 사진이 선택된 경우, 저장소에 업로드하고 URL을 얻어옴
+      final storageRef = _storage.ref().child(
+          'user_profile/${widget.userID}.jpg');
+      await storageRef.putFile(_pickedFile!);
+      final downloadURL = await storageRef.getDownloadURL();
 
-    try {
-      if (user != null) {
-        if (_pickedFile != null) {
-          final storageRef = FirebaseStorage.instance
-              .ref()
-              .child('user_profile/${user.uid}.jpg');
-          await storageRef.putFile(_pickedFile!);
-
-          // 이미지 업로드 이후에 이미지 URL을 얻어옵니다.
-          final downloadURL = await storageRef.getDownloadURL();
-
-          await user.updatePhotoURL(downloadURL);
-          user.reload();
-
-          updatedInfo['photoURL'] = downloadURL;
-
-          // Firestore에 사용자의 이미지 URL 업데이트
-          await _firestore.collection('User').doc(user.uid).update({
-            'imageURL': downloadURL,
-          });
-        }
-
-        // Firestore에 사용자의 닉네임 업데이트
-        if (nickname.isNotEmpty) {
-          await _firestore.collection('User').doc(user.uid).update({
-            'nickname': nickname,
-          });
-
-          updatedInfo['nickname'] = nickname;
-        }
-      }
-    } catch (e) {
-      print(e);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("프로필 수정 중 오류 발생"),
-        ),
-      );
-    } finally {
-      setState(() {
-        isLoading = false;
+      // 프로필 사진 URL을 Firestore에 저장
+      await _firestore.collection('User').doc(widget.userID).update({
+        'imageURL': downloadURL,
       });
-    }
 
-    return updatedInfo; // 업데이트된 정보가 포함된 Map 반환
+      updatedInfo['imageURL'] = downloadURL;
+    }
+    if (newNickname.isNotEmpty) {
+      _tryValidation();
+      if(_formKey.currentState!.validate()){
+        // 닉네임을 Firestore에 저장
+        await _firestore.collection('User').doc(widget.userID).update({
+          'nickname': newNickname,
+        });
+        updatedInfo['nickname'] = newNickname;
+      }
+    }
+    return updatedInfo;
   }
 
   // 프로필 이미지를 표시할 위젯
-  Widget _buildProfileImage() {
+  Widget _buildProfileImage(String imageURL) {
     double _imageSize = 180.0;
 
     // 기본 프로필 사진이 아닐 경우
