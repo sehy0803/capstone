@@ -90,6 +90,9 @@ class _CommunityScreenState extends State<CommunityScreen> {
                 final createDate = documents[index]['createDate'] as Timestamp;
                 final formattedDate = DateFormat('yyyy.MM.dd HH:mm').format(createDate.toDate());
 
+
+
+
                 if (getCollectionName() == 'AuctionCommunity') {
                   startBid = documents[index]['startBid'] as int;
                   winningBid = documents[index]['winningBid'] as int;

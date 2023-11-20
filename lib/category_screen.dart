@@ -12,7 +12,6 @@ class CategoryScreen extends StatefulWidget {
 
 class _CategoryScreenState extends State<CategoryScreen> {
   final _firestore = FirebaseFirestore.instance;
-
   int startBid = 0;
   int winningBid = 0;
   String winningBidder = '';

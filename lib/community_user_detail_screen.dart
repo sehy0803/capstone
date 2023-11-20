@@ -92,19 +92,19 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
               : [],
         ),
         body: StreamBuilder<DocumentSnapshot>(
-            stream: _firestore.collection(widget.collectionName).doc(widget.documentId).snapshots(),
-            builder: (context, snapshot) {
-              if (!snapshot.hasData) {
-                return Center(child: CircularProgressIndicator());
-              }
+          stream: _firestore.collection(widget.collectionName).doc(widget.documentId).snapshots(),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return Center(child: CircularProgressIndicator());
+            }
 
-              // 댓글을 추가할 게시물의 경로
-              String postDocumentPath = '${widget.collectionName}/${widget.documentId}';
-              // 댓글 컬렉션 경로
-              String commentsCollectionPath = '$postDocumentPath/comments';
+            // 댓글을 추가할 게시물의 경로
+            String postDocumentPath = '${widget.collectionName}/${widget.documentId}';
+            // 댓글 컬렉션 경로
+            String commentsCollectionPath = '$postDocumentPath/comments';
 
-              int likeCount = snapshot.data!.get('like') ?? 0;
-              int commentsCount = snapshot.data!.get('comments') ?? 0;
+            int likeCount = snapshot.data!.get('like') ?? 0;
+            int commentsCount = snapshot.data!.get('comments') ?? 0;
 
             return GestureDetector(
               // 빈 곳 터치시 키패드 사라짐

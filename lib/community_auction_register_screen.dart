@@ -302,7 +302,10 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
       final user = _authentication.currentUser;
       if (user != null) {
         final userDocument =
-        await _firestore.collection('User').doc(user.uid).get();
+        await _firestore
+            .collection('User')
+            .doc(user.uid)
+            .get();
         if (userDocument.exists) {
           uploaderUID = user.uid;
           uploaderEmail = userDocument['email'];
