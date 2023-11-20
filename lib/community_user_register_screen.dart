@@ -103,7 +103,7 @@ class _CommunityRegisterScreenState extends State<CommunityRegisterScreen> {
     if (title.isNotEmpty && content.isNotEmpty) {
       try {
         int views = 0;
-        int like = 0;
+        int likes = 0;
         int comments = 0;
         Timestamp createDate = Timestamp.now();
         await _firestore.collection('UserCommunity').add({
@@ -111,7 +111,7 @@ class _CommunityRegisterScreenState extends State<CommunityRegisterScreen> {
           'title': title,
           'content': content,
           'views': views,
-          'like': like,
+          'likes': likes,
           'comments': comments,
           'createDate': createDate,
         });

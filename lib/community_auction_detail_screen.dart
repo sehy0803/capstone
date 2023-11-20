@@ -23,6 +23,7 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
   final _authentication = FirebaseAuth.instance;
   TextEditingController bidController = TextEditingController();
 
+  String userID = '';
   String uploaderUID = '';
   String status = '';
   int bid = 0;
@@ -41,6 +42,7 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
   @override
   void initState() {
     super.initState();
+    getCurrentUser();
     getUploaderUID();
     getLikeStatus();
     _startTimer();
@@ -48,7 +50,6 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
 
   @override
   Widget build(BuildContext context) {
-    String userUID = _authentication.currentUser!.uid;
     return Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
@@ -61,7 +62,7 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
             color: Colors.white,
           ),
           // 게시물 삭제 및 수정 기능
-          actions: isCheckUploader(userUID)
+          actions: isCheckUploader(uploaderUID)
               ? [
             PopupMenuButton<String>(
                 icon: Icon(Icons.more_vert, color: Colors.grey, size: 30),
@@ -94,7 +95,7 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
               String title = auctionData['title'] as String;
               String content = auctionData['content'] as String;
               int views = auctionData['views'] + 1 as int;
-              int like = auctionData['like'] as int;
+              int likes = auctionData['likes'] as int;
               int startBid = auctionData['startBid'] as int;
               int winningBid = auctionData['winningBid'] as int;
               String status = auctionData['status'] as String;
@@ -177,7 +178,7 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
                                                                     constraints: BoxConstraints(),
                                                                   ),
                                                                   // 좋아요 수 표시
-                                                                  Text('$like', style: TextStyle(fontSize: 12))])])])),
+                                                                  Text('$likes', style: TextStyle(fontSize: 12))])])])),
 
                                             Container(height: 1, color: Colors.grey[300]),
                                             Padding(
@@ -253,7 +254,7 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
                                                               Text('$winningBid원', style: TextStyle(fontSize: 20, color: Colors.blue))])]))),
 
                                           Visibility(
-                                              visible: status == '진행중' && !isCheckUploader(userUID),
+                                              visible: status == '진행중' && !isCheckUploader(uploaderUID),
                                               child: Row(
                                                   children: [
                                                     Expanded(
@@ -311,6 +312,38 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
   }
 
   //============================================================================
+  // 현재 로그인한 유저의 UID 저장
+  void getCurrentUser() async {
+    final user = _authentication.currentUser;
+    if (user != null) {
+      setState(() {
+        userID = user.uid;
+      });
+    }
+  }
+
+  // uploaderUID를 가져오는 함수
+  void getUploaderUID() async {
+    final document = await _firestore
+        .collection('AuctionCommunity')
+        .doc(widget.documentId)
+        .get();
+    final data = document.data();
+
+    if (data != null && data['uploaderUID'] != null) {
+      setState(() {
+        uploaderUID = data['uploaderUID'] as String;
+      });
+    }
+  }
+
+  // 업로더의 uid와 현재 로그인한 사용자의 uid 비교
+  bool isCheckUploader(String uploaderUID) {
+    return userID == uploaderUID;
+  }
+
+  //============================================================================
+
   // 타이머
   // firestore에서 시간 정보를 가져오는 함수
   Future<Map<String, dynamic>> getAuctionTimes() async {
@@ -429,21 +462,9 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
 
   // 입찰을 수행할 함수
   void _saveBidData() async {
-    // 현재 로그인한 사용자의 UID 가져오기
-    String userUID = _authentication.currentUser!.uid;
-
-    // Firestore에서 사용자 정보 가져오기
-    DocumentSnapshot userDoc = await FirebaseFirestore.instance
-        .collection('User')
-        .doc(userUID)
-        .get();
-
-    String winningBidderNickname = userDoc.get('nickname');
-    String postPath = 'AuctionCommunity/${widget.documentId}';
-    await FirebaseFirestore.instance.doc(postPath).update({
+    await _firestore.doc('AuctionCommunity/${widget.documentId}').update({
       'winningBid': bid,
-      'winningBidderUID': userUID,
-      'winningBidderNickname': winningBidderNickname,
+      'winningBidderUID': userID,
     });
 
     // 입력 필드 지우기
@@ -615,26 +636,6 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
     );
   }
 
-  // uploaderUID를 가져오는 함수
-  void getUploaderUID() async {
-    final document = await _firestore
-        .collection('AuctionCommunity')
-        .doc(widget.documentId)
-        .get();
-    final data = document.data();
-
-    if (data != null && data['uploaderUID'] != null) {
-      setState(() {
-        uploaderUID = data['uploaderUID'] as String;
-      });
-    }
-  }
-
-  // 업로더의 uid와 현재 로그인한 사용자의 uid 비교
-  bool isCheckUploader(String userUID) {
-    return userUID == uploaderUID;
-  }
-
   // Firestore에서 사용자의 좋아요 상태를 가져오는 함수
   void getLikeStatus() async {
     String userUID = _authentication.currentUser!.uid;
@@ -660,38 +661,35 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
     final postRef = _firestore.collection('AuctionCommunity').doc(widget.documentId);
     if (isLiked) {
       await postRef.update({
-        'like': FieldValue.increment(1), // 좋아요 수를 1 증가시킴
+        'likes': FieldValue.increment(1), // 좋아요 수를 1 증가시킴
       });
     } else {
       await postRef.update({
-        'like': FieldValue.increment(-1), // 좋아요 수를 1 감소시킴
+        'likes': FieldValue.increment(-1), // 좋아요 수를 1 감소시킴
       });
     }
   }
 
   // 사용자의 좋아요 여부를 저장하는 함수
   void saveLikeStatus(bool isLiked) {
-    // 사용자의 UID 가져오기
-    String userUID = _authentication.currentUser!.uid;
-
     // 사용자별 좋아요 정보를 저장
-    _firestore.collection('AuctionCommunity/${widget.documentId}/Like').doc(userUID).set({
+    _firestore.collection('AuctionCommunity/${widget.documentId}/Like').doc(userID).set({
       'liked': isLiked
     });
 
     // 좋아요를 누르면 사용자의 "좋아요" 목록에 게시물 ID를 추가
     if (isLiked) {
-      addPostToUserLikes(userUID, widget.documentId);
+      addPostToUserLikes(widget.documentId);
     } else {
       // 좋아요를 취소하면 사용자의 "좋아요" 목록에서 게시물 ID를 제거
-      removePostFromUserLikes(userUID, widget.documentId);
+      removePostFromUserLikes(widget.documentId);
     }
   }
 
   // 사용자의 "좋아요" 목록에 게시물 ID를 추가하는 함수
-  Future<void> addPostToUserLikes(String userUID, String postID) async {
+  Future<void> addPostToUserLikes(String postID) async {
     // User 컬렉션에서 사용자의 UID로 업로더 문서 가져오기
-    final userDocument = _firestore.collection('User').doc(userUID);
+    final userDocument = _firestore.collection('User').doc(userID);
 
     // userLikes 컬렉션 참조 가져오기
     final userLikesCollection = userDocument.collection('userLikes');
@@ -703,9 +701,9 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
   }
 
   // 사용자의 "좋아요" 목록에 게시물 ID를 삭제하는 함수
-  Future<void> removePostFromUserLikes(String userUID, String postID) async {
+  Future<void> removePostFromUserLikes(String postID) async {
     // User 컬렉션에서 사용자의 UID로 업로더 문서 가져오기
-    final userDocument = _firestore.collection('User').doc(userUID);
+    final userDocument = _firestore.collection('User').doc(userID);
 
     // userLikes 컬렉션 참조 가져오기
     final userLikesCollection = userDocument.collection('userLikes');

@@ -7,15 +7,16 @@ import 'custom_widget.dart';
 class FavoriteScreen extends StatefulWidget {
   const FavoriteScreen({Key? key});
 
-
   @override
   _FavoriteScreenState createState() => _FavoriteScreenState();
 }
 
 class _FavoriteScreenState extends State<FavoriteScreen> {
   final _firestore = FirebaseFirestore.instance;
-  late String _userID; // 사용자 ID를 저장할 변수
+  final _authentication = FirebaseAuth.instance;
   int _currentTabIndex = 0; // 현재 선택된 탭을 저장하는 변수
+
+  String _userID = '';
 
   @override
   void initState() {
@@ -23,14 +24,12 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
     _getUserID(); // 사용자 ID 가져오기
   }
 
-  Future<void> _getUserID() async {
-    User? user = FirebaseAuth.instance.currentUser;
+  void _getUserID() async {
+    final user = _authentication.currentUser;
     if (user != null) {
       setState(() {
-        _userID = user.uid;  // 사용자 ID
+        _userID = user.uid;
       });
-    } else {
-      // 사용자가 로그인되어 있지 않은 경우 예외 처리
     }
   }
 

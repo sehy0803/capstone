@@ -89,7 +89,7 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
             String title = data['title'] as String;
             String content = data['content'] as String;
             int views = data['views'] + 1 as int;
-            int like = data['like'] as int;
+            int likes = data['likes'] as int;
             int comments = data['comments'] as int;
 
             // 시간 정보
@@ -171,7 +171,7 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
                                                 constraints: BoxConstraints(),
                                               ),
                                               // 좋아요 수 표시
-                                              Text('$like', style: TextStyle(fontSize: 12))
+                                              Text('$likes', style: TextStyle(fontSize: 12))
                                             ],
                                           ),
                                         ],
@@ -200,7 +200,7 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
                                       SizedBox(height: 20),
                                       // 댓글창을 표시하는 부분
                                       StreamBuilder<QuerySnapshot>(
-                                        stream: _firestore.collection('UserCommunity/${widget.documentId}/comments')
+                                        stream: _firestore.collection('UserCommunity/${widget.documentId}/Comment')
                                             .orderBy('timestamp', descending: false).snapshots(),
                                         builder: (context, snapshot) {
                                           if (!snapshot.hasData) {return Center(child: CircularProgressIndicator());}
@@ -428,8 +428,6 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
     final commentText = commentController.text;
     if (commentText.isNotEmpty) {
       // Firestore에서 사용자 정보 가져오기
-      DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('User').doc(userID).get();
-
       String commenterUID = userID;
       Timestamp timestamp = Timestamp.fromDate(DateTime.now());
 
@@ -443,7 +441,7 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
       await FirebaseFirestore.instance
           .collection('UserCommunity')
           .doc(widget.documentId)
-          .collection('comments')
+          .collection('Comment')
           .add(commentData);
 
       await updateCommentCount();
@@ -496,7 +494,7 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
   Future<void> updateCommentCount() async {
     try {
       final postRef = _firestore.collection('UserCommunity').doc(widget.documentId);
-      final commentsQuery = await postRef.collection('comments').get();
+      final commentsQuery = await postRef.collection('Comment').get();
       int comments = commentsQuery.docs.length;
       await postRef.update({'comments': comments});
     } catch (e) {
@@ -565,9 +563,9 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
 
   // 댓글 삭제 함수
   Future<void> deleteComment(String commentId) async {
-    String commentsPath = 'UserCommunity/${widget.documentId}/comments';
+    String commentPath = 'UserCommunity/${widget.documentId}/Comment';
     try {
-      await _firestore.collection(commentsPath).doc(commentId).delete();
+      await _firestore.collection(commentPath).doc(commentId).delete();
       updateCommentCount();
     } catch (e) {
       print('댓글 삭제 중 오류 발생: $e');
@@ -697,23 +695,20 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
     // Firestore에 저장된 게시물 문서의 경로
     String postDocumentPath = '${'UserCommunity'}/${widget.documentId}';
 
-    // 사용자의 UID 가져오기
-    String userUID = FirebaseAuth.instance.currentUser!.uid;
-
     // 좋아요 상태를 저장할 컬렉션 경로
     String likeCollectionPath = '$postDocumentPath/Like';
 
     // 사용자별 좋아요 정보를 저장
-    _firestore.collection(likeCollectionPath).doc(userUID).set({
+    _firestore.collection(likeCollectionPath).doc(userID).set({
       'liked': isLiked, // 사용자의 좋아요 상태
     });
 
     // 만약 좋아요를 눌렀다면, 사용자의 "좋아요" 목록에 게시물 ID를 추가
     if (isLiked) {
-      addPostToUserLikes(userUID, widget.documentId);
+      addPostToUserLikes(widget.documentId);
     } else {
       // 만약 좋아요를 취소했다면, 사용자의 "좋아요" 목록에서 게시물 ID를 제거
-      removePostFromUserLikes(userUID, widget.documentId);
+      removePostFromUserLikes(widget.documentId);
     }
   }
 
@@ -725,11 +720,11 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
       // 사용자의 동작에 따라 좋아요 수를 업데이트합니다.
       if (isLiked) {
         await postRef.update({
-          'like': FieldValue.increment(1), // 좋아요 수를 1 증가시킴
+          'likes': FieldValue.increment(1), // 좋아요 수를 1 증가시킴
         });
       } else {
         await postRef.update({
-          'like': FieldValue.increment(-1), // 좋아요 수를 1 감소시킴
+          'likes': FieldValue.increment(-1), // 좋아요 수를 1 감소시킴
         });
       }
     } catch (e) {
@@ -738,9 +733,9 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
   }
 
   // 사용자의 "좋아요" 목록에 게시물 ID를 추가하는 함수
-  Future<void> addPostToUserLikes(String userUID, String postID) async {
+  Future<void> addPostToUserLikes(String postID) async {
     // User 컬렉션에서 사용자의 UID로 업로더 문서 가져오기
-    final userDocument = _firestore.collection('User').doc(userUID);
+    final userDocument = _firestore.collection('User').doc(userID);
 
     // userLikes 컬렉션 참조 가져오기
     final userLikesCollection = userDocument.collection('userLikes');
@@ -752,10 +747,10 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
   }
 
   // 사용자의 "좋아요" 목록에 게시물 ID를 삭제하는 함수
-  Future<void> removePostFromUserLikes(String userUID, String postID) async {
+  Future<void> removePostFromUserLikes(String postID) async {
     try {
       // User 컬렉션에서 사용자의 UID로 업로더 문서 가져오기
-      final userDocument = _firestore.collection('User').doc(userUID);
+      final userDocument = _firestore.collection('User').doc(userID);
 
       // userLikes 컬렉션 참조 가져오기
       final userLikesCollection = userDocument.collection('userLikes');

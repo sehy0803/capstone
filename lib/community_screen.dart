@@ -170,7 +170,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                   );
                 } else {
                   final views = documents[index]['views'] as int;
-                  final like = documents[index]['like'] as int;
+                  final likes = documents[index]['likes'] as int;
                   final comments = documents[index]['comments'] as int;
                   final createDate = documents[index]['createDate'] as Timestamp;
                   final formattedCreatedDate = DateFormat('yyyy.MM.dd HH:mm').format(createDate.toDate());
@@ -205,7 +205,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                     SizedBox(width: 5),
                                     Text('조회 $views', style: TextStyle(fontSize: 12)),
                                     SizedBox(width: 5),
-                                    Text('좋아요 $like', style: TextStyle(fontSize: 12)),
+                                    Text('좋아요 $likes', style: TextStyle(fontSize: 12)),
                                     SizedBox(width: 5),
                                     Text('댓글 $comments', style: TextStyle(fontSize: 12)),
                                   ],
