@@ -83,9 +83,6 @@ class _CommunityScreenState extends State<CommunityScreen> {
                 String documentId = getDocumentId(documents[index]); // 이건 전달해야할 정보
                 String title = documents[index]['title'] as String;
 
-
-
-
                 if (getCollectionName() == 'AuctionCommunity') {
                   String photoURL = documents[index]['photoURL'] as String;
                   int winningBid = documents[index]['winningBid'] as int;
@@ -179,59 +176,59 @@ class _CommunityScreenState extends State<CommunityScreen> {
                   final formattedCreatedDate = DateFormat('yyyy.MM.dd HH:mm').format(createDate.toDate());
                   // 유저 커뮤니티 게시물 표시
                   return StreamBuilder<DocumentSnapshot>(
-                    stream: _firestore.collection('User').doc(uploaderUID).snapshots(),
-                    builder: (context, snapshot) {
-                      if (!snapshot.hasData) {return Center(child: CircularProgressIndicator());}
+                      stream: _firestore.collection('User').doc(uploaderUID).snapshots(),
+                      builder: (context, snapshot) {
+                        if (!snapshot.hasData) {return Center(child: CircularProgressIndicator());}
 
-                      var uploaderData = snapshot.data!.data() as Map<String, dynamic>;
+                        var uploaderData = snapshot.data!.data() as Map<String, dynamic>;
 
-                      // 업로더 정보
-                      String uploaderNickname = uploaderData['nickname'] ?? '';
+                        // 업로더 정보
+                        String uploaderNickname = uploaderData['nickname'] ?? '';
 
-                      return Column(
-                        children: [
-                          Card(
-                            elevation: 0,
-                            child: ListTile(
-                              title: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(title, style: TextStyle(fontSize: 16)),
-                                  SizedBox(height: 10),
-                                ],
+                        return Column(
+                          children: [
+                            Card(
+                              elevation: 0,
+                              child: ListTile(
+                                title: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(title, style: TextStyle(fontSize: 16)),
+                                    SizedBox(height: 10),
+                                  ],
+                                ),
+                                subtitle: Row(
+                                  children: [
+                                    Text(uploaderNickname, style: TextStyle(fontSize: 12)),
+                                    SizedBox(width: 5),
+                                    Text(formattedCreatedDate, style: TextStyle(fontSize: 12, height: 1.3)),
+                                    SizedBox(width: 5),
+                                    Text('조회 $views', style: TextStyle(fontSize: 12)),
+                                    SizedBox(width: 5),
+                                    Text('좋아요 $like', style: TextStyle(fontSize: 12)),
+                                    SizedBox(width: 5),
+                                    Text('댓글 $comments', style: TextStyle(fontSize: 12)),
+                                  ],
+                                ),
+                                onTap: () {
+                                  increaseViews(documentId, getCollectionName()); // 조회수 증가
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) {
+                                        return CommunityUserDetailScreen(
+                                          documentId: documentId,
+                                        );
+                                      },
+                                    ),
+                                  );
+                                },
                               ),
-                              subtitle: Row(
-                                children: [
-                                  Text(uploaderNickname, style: TextStyle(fontSize: 12)),
-                                  SizedBox(width: 5),
-                                  Text(formattedCreatedDate, style: TextStyle(fontSize: 12, height: 1.3)),
-                                  SizedBox(width: 5),
-                                  Text('조회 $views', style: TextStyle(fontSize: 12)),
-                                  SizedBox(width: 5),
-                                  Text('좋아요 $like', style: TextStyle(fontSize: 12)),
-                                  SizedBox(width: 5),
-                                  Text('댓글 $comments', style: TextStyle(fontSize: 12)),
-                                ],
-                              ),
-                              onTap: () {
-                                increaseViews(documentId, getCollectionName()); // 조회수 증가
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) {
-                                      return CommunityUserDetailScreen(
-                                        documentId: documentId,
-                                      );
-                                    },
-                                  ),
-                                );
-                              },
                             ),
-                          ),
-                          CommentLine()
-                        ],
-                      );
-                    }
+                            CommentLine()
+                          ],
+                        );
+                      }
                   );
                 }
               },
@@ -289,7 +286,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-            Text('경매 종료', style: TextStyle(fontSize: 16, color: Colors.grey)),
+          Text('경매 종료', style: TextStyle(fontSize: 16, color: Colors.grey)),
           Text('${DateFormat('MM월 dd일 HH시 mm분').format(endTime.toDate())}',
               style: TextStyle(fontSize: 16, color: Colors.grey))
         ],

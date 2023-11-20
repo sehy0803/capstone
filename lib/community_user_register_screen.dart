@@ -33,7 +33,7 @@ class _CommunityRegisterScreenState extends State<CommunityRegisterScreen> {
       appBar: AppBar(
         backgroundColor: DarkColors.basic,
         title:
-            Text('유저 게시판', style: TextStyle(color: Colors.white, fontSize: 20)),
+        Text('유저 게시판', style: TextStyle(color: Colors.white, fontSize: 20)),
         leading: IconButton(
           onPressed: () {
             Navigator.pop(context);
@@ -49,7 +49,7 @@ class _CommunityRegisterScreenState extends State<CommunityRegisterScreen> {
               showConfirmationDialog(context);
             },
             child:
-                Text('등록', style: TextStyle(fontSize: 18, color: Colors.amber)),
+            Text('등록', style: TextStyle(fontSize: 18, color: Colors.amber)),
           )
         ],
       ),
@@ -64,7 +64,7 @@ class _CommunityRegisterScreenState extends State<CommunityRegisterScreen> {
                 decoration: InputDecoration(
                     hintText: '제목',
                     hintStyle:
-                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 onChanged: (value) {
                   title = value;
                 },
