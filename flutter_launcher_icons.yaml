@@ -1,0 +1,8 @@
+flutter_icons:
+  ios: true
+  android: true
+  image_path: "assets/images/logo.png"
+  remove_alpha_ios: true
+
+  # 터미널 명령어 : flutter pub run flutter_launcher_icons:main
+  # 이미지 바꿀때마다 실행
