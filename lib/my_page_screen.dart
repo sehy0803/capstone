@@ -259,6 +259,18 @@ class _MyPageScreenState extends State<MyPageScreen> {
                     );
                   },
                 ),
+                Line(),
+                // 낙찰된 경매
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('낙찰된 경매', style: TextStyle(fontSize: 20)),
+                    TextButton(
+                        onPressed: () {
+                        },
+                        child: Text('더보기'))
+                  ],
+                ),
 
               ],
             ),

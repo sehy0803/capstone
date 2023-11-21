@@ -1,3 +1,4 @@
+import 'package:capstone/custom_widget.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -205,7 +206,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         });
                       },
                       style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.black,
+                          backgroundColor: DarkColors.basic,
                           minimumSize: Size(double.infinity, 55),
                           elevation: 5,
                           shape: StadiumBorder()),
@@ -271,7 +272,7 @@ class EmailPassFindButton extends StatelessWidget {
             "이메일 찾기",
             style: TextStyle(
                 fontSize: 14,
-                color: Colors.black,
+                color: DarkColors.basic,
                 fontWeight: FontWeight.normal),
           ),
         ),
@@ -288,7 +289,7 @@ class EmailPassFindButton extends StatelessWidget {
           child: Text("비밀번호 찾기",
               style: TextStyle(
                   fontSize: 14,
-                  color: Colors.black,
+                  color: DarkColors.basic,
                   fontWeight: FontWeight.normal)),
         ),
       ],
@@ -316,7 +317,7 @@ class MoveRegisterScreenButton extends StatelessWidget {
             );
           },
           child:
-              Text("회원가입", style: TextStyle(fontSize: 16, color: Colors.black)),
+              Text("회원가입", style: TextStyle(fontSize: 16, color: DarkColors.basic)),
         )
       ],
     );
