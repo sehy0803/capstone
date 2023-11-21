@@ -186,7 +186,7 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
 
           // 시간 정보
           Timestamp createDate = Timestamp.now();
-          Timestamp startTime = Timestamp.fromDate(createDate.toDate().add(Duration(minutes: 10)));
+          Timestamp startTime = Timestamp.fromDate(createDate.toDate().add(Duration(minutes: 3)));
           Timestamp endTime = Timestamp.fromDate(startTime.toDate().add(Duration(minutes: 30)));
           int remainingTime = createDate.toDate().difference(startTime.toDate()).inSeconds;
 

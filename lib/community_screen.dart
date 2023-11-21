@@ -93,7 +93,6 @@ class _CommunityScreenState extends State<CommunityScreen> {
                   int remainingTime = documents[index]['remainingTime'] as int;
 
                   // 경매 커뮤니티 게시물 표시
-
                   return GestureDetector(
                     onTap: () {
                       increaseViews(documentId, getCollectionName()); // 조회수 증가

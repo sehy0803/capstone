@@ -19,7 +19,7 @@ class ProfileEditScreen extends StatefulWidget {
 class _ProfileEditScreenState extends State<ProfileEditScreen> {
   final _firestore = FirebaseFirestore.instance;
   final _storage = FirebaseStorage.instance;
-  final _formKey = GlobalKey<FormState>();
+  final _profileFormKey = GlobalKey<FormState>();
 
   TextEditingController nicknameController = TextEditingController();
 
@@ -44,8 +44,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           backgroundColor: Colors.white,
           appBar: AppBar(
             centerTitle: true,
-            title: Text('프로필 수정',
-                style: TextStyle(color: Colors.black, fontSize: 20)),
+            title: Text('프로필 수정', style: TextStyle(color: Colors.black, fontSize: 20)),
             backgroundColor: Colors.white,
             leading: IconButton(
               onPressed: () {
@@ -94,7 +93,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                               Text("닉네임", style: TextStyle(fontSize: 16)),
                               SizedBox(width: 30),
                               Form(
-                                key: _formKey,
+                                key: _profileFormKey,
                                 child: Expanded(
                                   child: // 닉네임 텍스트필드
                                   TextFormField(
@@ -176,9 +175,9 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
   // 유효성 검사 후 값 저장
   void _tryValidation() {
-    final isValid = _formKey.currentState!.validate();
+    final isValid = _profileFormKey.currentState!.validate();
     if (isValid) {
-      _formKey.currentState!.save();
+      _profileFormKey.currentState!.save();
     }
   }
 
@@ -203,7 +202,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     }
     if (newNickname.isNotEmpty) {
       _tryValidation();
-      if(_formKey.currentState!.validate()){
+      if(_profileFormKey.currentState!.validate()){
         // 닉네임을 Firestore에 저장
         await _firestore.collection('User').doc(widget.userID).update({
           'nickname': newNickname,

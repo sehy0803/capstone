@@ -3,7 +3,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class ProfileSettingScreen extends StatefulWidget {
-  const ProfileSettingScreen({Key? key});
+  final String userID;
+
+  ProfileSettingScreen({
+    required this.userID,
+  });
 
   @override
   State<ProfileSettingScreen> createState() => _ProfileSettingScreenState();
@@ -11,33 +15,6 @@ class ProfileSettingScreen extends StatefulWidget {
 
 class _ProfileSettingScreenState extends State<ProfileSettingScreen> {
   final _authentication = FirebaseAuth.instance;
-
-  Future<String?> _showPasswordInputDialog(BuildContext context) async {
-    String? password;
-    await showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text('비밀번호 확인'),
-          content: TextField(
-            obscureText: true,
-            onChanged: (value) {
-              password = value;
-            },
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context, password);
-              },
-              child: Text('확인'),
-            ),
-          ],
-        );
-      },
-    );
-    return password;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -110,36 +87,35 @@ class _ProfileSettingScreenState extends State<ProfileSettingScreen> {
           // 회원탈퇴 버튼
           TextButton(
             onPressed: () async {
-              // 다이얼로그를 표시하여 사용자에게 확인 메시지 표시
-              bool confirm = await showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return AlertDialog(
-                    title: Text("회원탈퇴"),
-                    content: Text("정말로 회원을 탈퇴하시겠습니까?"),
-                    actions: [
-                      TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pop(false); // 취소
-                        },
-                        child: Text("취소"),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pop(true); // 확인
-                        },
-                        child: Text("확인"),
-                      ),
-                    ],
-                  );
-                },
-              );
+              showDialogWithdrawal(context);
+            },
+            child: Text('회원탈퇴'),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.grey,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-              // 회원탈퇴 진행
-              if (confirm == true){
-                // 다이얼로그 또는 모달 팝업을 통해 사용자로부터 비밀번호를 입력받음
+  // 회원탈퇴 확인 AlertDialog 표시
+  void showDialogWithdrawal(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('회원탈퇴'),
+          content: Text('회원을 탈퇴하시겠습니까?'),
+          actions: [
+            TextButton(
+              onPressed: () {Navigator.pop(context);},
+              child: Text('취소'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(context);
                 final userPassword = await _showPasswordInputDialog(context);
-
                 if (userPassword != null) {
                   // 사용자 인증
                   try {
@@ -154,10 +130,10 @@ class _ProfileSettingScreenState extends State<ProfileSettingScreen> {
                         ),
                       );
 
-                      // 사용자 삭제
+                      // authentication에서 사용자 삭제
                       await user.delete();
 
-                      // 파이어스토어에서 사용자 정보 삭제
+                      // firestore에서 사용자 정보 삭제
                       await FirebaseFirestore.instance.collection('User').doc(user.uid).delete();
 
                       // 회원 탈퇴 성공 시, 로그아웃 및 로그인 화면으로 이동
@@ -184,15 +160,41 @@ class _ProfileSettingScreenState extends State<ProfileSettingScreen> {
                     print("회원 탈퇴 오류: $e");
                   }
                 }
-              }
-            },
-            child: Text('회원탈퇴'),
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.grey,
+              },
+              child: Text('확인'),
             ),
-          ),
-        ],
-      ),
+          ],
+        );
+      },
     );
   }
+
+  // 비밀번호 확인 알림창
+  Future<String?> _showPasswordInputDialog(BuildContext context) async {
+    String? password;
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('비밀번호 확인'),
+          content: TextField(
+            obscureText: true,
+            onChanged: (value) {
+              password = value;
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context, password);
+              },
+              child: Text('확인'),
+            ),
+          ],
+        );
+      },
+    );
+    return password;
+  }
+
 }

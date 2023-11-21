@@ -462,6 +462,32 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
 
   // 입찰을 수행할 함수
   void _saveBidData() async {
+    // 경매에 참여한 정보 가져오기
+    var participatedAuctionDoc = await _firestore.collection('User').doc(userID)
+        .collection('participatedInAuctions')
+        .doc(widget.documentId)
+        .get();
+
+    // 이미 참여한 경매인 경우
+    if (participatedAuctionDoc.exists) {
+      // 업데이트 수행
+      await _firestore.collection('User').doc(userID)
+          .collection('participatedInAuctions')
+          .doc(widget.documentId)
+          .update({
+        'timestamp': Timestamp.now(),
+      });
+    } else {
+      // 참여하지 않은 경우 정보 추가
+      await _firestore.collection('User').doc(userID)
+          .collection('participatedInAuctions')
+          .add({
+        'auctionId': widget.documentId,
+        'timestamp': Timestamp.now(),
+      });
+    }
+
+    // 경매 정보 업데이트
     await _firestore.doc('AuctionCommunity/${widget.documentId}').update({
       'winningBid': bid,
       'winningBidderUID': userID,
@@ -470,6 +496,7 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
     // 입력 필드 지우기
     bidController.clear();
   }
+
 
   // 최고 입찰자를 가져오는 함수
   Future<String> getWinningBidderUID() async {
@@ -638,12 +665,11 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
 
   // Firestore에서 사용자의 좋아요 상태를 가져오는 함수
   void getLikeStatus() async {
-    String userUID = _authentication.currentUser!.uid;
     final likeDocument = await _firestore
         .collection('AuctionCommunity')
         .doc(widget.documentId)
         .collection('Like')
-        .doc(userUID)
+        .doc(userID)
         .get();
     if (likeDocument.exists) {
       setState(() {
