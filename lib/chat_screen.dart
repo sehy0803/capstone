@@ -6,7 +6,7 @@ class ChatScreen extends StatefulWidget {
   final String chatTitle;
   final String chatRoomId;
 
-  ChatScreen({required this.chatTitle, required this.chatRoomId, required String uploaderUID, required String winningBidderUID});
+  ChatScreen({required this.chatTitle, required this.chatRoomId, required String uploaderUID, required String winningBidderUID, required auctionImageURL});
 
   @override
   _ChatScreenState createState() => _ChatScreenState();
@@ -26,7 +26,6 @@ class _ChatScreenState extends State<ChatScreen> {
           IconButton(
             icon: Icon(Icons.info),
             onPressed: () {
-              // Add any additional actions for the app bar here
             },
           ),
         ],
@@ -34,8 +33,8 @@ class _ChatScreenState extends State<ChatScreen> {
       body: Column(
         children: [
           Container(
-            color: Colors.lightBlue, // appBar와 _buildMessageInputField 사이의 색을 하늘색으로 설정
-            child: SizedBox(height: 8), // 위젯 간격 조절을 위한 SizedBox
+            color: Colors.lightBlue,
+            child: SizedBox(height: 8),
           ),
           Expanded(
             child: SingleChildScrollView(
@@ -45,7 +44,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 children: [
                   StreamBuilder<QuerySnapshot>(
                     stream: _chatCollection
-                        .doc(widget.chatTitle)
+                        .doc(widget.chatRoomId) // 수정된 부분
                         .collection('messages')
                         .orderBy('timestamp')
                         .snapshots(),
@@ -85,8 +84,8 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget _buildMessage(String message, String sender) {
     bool isUser = sender == FirebaseAuth.instance.currentUser?.uid;
 
-    Color backgroundColor = isUser ? Colors.yellow : Colors.white;
-    Color textColor = isUser ? Colors.black : Colors.black;
+    Color backgroundColor = isUser ? Colors.lightBlue : Colors.green;
+    Color textColor = isUser ? Colors.white : Colors.white;
 
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
@@ -102,7 +101,7 @@ class _ChatScreenState extends State<ChatScreen> {
             message,
             style: TextStyle(
               color: textColor,
-              fontSize: 18.0, // 글씨 크기 조절
+              fontSize: 18.0,
             ),
           ),
         ),
@@ -146,7 +145,7 @@ class _ChatScreenState extends State<ChatScreen> {
         String senderId = user.uid;
 
         _chatCollection
-            .doc(widget.chatTitle)
+            .doc(widget.chatRoomId) // 수정된 부분
             .collection('messages')
             .add({
           'text': message,
@@ -165,7 +164,7 @@ class _ChatScreenState extends State<ChatScreen> {
           print('Error sending message: $error');
         });
 
-        _updateSharedChatMessagesDocument(widget.chatTitle, message, senderId);
+        _updateSharedChatMessagesDocument(widget.chatRoomId, message, senderId);
       }
     }
   }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:uuid/uuid.dart';
 
 import 'chat_screen.dart';
 
@@ -14,8 +15,6 @@ class ChatListScreen extends StatefulWidget {
 class _ChatListScreenState extends State<ChatListScreen> {
   final _firestore = FirebaseFirestore.instance;
   List<ChatRoomInfo> chatRooms = [];
-  String uploaderUID = ''; // 업로더 uid
-  String winningBidderUID = ''; // 낙찰자 uid
 
   @override
   Widget build(BuildContext context) {
@@ -41,13 +40,10 @@ class _ChatListScreenState extends State<ChatListScreen> {
 
           return ListView.builder(
             itemCount: chatRooms.length,
-            itemExtent: 100.0, // 아이템의 높이를 원하는 값으로 조절하세요
+            itemExtent: 100.0,
             itemBuilder: (context, index) {
               return ChatListItem(
-                chatRoomId: chatRooms[index].chatRoomId,
-                chatTitle: chatRooms[index].chatTitle,
-                uploaderUID: chatRooms[index].uploaderUID,
-                winningBidderUID: chatRooms[index].winningBidderUID,
+                chatRoomInfo: chatRooms[index],
                 onExitChatRoom: exitChatRoom,
               );
             },
@@ -66,10 +62,11 @@ class _ChatListScreenState extends State<ChatListScreen> {
       QuerySnapshot<Map<String, dynamic>> querySnapshot =
       await FirebaseFirestore.instance.collection('AuctionCommunity').get();
 
-      for (QueryDocumentSnapshot<Map<String, dynamic>> doc in querySnapshot.docs) {
+      querySnapshot.docs.forEach((doc) async {
         String uploaderUID = doc['uploaderUID'];
         String winningBidderUID = doc['winningBidderUID'];
         String auctionTitle = doc['title'];
+        String auctionImageURL = doc['photoURL'];
         Timestamp? endTime = doc['endTime'];
 
         if ((uploaderUID == currentUserId ||
@@ -78,21 +75,43 @@ class _ChatListScreenState extends State<ChatListScreen> {
             auctionTitle.isNotEmpty &&
             endTime != null) {
           if (endTime.toDate().isBefore(DateTime.now())) {
-            String chatRoomId = createChatRoomId(uploaderUID, winningBidderUID);
+            // 고유한 채팅방 ID 생성
+            String chatRoomId = generateChatRoomId(
+                uploaderUID, winningBidderUID, auctionTitle);
+
+            // 이미 존재하는 채팅방인지 확인
+            ChatRoomInfo existingChatRoom = chatRooms.firstWhere(
+                  (chatRoom) => chatRoom.chatRoomId == chatRoomId,
+              orElse: () =>
+                  ChatRoomInfo(
+                    chatRoomId: '',
+                    chatTitle: '',
+                    uploaderUID: '',
+                    winningBidderUID: '',
+                    auctionImageURL: '',
+                  ),
+            );
 
             chatRooms.add(ChatRoomInfo(
               chatRoomId: chatRoomId,
               chatTitle: auctionTitle,
               uploaderUID: uploaderUID,
               winningBidderUID: winningBidderUID,
-            ));
+              auctionImageURL: auctionImageURL,
+            ).copyWith(chatTitle: auctionTitle));
 
-            // createChatMessagesDocument 함수 호출 시 uploaderUID, winningBidderUID 추가
-            await createChatMessagesDocument(
-                chatRoomId, currentUserId, uploaderUID, winningBidderUID);
+            if (existingChatRoom.chatRoomId.isEmpty) {
+              await createChatMessagesDocument(
+                chatRoomId,
+                currentUserId,
+                uploaderUID,
+                winningBidderUID,
+                auctionTitle,
+              );
+            }
           }
         }
-      }
+      });
     } catch (e) {
       print('채팅 목록을 가져오는 중 오류 발생: $e');
     }
@@ -100,27 +119,33 @@ class _ChatListScreenState extends State<ChatListScreen> {
     return chatRooms;
   }
 
-  Future<void> createChatMessagesDocument(String chatRoomId, String currentUserId,
-      String uploaderUID, String winningBidderUID) async {
+  String generateChatRoomId(String uploaderUID, String winningBidderUID,
+      String auctionTitle) {
+    // 적절한 로직으로 고유한 채팅방 ID 생성
+    // 여기서는 uploaderUID, winningBidderUID, auctionTitle을 조합하여 생성
+    return '$uploaderUID$winningBidderUID$auctionTitle';
+  }
+
+  Future<void> createChatMessagesDocument(String chatRoomId,
+      String currentUserId,
+      String uploaderUID, String winningBidderUID, String auctionTitle) async {
     DocumentReference chatMessagesDocRef =
     FirebaseFirestore.instance.collection('chat_messages').doc(chatRoomId);
 
     try {
-      // "Chat" 컬렉션에 데이터를 직접 설정합니다.
       await _firestore.collection('Chat').doc(chatRoomId).set({
         'chatRoomId': chatRoomId,
+        'auctionTitle': auctionTitle,
         'uploaderUID': uploaderUID,
         'winningBidderUID': winningBidderUID,
-        // 추가 필드는 여기에 추가할 수 있습니다.
       });
     } catch (e) {
       print('Chat 문서 생성 중 오류 발생: $e');
     }
   }
 
-  String createChatRoomId(String uid1, String uid2) {
-    List<String> sortedUids = [uid1, uid2]..sort();
-    return '${sortedUids[0]}_${sortedUids[1]}';
+  String createRandomChatRoomId() {
+    return Uuid().v4(); // Uuid 패키지를 사용하여 랜덤한 ID 생성
   }
 
   void exitChatRoom(String chatRoomId) async {
@@ -128,9 +153,21 @@ class _ChatListScreenState extends State<ChatListScreen> {
       print('채팅방 나가기: $chatRoomId');
 
       // Chat 컬렉션에서 해당 채팅방 문서 삭제
-      await FirebaseFirestore.instance.collection('Chat').doc(chatRoomId).delete();
+      await FirebaseFirestore.instance.collection('Chat')
+          .doc(chatRoomId)
+          .delete();
+      print('채팅방 문서 삭제 성공');
 
-      print('채팅방 삭제 성공');
+      // Chat 메시지 컬렉션에서 해당 채팅방 ID를 가진 모든 메시지 문서 삭제
+      QuerySnapshot<Map<String, dynamic>> messagesSnapshot =
+      await FirebaseFirestore.instance.collection('chat_messages').doc(
+          chatRoomId).collection('messages').get();
+
+      for (QueryDocumentSnapshot<
+          Map<String, dynamic>> messageDoc in messagesSnapshot.docs) {
+        await messageDoc.reference.delete();
+      }
+      print('채팅 메시지 문서 삭제 성공');
 
       // 해당 채팅방을 chatRooms 리스트에서 제거
       setState(() {
@@ -147,87 +184,110 @@ class ChatRoomInfo {
   final String chatTitle;
   final String uploaderUID;
   final String winningBidderUID;
+  final String auctionImageURL;
 
   ChatRoomInfo({
     required this.chatRoomId,
     required this.chatTitle,
     required this.uploaderUID,
     required this.winningBidderUID,
+    required this.auctionImageURL,
   });
+
+  ChatRoomInfo copyWith({String? chatTitle}) {
+    return ChatRoomInfo(
+      chatRoomId: this.chatRoomId,
+      chatTitle: chatTitle ?? this.chatTitle,
+      uploaderUID: this.uploaderUID,
+      winningBidderUID: this.winningBidderUID,
+      auctionImageURL: this.auctionImageURL,
+    );
+  }
 }
 
 class ChatListItem extends StatelessWidget {
-  final String chatRoomId;
-  final String chatTitle;
-  final String uploaderUID;
-  final String winningBidderUID;
+  final ChatRoomInfo chatRoomInfo;
   final Function(String) onExitChatRoom;
 
   ChatListItem({
-    required this.chatRoomId,
-    required this.chatTitle,
-    required this.uploaderUID,
-    required this.winningBidderUID,
+    required this.chatRoomInfo,
     required this.onExitChatRoom,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
-          color: Colors.blueGrey[50],
-        ),
-        child: ListTile(
-          leading: CircleAvatar(
-            radius: 30,
-            backgroundImage: NetworkImage('상대방 프로필 사진 경로'),
-          ),
-          title: Column(
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: Colors.grey[300]!),
+      ),
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ChatScreen(
+                chatRoomId: chatRoomInfo.chatRoomId,
+                chatTitle: chatRoomInfo.chatTitle,
+                uploaderUID: chatRoomInfo.uploaderUID,
+                winningBidderUID: chatRoomInfo.winningBidderUID,
+                auctionImageURL: chatRoomInfo.auctionImageURL,
+              ),
+            ),
+          );
+        },
+        onLongPress: () {
+          showExitChatDialog(context, chatRoomInfo.chatRoomId);
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                '$chatTitle',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              CircleAvatar(
+                radius: 30,
+                backgroundImage: NetworkImage(chatRoomInfo.auctionImageURL),
               ),
-              FutureBuilder(
-                future: getLastMessage(chatRoomId),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Text('Loading...');
-                  }
+              SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${chatRoomInfo.chatTitle}',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(height: 8),
+                    FutureBuilder(
+                      future: getLastMessage(chatRoomInfo.chatRoomId),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return Text('로딩 중...');
+                        }
 
-                  if (snapshot.hasError) {
-                    return Text('Error');
-                  }
+                        if (snapshot.hasError) {
+                          return Text('오류');
+                        }
 
-                  var lastMessage = snapshot.data as String?;
-                  return Text(
-                    lastMessage ?? '',
-                    style: TextStyle(fontSize: 14, color: Colors.black),
-                  );
+                        var lastMessage = snapshot.data as String?;
+                        return Text(
+                          lastMessage ?? '',
+                          style: TextStyle(fontSize: 14, color: Colors.grey),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              GestureDetector(
+                onLongPress: () {
+                  showExitChatDialog(context, chatRoomInfo.chatRoomId);
                 },
+                child: Icon(Icons.more_vert),
               ),
             ],
           ),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ChatScreen(
-                  chatRoomId: chatRoomId,
-                  chatTitle: chatTitle,
-                  uploaderUID: uploaderUID,
-                  winningBidderUID: winningBidderUID,
-                ),
-              ),
-            );
-          },
-          onLongPress: () {
-            showExitChatDialog(context, chatRoomId);
-          },
         ),
       ),
     );
@@ -235,20 +295,24 @@ class ChatListItem extends StatelessWidget {
 
   Future<String?> getLastMessage(String chatRoomId) async {
     try {
-      QuerySnapshot<Map<String, dynamic>> querySnapshot = await FirebaseFirestore.instance
+      DocumentSnapshot<Map<String, dynamic>> documentSnapshot = await FirebaseFirestore.instance
           .collection('chat_messages')
           .doc(chatRoomId)
-          .collection('messages')
-          .orderBy('timestamp', descending: true)
-          .limit(1)
           .get();
 
-      if (querySnapshot.docs.isNotEmpty) {
-        var latestMessage = querySnapshot.docs.first.data();
-        String sender = latestMessage['senderId'] ?? '';
-        String messageText = latestMessage['text'] ?? '';
+      if (documentSnapshot.exists) {
+        var data = documentSnapshot.data();
+        if (data != null) {
+          String sender = data['latest_message_sender'] ?? '';
+          String messageText = data['latest_message'] ?? '';
 
-        return '$sender: $messageText';
+          print('마지막 메시지 가져오기 성공: $messageText');
+
+          return '$messageText';
+        }
+      } else {
+        print('문서가 존재하지 않음');
+        print('채팅방 ID: $chatRoomId');
       }
 
       return null;
@@ -257,7 +321,6 @@ class ChatListItem extends StatelessWidget {
       return null;
     }
   }
-
 
   void showExitChatDialog(BuildContext context, String chatRoomId) {
     showDialog(
