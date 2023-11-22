@@ -309,7 +309,9 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         ),
         // '+' 아이콘
         Center(
-          child: SizedBox(
+          child: Container(
+            alignment: Alignment.bottomRight,
+            width: 180,
             height: 180,
             child: GestureDetector(
                 onTap: () async {
@@ -321,7 +323,23 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                     });
                   }
                 },
-                child: Icon(Icons.add, size: 40, color: Colors.black)),
+                child: Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey,
+                        offset: Offset(0, 2),
+                        blurRadius: 4.0,
+                      ),
+                    ],
+                  ),
+                  child: Icon(Icons.camera_alt, size: 30, color: Colors.black),
+                )
+            ),
           ),
         ),
       ]);
