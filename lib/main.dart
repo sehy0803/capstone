@@ -24,17 +24,20 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'Negomore',
-        home: StreamBuilder(
-          stream: FirebaseAuth.instance.authStateChanges(),
-          builder: (context, snapshot) {
-            if (snapshot.hasData) {
-              return TabScreen();
-            }
-            return LoginScreen();
-          },
-        ),
+      theme: ThemeData(
+          fontFamily: "Pretendard"
+      ),
+      debugShowCheckedModeBanner: false,
+      title: 'Negomore',
+      home: StreamBuilder(
+        stream: FirebaseAuth.instance.authStateChanges(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return TabScreen();
+          }
+          return LoginScreen();
+        },
+      ),
     );
   }
 }
