@@ -412,6 +412,14 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
       await _firestore.doc(postPath).update({
         'status': '낙찰',
       });
+
+      // 낙찰자의 User 컬렉션 > winningAuctions 서브 컬렉션에 낙찰 정보 저장하기
+      await _firestore.collection('User').doc(winningBidderUID)
+          .collection('winningAuctions')
+          .add({
+        'auctionId': widget.documentId,
+        'timestamp': Timestamp.now()});
+
     } else {
       // 최고 입찰자가 없는 경우
       await _firestore.doc(postPath).update({

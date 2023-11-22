@@ -3,6 +3,7 @@ import 'package:capstone/custom_widget.dart';
 import 'package:capstone/participated_in_auctions_screen.dart';
 import 'package:capstone/profile_edit_screen.dart';
 import 'package:capstone/profile_setting_screen.dart';
+import 'package:capstone/winning_auctions_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -117,7 +118,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('내가 참여한 경매', style: TextStyle(fontSize: 20)),
+                    Text('참여한 경매', style: TextStyle(fontSize: 20)),
                     TextButton(
                         onPressed: () {
                           Navigator.push(
@@ -132,7 +133,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
                         child: Text('더보기'))
                   ],
                 ),
-                // 내가 참여한 경매
+                // 참여한 경매
                 StreamBuilder<QuerySnapshot>(
                   stream: _firestore.collection('User/$userID/participatedInAuctions')
                       .orderBy('timestamp', descending: true).snapshots(),
@@ -260,6 +261,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
                   },
                 ),
                 Line(),
+
                 // 낙찰된 경매
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -267,9 +269,143 @@ class _MyPageScreenState extends State<MyPageScreen> {
                     Text('낙찰된 경매', style: TextStyle(fontSize: 20)),
                     TextButton(
                         onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) {
+                                return WinningAuctionsScreen(userID: userID);
+                              },
+                            ),
+                          );
                         },
                         child: Text('더보기'))
                   ],
+                ),
+                StreamBuilder<QuerySnapshot>(
+                  stream: _firestore.collection('User/$userID/winningAuctions')
+                      .orderBy('timestamp', descending: true).snapshots(),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) {return Center(child: CircularProgressIndicator());}
+                    if (snapshot.hasError) {return Center(child: Text('데이터를 불러올 수 없습니다.'));}
+                    var auctions = snapshot.data!.docs;
+                    if (auctions == null || auctions.isEmpty) {
+                      return Center(child: Text('아직 낙찰된 경매가 없습니다.',
+                          style: TextStyle(fontSize: 16, color: Colors.grey)));
+                    }
+                    // 최대 3개의 항목만 표시
+                    int itemCount = auctions.length > 3 ? 3 : auctions.length;
+                    return ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: itemCount,
+                        itemBuilder: (context, index)
+                        {
+                          String auctionId = auctions![index]['auctionId'] as String;
+
+                          return StreamBuilder<DocumentSnapshot>(
+                              stream: _firestore.collection('AuctionCommunity').doc(auctionId).snapshots(),
+                              builder: (context, snapshot) {
+                                if (!snapshot.hasData) {return Center(child: CircularProgressIndicator());}
+
+                                var auctionData = snapshot.data!.data() as Map<String, dynamic>;
+
+                                // 경매 정보
+                                String photoURL = auctionData['photoURL'] as String;
+                                String title = auctionData['title'] as String;
+                                int winningBid = auctionData['winningBid'] as int;
+                                String status = auctionData['status'] as String;
+
+                                // 시간 정보
+                                Timestamp endTime = auctionData['endTime'] as Timestamp;
+                                int remainingTime = auctionData['remainingTime'] as int;
+
+                                return GestureDetector(
+                                  onTap: () {
+                                    increaseViews(
+                                        auctionId, 'AuctionCommunity'); // 조회수 증가
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) {
+                                              return CommunityAuctionDetailScreen(
+                                                  documentId: auctionId);
+                                            }));
+                                  },
+                                  child: Column(
+                                    children: [
+                                      Card(
+                                        elevation: 0,
+                                        child: Row(
+                                          children: [
+                                            _buildAuctionImage(photoURL),
+                                            SizedBox(width: 10),
+                                            Expanded(
+                                              child: Column(
+                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Row(
+                                                    children: [
+                                                      // 경매 상태
+                                                      Container(
+                                                          decoration: BoxDecoration(
+                                                            color: _getStatusColor(status),
+                                                            borderRadius: BorderRadius
+                                                                .circular(10.0),
+                                                            boxShadow: [
+                                                              BoxShadow(
+                                                                color: Colors.grey,
+                                                                offset: Offset(0, 2),
+                                                                blurRadius: 4.0,
+                                                              ),
+                                                            ],
+                                                          ),
+                                                          child: Padding(
+                                                            padding: const EdgeInsets
+                                                                .all(6.0),
+                                                            child: Text(status,
+                                                                style: TextStyle(
+                                                                    fontSize: 16,
+                                                                    fontWeight: FontWeight.bold,
+                                                                    color: Colors.white)
+                                                            ),
+                                                          )
+                                                      ),
+                                                      SizedBox(width: 10),
+                                                      Text(title, style: TextStyle(fontSize: 16)),
+                                                    ],
+                                                  ),
+                                                  SizedBox(height: 10),
+                                                  Row(
+                                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                    children: [
+                                                      Text((status == '낙찰')
+                                                          ? '낙찰가'
+                                                          : (status == '경매 실패')
+                                                          ? '경매 실패'
+                                                          : '최소 입찰가',
+                                                          style: TextStyle(fontSize: 16)),
+                                                      Text('$winningBid원',
+                                                          style: TextStyle(fontSize: 16, color: Colors.blue)),
+                                                    ],
+                                                  ),
+                                                  // 남은 시간 표시
+                                                  buildRemainingTime(status, endTime, remainingTime),
+
+                                                ],
+                                              ),
+                                            )
+                                          ],
+                                        ),
+                                      ),
+                                      Container(height: 1, color: Colors.grey[200])
+                                    ],
+                                  ),
+                                );
+                              }
+                          );
+                        }
+                    );
+                  },
                 ),
 
               ],

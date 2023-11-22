@@ -3,18 +3,18 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-class ParticipatedInAuctionsScreen extends StatefulWidget {
+class WinningAuctionsScreen extends StatefulWidget {
   final String userID;
 
-  ParticipatedInAuctionsScreen({
+  WinningAuctionsScreen({
     required this.userID,
   });
 
   @override
-  _ParticipatedInAuctionsScreenState createState() => _ParticipatedInAuctionsScreenState();
+  _WinningAuctionsScreenState createState() => _WinningAuctionsScreenState();
 }
 
-class _ParticipatedInAuctionsScreenState extends State<ParticipatedInAuctionsScreen> {
+class _WinningAuctionsScreenState extends State<WinningAuctionsScreen> {
   final _firestore = FirebaseFirestore.instance;
 
   @override
@@ -24,7 +24,7 @@ class _ParticipatedInAuctionsScreenState extends State<ParticipatedInAuctionsScr
       backgroundColor: Colors.white,
       appBar: AppBar(
         centerTitle: true,
-        title: Text('참여한 경매', style: TextStyle(color: Colors.black, fontSize: 20)),
+        title: Text('낙찰된 경매', style: TextStyle(color: Colors.black, fontSize: 20)),
         backgroundColor: Colors.white,
         leading: IconButton(
           onPressed: () {
@@ -36,9 +36,9 @@ class _ParticipatedInAuctionsScreenState extends State<ParticipatedInAuctionsScr
         ),
       ),
       body: SingleChildScrollView(
-        child: // 내가 참여한 경매
+        child: // 낙찰된 경매
         StreamBuilder<QuerySnapshot>(
-          stream: _firestore.collection('User/${widget.userID}/participatedInAuctions')
+          stream: _firestore.collection('User/${widget.userID}/winningAuctions')
               .orderBy('timestamp', descending: true).snapshots(),
           builder: (context, snapshot) {
             if (!snapshot.hasData) {return Center(child: CircularProgressIndicator());}
@@ -47,7 +47,7 @@ class _ParticipatedInAuctionsScreenState extends State<ParticipatedInAuctionsScr
             if (auctions == null || auctions.isEmpty) {
               return Padding(
                 padding: const EdgeInsets.all(20.0),
-                child: Center(child: Text('아직 경매에 참여하지 않았습니다.',
+                child: Center(child: Text('아직 낙찰된 경매가 없습니다.',
                     style: TextStyle(fontSize: 16, color: Colors.grey))),
               );
             }
