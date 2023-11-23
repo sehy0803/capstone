@@ -88,7 +88,7 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
             // 경매 정보
             String title = data['title'] as String;
             String content = data['content'] as String;
-            int views = data['views'] + 1 as int;
+            int views = data['views'] as int;
             int likes = data['likes'] as int;
             int comments = data['comments'] as int;
 
