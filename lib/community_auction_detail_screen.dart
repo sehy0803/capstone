@@ -94,7 +94,7 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
               String photoURL = auctionData['photoURL'] as String;
               String title = auctionData['title'] as String;
               String content = auctionData['content'] as String;
-              int views = auctionData['views'] + 1 as int;
+              int views = auctionData['views'] as int;
               int likes = auctionData['likes'] as int;
               int startBid = auctionData['startBid'] as int;
               int winningBid = auctionData['winningBid'] as int;
