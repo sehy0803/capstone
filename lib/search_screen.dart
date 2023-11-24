@@ -16,10 +16,12 @@ class _SearchScreenState extends State<SearchScreen> {
   TextEditingController _searchController = TextEditingController();
   List<DocumentSnapshot> _searchResults = [];
   List<String> documentIds = [];
+  FocusNode _searchFocus = FocusNode();
 
   @override
   void initState() {
     super.initState();
+    _searchFocus.requestFocus();
   }
 
   @override
@@ -33,6 +35,7 @@ class _SearchScreenState extends State<SearchScreen> {
         appBar: AppBar(
             // 검색어 입력창
             title: TextFormField(
+              focusNode: _searchFocus,
               controller: _searchController,
               decoration: InputDecoration(
                   enabledBorder: OutlineInputBorder(
