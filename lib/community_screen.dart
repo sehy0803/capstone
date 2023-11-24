@@ -262,6 +262,19 @@ class _CommunityScreenState extends State<CommunityScreen> {
   }
   //============================================================================
 
+  // 선택된 게시판 이름
+  String getCollectionName() {
+    return collectionName =
+    (_currentTabIndex == 0) ? 'AuctionCommunity' : 'UserCommunity';
+  }
+
+  // 게시물의 documentID를 가져오는 함수
+  String getDocumentId(QueryDocumentSnapshot document) {
+    return document.id;
+  }
+
+  //============================================================================
+
   // 남은 시간을 표시하는 조건
   String getFormattedRemainingTime(status, endTime, remainingTime) {
     Duration remainingTimeInSeconds = Duration(seconds: remainingTime);
@@ -298,19 +311,6 @@ class _CommunityScreenState extends State<CommunityScreen> {
         ),
       );
     }
-  }
-
-  // ================================================
-
-  // 선택된 게시판 이름
-  String getCollectionName() {
-    return collectionName =
-    (_currentTabIndex == 0) ? 'AuctionCommunity' : 'UserCommunity';
-  }
-
-  // 게시물의 documentID를 가져오는 함수
-  String getDocumentId(QueryDocumentSnapshot document) {
-    return document.id;
   }
 
   // Firestore에서 조회수를 증가시키는 함수

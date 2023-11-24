@@ -414,12 +414,21 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
         'status': '낙찰',
       });
 
-      // 낙찰자의 User 컬렉션 > winningAuctions 서브 컬렉션에 낙찰 정보 저장하기
-      await _firestore.collection('User').doc(winningBidderUID)
+      var existingWinningAuction = await _firestore
+          .collection('User')
+          .doc(winningBidderUID)
           .collection('winningAuctions')
-          .add({
-        'auctionId': widget.documentId,
-        'timestamp': Timestamp.now()});
+          .where('auctionId', isEqualTo: widget.documentId)
+          .get();
+
+      // 낙찰자의 User 컬렉션 > winningAuctions 서브 컬렉션에 낙찰 정보 저장하기
+      if(existingWinningAuction.docs.isEmpty){
+        await _firestore.collection('User').doc(winningBidderUID)
+            .collection('winningAuctions')
+            .add({
+          'auctionId': widget.documentId,
+          'timestamp': Timestamp.now()});
+      }
 
     } else {
       // 최고 입찰자가 없는 경우

@@ -74,7 +74,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
 
         return SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.all(20.0),
+            padding: const EdgeInsets.all(10.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -82,18 +82,21 @@ class _MyPageScreenState extends State<MyPageScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: [
-                        // 유저 프로필 사진 표시
-                        _buildUserProfileImage(imageURL),
-                        SizedBox(width: 10),
-                        // 닉네임 표시
-                        Text(
-                          nickname,
-                          style: TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.bold),
-                        ),
-                      ],
+                    Padding(
+                      padding: const EdgeInsets.only(top: 10.0),
+                      child: Row(
+                        children: [
+                          // 유저 프로필 사진 표시
+                          _buildUserProfileImage(imageURL),
+                          SizedBox(width: 10),
+                          // 닉네임 표시
+                          Text(
+                            nickname,
+                            style: TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
                     ),
                     // 프로필 수정 버튼
                     ElevatedButton(
