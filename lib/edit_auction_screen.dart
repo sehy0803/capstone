@@ -273,7 +273,7 @@ class _EditAuctionScreenState extends State<EditAuctionScreen> {
       builder: (context) {
         return AlertDialog(
           title: Text('돌아가기'),
-          content: Text('현재 페이지를 벗어나면 변경된 내용이 적용되지 않습니다.\n이전 페이지로 돌아가시겠습니까?'),
+          content: Text('현재 페이지를 벗어나면 변경된 내용이 적용되지 않습니다. 이전 페이지로 돌아가시겠습니까?'),
           actions: [
             TextButton(
               onPressed: () {

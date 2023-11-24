@@ -45,6 +45,7 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
     getCurrentUser();
     getUploaderUID();
     getLikeStatus();
+    getStatus();
     _startTimer();
   }
 
@@ -505,6 +506,20 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
     bidController.clear();
   }
 
+  // status를 가져오는 함수
+  void getStatus() async {
+    final document = await _firestore
+        .collection('AuctionCommunity')
+        .doc(widget.documentId)
+        .get();
+    final data = document.data();
+
+    if (data != null && data['status'] != null) {
+      setState(() {
+        status = data['status'] as String;
+      });
+    }
+  }
 
   // 최고 입찰자를 가져오는 함수
   Future<String> getWinningBidderUID() async {
