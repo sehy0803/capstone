@@ -35,7 +35,7 @@ class HomeScreen extends StatelessWidget {
             child: Image.asset('assets/images/logo.png', width: 100),
           ),
 
-          // 경매 게시판
+          // 인기 경매 게시판
           Padding(
             padding: const EdgeInsets.only(left: 20, right: 20),
             child: Column(
@@ -43,7 +43,7 @@ class HomeScreen extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('경매 게시판', style: TextStyle(fontSize: 20, height: 1.3)),
+                    Text('인기 경매 게시판', style: TextStyle(fontSize: 20, height: 1.3)),
                   ],
                 ),
 
