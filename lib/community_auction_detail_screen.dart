@@ -744,8 +744,7 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
     }
   }
 
-
-// 사용자의 "좋아요" 목록에 게시물 ID를 추가하는 함수 (AuctionCommunity에 추가)
+  // 사용자의 "좋아요" 목록에 게시물 ID를 추가하는 함수 (AuctionCommunity에 추가)
   Future<void> addPostToAuctionLikes(String postID) async {
     // User 컬렉션에서 사용자의 UID로 업로더 문서 가져오기
     final userDocument = _firestore.collection('User').doc(userID);
@@ -760,8 +759,6 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
     });
   }
 
-
-
   // 사용자의 "좋아요" 목록에 게시물 ID를 삭제하는 함수
   Future<void> removePostFromAuctionLikes(String postID) async {
     // User 컬렉션에서 사용자의 UID로 업로더 문서 가져오기
@@ -773,7 +770,6 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
     // 사용자의 "좋아요" 목록에서 게시물 ID를 제거
     await auctionLikesCollection.doc(postID).delete();
   }
-
 
   // 게시물 수정 확인 AlertDialog 표시
   void showDialogEditPost(BuildContext context) async {
@@ -822,6 +818,5 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
       );
     }
   }
-
 
 }
