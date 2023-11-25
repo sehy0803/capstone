@@ -627,9 +627,27 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
           .collection('UserCommunity')
           .doc(documentId)
           .delete();
+
+      // 삭제된 게시글과 관련된 데이터 삭제
+      await _deleteRelatedData(widget.documentId);
+
       Navigator.pop(context);
     } catch (e) {
       print('게시물 삭제 중 오류 발생: $e');
+    }
+  }
+
+  // 게시글과 관련된 데이터 삭제 함수
+  Future<void> _deleteRelatedData(String postId) async {
+    // 컬렉션에서 해당 게시글의 ID를 가진 문서를 찾아 삭제
+    var userSnapshots = await _firestore.collection('User').get();
+    for (var userSnapshot in userSnapshots.docs) {
+      await _firestore
+          .collection('User')
+          .doc(userSnapshot.id)
+          .collection('userLikes')
+          .doc(postId)
+          .delete();
     }
   }
 

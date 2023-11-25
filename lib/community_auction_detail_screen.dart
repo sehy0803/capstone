@@ -633,7 +633,6 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
 
   // 게시물 삭제 함수
   Future<void> deletePost() async {
-    Navigator.pop(context);
     try {
       // Firestore에서 경매 삭제하기 전에 해당 경매의 DocumentSnapshot을 가져오기
       final postSnapshot = await _firestore
@@ -647,12 +646,45 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
             .collection('AuctionCommunity')
             .doc(widget.documentId)
             .delete();
+
+        // 삭제된 게시글과 관련된 데이터 삭제
+        await _deleteRelatedData(widget.documentId);
+
+        Navigator.pop(context);
       } else {
         // DocumentSnapshot이 존재하지 않는 경우에 대한 처리
         print('경매가 이미 삭제되었습니다.');
       }
     } catch (e) {
       print('경매 삭제 중 오류 발생: $e');
+    }
+  }
+
+  // 게시글과 관련된 데이터 삭제 함수
+  Future<void> _deleteRelatedData(String postId) async {
+    // 컬렉션에서 해당 게시글의 ID를 가진 문서를 찾아 삭제
+    var userSnapshots = await _firestore.collection('User').get();
+    for (var userSnapshot in userSnapshots.docs) {
+      await _firestore
+          .collection('User')
+          .doc(userSnapshot.id)
+          .collection('participatedInAuctions')
+          .doc(postId)
+          .delete();
+
+      await _firestore
+          .collection('User')
+          .doc(userSnapshot.id)
+          .collection('winningAuction')
+          .doc(postId)
+          .delete();
+
+      await _firestore
+          .collection('User')
+          .doc(userSnapshot.id)
+          .collection('auctionLikes')
+          .doc(postId)
+          .delete();
     }
   }
 
