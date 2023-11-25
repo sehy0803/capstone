@@ -151,6 +151,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
                     // 최대 3개의 항목만 표시
                     int itemCount = auctions.length > 3 ? 3 : auctions.length;
                     return ListView.builder(
+                        physics: NeverScrollableScrollPhysics(), // 스크롤 방지
                         shrinkWrap: true,
                         itemCount: itemCount,
                         itemBuilder: (context, index)
@@ -298,6 +299,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
                     // 최대 3개의 항목만 표시
                     int itemCount = auctions.length > 3 ? 3 : auctions.length;
                     return ListView.builder(
+                        physics: NeverScrollableScrollPhysics(), // 스크롤 방지
                         shrinkWrap: true,
                         itemCount: itemCount,
                         itemBuilder: (context, index)
