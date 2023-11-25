@@ -1,250 +1,373 @@
+import 'package:capstone/community_auction_detail_screen.dart';
+import 'package:capstone/community_user_detail_screen.dart';
+import 'package:capstone/custom_widget.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-
-import 'custom_widget.dart';
+import 'package:intl/intl.dart';
 
 class FavoriteScreen extends StatefulWidget {
-  const FavoriteScreen({Key? key});
+  const FavoriteScreen({super.key});
 
   @override
   _FavoriteScreenState createState() => _FavoriteScreenState();
 }
 
 class _FavoriteScreenState extends State<FavoriteScreen> {
-  final _firestore = FirebaseFirestore.instance;
   final _authentication = FirebaseAuth.instance;
-  int _currentTabIndex = 0; // 현재 선택된 탭을 저장하는 변수
+  final _firestore = FirebaseFirestore.instance;
 
-  String _userID = '';
+  String collectionName = '';
+
+  String userID = '';
+
+  // 현재 로그인한 유저의 UID 저장
+  void getCurrentUser() async {
+    final user = _authentication.currentUser;
+    if (user != null) {
+      setState(() {
+        userID = user.uid;
+      });
+    }
+  }
 
   @override
   void initState() {
     super.initState();
-    _getUserID(); // 사용자 ID 가져오기
+    getCurrentUser();
   }
-
-  void _getUserID() async {
-    final user = _authentication.currentUser;
-    if (user != null) {
-      setState(() {
-        _userID = user.uid;
-      });
-    }
-  }
-
-  Future<void> createAuctionLikesSubcollection(String userUID) async {
-    try {
-      // 사용자 UID를 기반으로 해당 사용자의 문서를 가져옵니다.
-      final userDocument = _firestore.collection('User').doc(userUID);
-
-      // auctionLikes 서브컬렉션을 추가합니다.
-      await userDocument.collection('auctionLikes').add({
-        'liked': true
-      });
-
-      print('auctionLikes 서브컬렉션이 생성되었습니다.');
-    } catch (e) {
-      print('auctionLikes 서브컬렉션 생성 중 오류 발생: $e');
-    }
-  }
-
 
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
+        backgroundColor: Colors.white,
         appBar: AppBar(
           title:
-          Text('관심목록', style: TextStyle(color: Colors.black, fontSize: 20)),
+          Text('커뮤니티', style: TextStyle(color: Colors.black, fontSize: 20)),
           backgroundColor: Colors.white,
           automaticallyImplyLeading: false,
           elevation: 0,
           bottom: TabBar(
             tabs: [
-              Tab(text: '경매 게시글'),
-              Tab(text: '유저 게시글'),
+              Tab(text: '경매 게시판'),
+              Tab(text: '유저 게시판'),
             ],
             labelColor: Colors.black,
             labelStyle: TextStyle(fontSize: 18),
             indicatorColor: DarkColors.basic,
-            onTap: (index) {
-              setState(() {
-                _currentTabIndex = index;
-              });
-            },
           ),
         ),
         body: TabBarView(
           children: [
-            _buildAuctionFavoriteList(), // 경매 게시글 탭
-            _buildUserFavoriteList(), // 유저 게시글 탭
+          _buildAuctionFavoriteList(), // 경매 게시글 탭
+          _buildUserFavoriteList(), // 유저 게시글 탭
           ],
         ),
-      ),
+      )
     );
   }
+  //============================================================================
 
   Widget _buildAuctionFavoriteList() {
     return StreamBuilder<QuerySnapshot>(
-      stream: _getAuctionLikesStream(), // 사용자가 좋아요한 경매게시글 스트림 가져오기
+      stream: _getAuctionLikesStream(),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return CircularProgressIndicator();
+        if (!snapshot.hasData) {return Center(child: CircularProgressIndicator());}
+        if (snapshot.hasError) {return Center(child: Text('데이터를 불러올 수 없습니다.'));}
+        var auctions = snapshot.data!.docs;
+        if (auctions == null || auctions.isEmpty) {
+          return Center(child: Text('좋아요 한 게시물이 없습니다.',
+              style: TextStyle(fontSize: 16, color: Colors.grey)));
         }
+        return ListView.builder(
+            itemCount: auctions.length,
+            itemBuilder: (context, index)
+            {
+              String auctionId = auctions[index].id;
 
-        if (snapshot.hasError) {
-          return Text('데이터를 불러올 수 없습니다.');
-        }
+              return StreamBuilder<DocumentSnapshot>(
+                  stream: _firestore.collection('AuctionCommunity').doc(auctionId).snapshots(),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) {return Center(child: CircularProgressIndicator());}
 
-        final documents = snapshot.data?.docs;
+                    var auctionData = snapshot.data!.data() as Map<String, dynamic>;
 
-        if (documents != null && documents.isNotEmpty) {
-          return ListView.builder(
-            itemCount: documents.length,
-            itemBuilder: (context, index) {
-              final postId = documents[index].id; // 좋아요한 경매 게시글의 ID
+                    // 경매 정보
+                    String photoURL = auctionData['photoURL'] as String;
+                    String title = auctionData['title'] as String;
+                    int winningBid = auctionData['winningBid'] as int;
+                    String status = auctionData['status'] as String;
 
-              return FutureBuilder<DocumentSnapshot>(
-                future: getAuctionPostDetails(postId),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return CircularProgressIndicator();
-                  }
+                    // 시간 정보
+                    Timestamp endTime = auctionData['endTime'] as Timestamp;
+                    int remainingTime = auctionData['remainingTime'] as int;
 
-                  if (snapshot.hasError) {
-                    return Text('게시물을 불러올 수 없습니다.');
-                  }
+                    return GestureDetector(
+                      onTap: () {
+                        increaseViews(auctionId, 'AuctionCommunity'); // 조회수 증가
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) {
+                                  return CommunityAuctionDetailScreen(documentId: auctionId);
+                                }));
+                      },
+                      child: Column(
+                        children: [
+                          Card(
+                            elevation: 0,
+                            child: Row(
+                              children: [
+                                _buildAuctionImage(photoURL),
+                                SizedBox(width: 10),
+                                Expanded(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          // 경매 상태
+                                          Container(
+                                              decoration: BoxDecoration(
+                                                color: _getStatusColor(status),
+                                                borderRadius: BorderRadius
+                                                    .circular(10.0),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.grey,
+                                                    offset: Offset(0, 2),
+                                                    blurRadius: 4.0,
+                                                  ),
+                                                ],
+                                              ),
+                                              child: Padding(
+                                                padding: const EdgeInsets
+                                                    .all(6.0),
+                                                child: Text(status,
+                                                    style: TextStyle(
+                                                        fontSize: 16,
+                                                        fontWeight: FontWeight.bold,
+                                                        color: Colors.white)
+                                                ),
+                                              )
+                                          ),
+                                          SizedBox(width: 10),
+                                          Text(title, style: TextStyle(fontSize: 16)),
+                                        ],
+                                      ),
+                                      SizedBox(height: 10),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text((status == '낙찰')
+                                              ? '낙찰가'
+                                              : (status == '경매 실패')
+                                              ? '경매 실패'
+                                              : '최소 입찰가',
+                                              style: TextStyle(fontSize: 16)),
+                                          Text('$winningBid원',
+                                              style: TextStyle(fontSize: 16, color: Colors.blue)),
+                                        ],
+                                      ),
+                                      // 남은 시간 표시
+                                      buildRemainingTime(status, endTime, remainingTime),
 
-                  final postDocument = snapshot.data;
-
-                  if (postDocument != null && postDocument.exists) {
-                    final postTitle = postDocument['title'];
-                    final postContent = postDocument['content'];
-                    final postPhoto = postDocument['photoURL'];
-
-                    return ListTile(
-                      title: Text('게시글 제목: $postTitle'),
-                      subtitle: Text('게시글 내용: $postContent'),
-                      leading: postPhoto != null
-                          ? SizedBox(
-                        width: 100,
-                        height: 100,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(8.0),
-                          child: Image.network(
-                            postPhoto,
-                            fit: BoxFit.cover,
+                                    ],
+                                  ),
+                                )
+                              ],
+                            ),
                           ),
-                        ),
-                      )
-                          : SizedBox(
-                        width: 100,
-                        height: 100,
-                        child: Container(
-                          color: Colors.grey[200],
-                        ),
+                          Container(height: 1, color: Colors.grey[200])
+                        ],
                       ),
                     );
-                  } else {
-                    return Text('해당 게시물을 찾을 수 없습니다.');
                   }
-                },
               );
-            },
-          );
-        } else {
-          return Text('좋아하는 경매 게시글이 없습니다.');
-        }
+            }
+        );
       },
     );
   }
 
   Widget _buildUserFavoriteList() {
     return StreamBuilder<QuerySnapshot>(
-      stream: _getUserLikesStream(),   // 사용자가 좋아요한 유저게시글 스트림 가져오기
+      stream: _getUserLikesStream(),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return CircularProgressIndicator();
+        if (!snapshot.hasData) {return Center(child: CircularProgressIndicator());}
+        if (snapshot.hasError) {return Center(child: Text('데이터를 불러올 수 없습니다.'));}
+        var posts = snapshot.data!.docs;
+        if (posts == null || posts.isEmpty) {
+          return Center(child: Text('좋아요 한 게시물이 없습니다.',
+              style: TextStyle(fontSize: 16, color: Colors.grey)));
         }
-
-        if (snapshot.hasError) {
-          return Text('데이터를 불러올 수 없습니다.');
-        }
-
-        final documents = snapshot.data?.docs;
-
-        if (documents != null && documents.isNotEmpty) {
-          return ListView.builder(
-            itemCount: documents.length,
+        return ListView.builder(
+            itemCount: posts.length,
             itemBuilder: (context, index) {
-              final postId = documents[index].id;    // 좋아요한 유저 게시글의 ID
 
-              return FutureBuilder<DocumentSnapshot>(
-                future: getUserPostDetails(postId),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return CircularProgressIndicator();
-                  }
+              String postId = posts[index].id;
 
-                  if (snapshot.hasError) {
-                    return Text('게시물을 불러올 수 없습니다.');
-                  }
+              return StreamBuilder<DocumentSnapshot>(
+                  stream: _firestore.collection('UserCommunity').doc(postId).snapshots(),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) {return Center(child: CircularProgressIndicator());}
 
-                  final postDocument = snapshot.data;
+                    var postData = snapshot.data!.data() as Map<String, dynamic>;
 
-                  if (postDocument != null && postDocument.exists) {
-                    final postTitle = postDocument['title'];
-                    final postContent = postDocument['content'];
+                    String uploaderUID = postData['uploaderUID'] as String;
+                    String title = postData['title'] as String;
+                    int views = postData['views'] as int;
+                    int likes = postData['likes'] as int;
+                    int comments = postData['comments'] as int;
+                    Timestamp createDate = postData['createDate'] as Timestamp;
+                    String formattedCreatedDate = DateFormat('yyyy.MM.dd HH:mm').format(createDate.toDate());
 
-                    return ListTile(
-                      title: Text('게시글 제목: $postTitle'),
-                      subtitle: Text('게시글 내용: $postContent'),
+                    return StreamBuilder<DocumentSnapshot>(
+                        stream: _firestore.collection('User').doc(uploaderUID).snapshots(),
+                        builder: (context, snapshot) {
+                          if (!snapshot.hasData) {return Center(child: CircularProgressIndicator());}
+
+                          var uploaderData = snapshot.data!.data() as Map<String, dynamic>;
+
+                          // 업로더 정보
+                          String uploaderNickname = uploaderData['nickname'] ?? '';
+
+                          return Column(
+                            children: [
+                              Card(
+                                elevation: 0,
+                                child: ListTile(
+                                  title: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(title, style: TextStyle(fontSize: 16)),
+                                      SizedBox(height: 10),
+                                    ],
+                                  ),
+                                  subtitle: Row(
+                                    children: [
+                                      Text(uploaderNickname, style: TextStyle(fontSize: 12)),
+                                      SizedBox(width: 5),
+                                      Text(formattedCreatedDate, style: TextStyle(fontSize: 12, height: 1.3)),
+                                      SizedBox(width: 5),
+                                      Text('조회 $views', style: TextStyle(fontSize: 12)),
+                                      SizedBox(width: 5),
+                                      Text('좋아요 $likes', style: TextStyle(fontSize: 12)),
+                                      SizedBox(width: 5),
+                                      Text('댓글 $comments', style: TextStyle(fontSize: 12)),
+                                    ],
+                                  ),
+                                  onTap: () {
+                                    increaseViews(postId, 'UserCommunity'); // 조회수 증가
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) {
+                                          return CommunityUserDetailScreen(documentId: postId,);
+                                        },
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                              CommentLine()
+                            ],
+                          );
+                        }
                     );
-                  } else {
-                    return Text('해당 게시물을 찾을 수 없습니다.');
                   }
-                },
               );
-            },
-          );
-        } else {
-          return Text('좋아하는 유저 게시글이 없습니다.');
-        }
+            }
+        );
       },
     );
   }
 
-
-
-// AuctionCommunity에서 경매게시글ID를 사용
-  Future<DocumentSnapshot> getAuctionPostDetails(String postId) async {
-    try {
-      final postDocument = await _firestore.collection('AuctionCommunity').doc(postId).get();
-      return postDocument;
-    } catch (e) {
-      throw Exception('게시물을 불러오는 중에 오류가 발생했습니다: $e');
-    }
-  }
-
-  // UserCommunity에서 유저게시글ID를 사용
-  Future<DocumentSnapshot> getUserPostDetails(String postId) async {
-    try {
-      final postDocument = await _firestore.collection('UserCommunity').doc(postId).get();
-      return postDocument;
-    } catch (e) {
-      throw Exception('게시물을 불러오는 중에 오류가 발생했습니다: $e');
-    }
-  }
-
   // 사용자가 좋아요한 경매게시글을 가져오는 함수
   Stream<QuerySnapshot> _getAuctionLikesStream() {
-    return _firestore.collection('User').doc(_userID).collection('auctionLikes').snapshots();
+    return _firestore.collection('User').doc(userID).collection('auctionLikes').snapshots();
   }
 
   // 사용자가 좋아요한 유저게시글을 가져오는 함수
   Stream<QuerySnapshot> _getUserLikesStream() {
-    return _firestore.collection('User').doc(_userID).collection('userLikes').snapshots();
+    return _firestore.collection('User').doc(userID).collection('userLikes').snapshots();
   }
+
+  //============================================================================
+
+  // 남은 시간을 표시하는 조건
+  String getFormattedRemainingTime(status, endTime, remainingTime) {
+    Duration remainingTimeInSeconds = Duration(seconds: remainingTime);
+    if (status == '대기중') {
+      return '${remainingTimeInSeconds.inMinutes}분 후 시작';
+    } else if (remainingTime < 60) {
+      // 10분 미만
+      return '잠시 후 종료';
+    } else if (remainingTime < 3600) {
+      // 10분 이상, 1시간 미만
+      return '${remainingTimeInSeconds.inMinutes}분 후 종료';
+    } else {
+      // 1시간 이상
+      return '${remainingTimeInSeconds.inHours}시간 후 종료';
+    }
+  }
+
+  // 남은 시간 표시 위젯
+  Widget buildRemainingTime(String status, Timestamp endTime, int remainingTime) {
+    if (status == '낙찰' || status == '경매 실패') {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text('경매 종료', style: TextStyle(fontSize: 16, color: Colors.grey)),
+          Text('${DateFormat('MM월 dd일 HH시 mm분').format(endTime.toDate())}',
+              style: TextStyle(fontSize: 16, color: Colors.grey))
+        ],
+      );
+    } else {
+      return Center(
+        child: Text(
+          getFormattedRemainingTime(status, endTime, remainingTime),
+          style: TextStyle(fontSize: 16, color: Colors.redAccent),
+        ),
+      );
+    }
+  }
+
+  // Firestore에서 조회수를 증가시키는 함수
+  Future<void> increaseViews(String documentId, String collectionName) async {
+    final document = await _firestore.collection(collectionName).doc(documentId).get();
+    final currentViews = document['views'] as int;
+    final updatedViews = currentViews + 1;
+    await _firestore.collection(collectionName).doc(documentId).update({'views': updatedViews});
+  }
+
+  // 사진 표시 위젯
+  Widget _buildAuctionImage(String auctionImageURL) {
+    double _imageSize = 100.0;
+    return Center(
+      child: Container(
+        color: Colors.black,
+        width: _imageSize,
+        height: _imageSize,
+        child: Image.network(auctionImageURL, width: _imageSize, height: _imageSize, fit: BoxFit.cover),
+      ),
+    );
+  }
+
+  // 상태에 따라 다른 색상 적용
+  Color _getStatusColor(String status) {
+    if (status == '진행중') {
+      return Colors.green; // 녹색
+    } else if (status == '낙찰') {
+      return Colors.blue; // 파란색
+    } else if (status == '경매 실패') {
+      return Colors.grey; // 회색
+    } else {
+      return Colors.black; // 기본값 (다른 상태일 때)
+    }
+  }
+
 }
