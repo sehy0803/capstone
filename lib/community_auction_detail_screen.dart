@@ -345,29 +345,21 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
 
   //============================================================================
 
-  // 타이머
-  // firestore에서 시간 정보를 가져오는 함수
-  Future<Map<String, dynamic>> getAuctionTimes() async {
-    final document = await _firestore.collection('AuctionCommunity').doc(widget.documentId).get();
-    final data = document.data();
-
-    final createDate = (data!['createDate'] as Timestamp).toDate();
-    final startTime = (data['startTime'] as Timestamp).toDate();
-    final endTime = (data['endTime'] as Timestamp).toDate();
-    final remainingTime = data['remainingTime'] as int;
-
-    return {
-      'createDate': createDate,
-      'startTime': startTime,
-      'endTime': endTime,
-      'remainingTime': remainingTime,
-    };
+  // 타이머 업데이트 여부를 확인하는 함수
+  bool _shouldUpdateTimer() {
+    // 경매 상태가 '낙찰' 또는 '경매 실패'일 시 타이머 작동 X
+    if (status == '낙찰' || status == '경매 실패') {
+      return false;
+    }
+    return true;
   }
 
   // 타이머 시작 - 1초마다 남은 시간 업데이트
   void _startTimer() {
     _timer = Timer.periodic(Duration(seconds: 1), (timer) {
-      _updateRemainingTime();
+      if (_shouldUpdateTimer()) {
+        _updateRemainingTime();
+      }
     });
   }
 
@@ -402,6 +394,24 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
       _timer?.cancel();
       updateAuctionEndStatus();
     }
+  }
+
+  // firestore에서 시간 정보를 가져오는 함수
+  Future<Map<String, dynamic>> getAuctionTimes() async {
+    final document = await _firestore.collection('AuctionCommunity').doc(widget.documentId).get();
+    final data = document.data();
+
+    final createDate = (data!['createDate'] as Timestamp).toDate();
+    final startTime = (data['startTime'] as Timestamp).toDate();
+    final endTime = (data['endTime'] as Timestamp).toDate();
+    final remainingTime = data['remainingTime'] as int;
+
+    return {
+      'createDate': createDate,
+      'startTime': startTime,
+      'endTime': endTime,
+      'remainingTime': remainingTime,
+    };
   }
 
   // 경매 종료시 경매 상태를 업데이트 하는 함수
@@ -633,6 +643,7 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
 
   // 게시물 삭제 함수
   Future<void> deletePost() async {
+    Navigator.pop(context);
     try {
       // Firestore에서 경매 삭제하기 전에 해당 경매의 DocumentSnapshot을 가져오기
       final postSnapshot = await _firestore
@@ -650,7 +661,6 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
         // 삭제된 게시글과 관련된 데이터 삭제
         await _deleteRelatedData(widget.documentId);
 
-        Navigator.pop(context);
       } else {
         // DocumentSnapshot이 존재하지 않는 경우에 대한 처리
         print('경매가 이미 삭제되었습니다.');
