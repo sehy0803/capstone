@@ -735,39 +735,43 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
       'liked': isLiked
     });
 
-    // 좋아요를 누르면 사용자의 "좋아요" 목록에 게시물 ID를 추가
+
     if (isLiked) {
-      addPostToUserLikes(widget.documentId);
+      addPostToAuctionLikes(widget.documentId);
     } else {
       // 좋아요를 취소하면 사용자의 "좋아요" 목록에서 게시물 ID를 제거
-      removePostFromUserLikes(widget.documentId);
+      removePostFromAuctionLikes(widget.documentId);
     }
   }
 
-  // 사용자의 "좋아요" 목록에 게시물 ID를 추가하는 함수
-  Future<void> addPostToUserLikes(String postID) async {
+
+// 사용자의 "좋아요" 목록에 게시물 ID를 추가하는 함수 (AuctionCommunity에 추가)
+  Future<void> addPostToAuctionLikes(String postID) async {
     // User 컬렉션에서 사용자의 UID로 업로더 문서 가져오기
     final userDocument = _firestore.collection('User').doc(userID);
 
-    // userLikes 컬렉션 참조 가져오기
-    final userLikesCollection = userDocument.collection('userLikes');
+    // auctionLikes 컬렉션 참조 가져오기
+    final auctionLikesCollection = userDocument.collection('auctionLikes');
 
     // 사용자가 게시물에 좋아요를 누른 경우, 해당 게시물의 ID로 새로운 문서 추가
-    await userLikesCollection.doc(postID).set({
+    await auctionLikesCollection.doc(postID).set({
       'liked': true,
+      'postType': 'AuctionCommunity' // 경매 게시글임을 나타내는 특정 필드 추가
     });
   }
 
+
+
   // 사용자의 "좋아요" 목록에 게시물 ID를 삭제하는 함수
-  Future<void> removePostFromUserLikes(String postID) async {
+  Future<void> removePostFromAuctionLikes(String postID) async {
     // User 컬렉션에서 사용자의 UID로 업로더 문서 가져오기
     final userDocument = _firestore.collection('User').doc(userID);
 
-    // userLikes 컬렉션 참조 가져오기
-    final userLikesCollection = userDocument.collection('userLikes');
+    // auctionLikes 컬렉션 참조 가져오기
+    final auctionLikesCollection = userDocument.collection('auctionLikes');
 
     // 사용자의 "좋아요" 목록에서 게시물 ID를 제거
-    await userLikesCollection.doc(postID).delete();
+    await auctionLikesCollection.doc(postID).delete();
   }
 
 
@@ -818,5 +822,6 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
       );
     }
   }
+
 
 }

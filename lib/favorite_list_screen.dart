@@ -33,6 +33,23 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
     }
   }
 
+  Future<void> createAuctionLikesSubcollection(String userUID) async {
+    try {
+      // 사용자 UID를 기반으로 해당 사용자의 문서를 가져옵니다.
+      final userDocument = _firestore.collection('User').doc(userUID);
+
+      // auctionLikes 서브컬렉션을 추가합니다.
+      await userDocument.collection('auctionLikes').add({
+        'liked': true
+      });
+
+      print('auctionLikes 서브컬렉션이 생성되었습니다.');
+    } catch (e) {
+      print('auctionLikes 서브컬렉션 생성 중 오류 발생: $e');
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
@@ -89,11 +106,51 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
             itemBuilder: (context, index) {
               final postId = documents[index].id; // 좋아요한 경매 게시글의 ID
 
-              // 각 문서에서 필요한 정보를 가져와서 화면에 표시
-              // 예: 게시글의 제목, 내용 등
-              return ListTile(
-                title: Text('경매 게시글 ID: $postId'),
-                // 추가 정보 표시 또는 탭 선택 시 상세화면으로 이동 등 필요한 기능 추가
+              return FutureBuilder<DocumentSnapshot>(
+                future: getAuctionPostDetails(postId),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return CircularProgressIndicator();
+                  }
+
+                  if (snapshot.hasError) {
+                    return Text('게시물을 불러올 수 없습니다.');
+                  }
+
+                  final postDocument = snapshot.data;
+
+                  if (postDocument != null && postDocument.exists) {
+                    final postTitle = postDocument['title'];
+                    final postContent = postDocument['content'];
+                    final postPhoto = postDocument['photoURL'];
+
+                    return ListTile(
+                      title: Text('게시글 제목: $postTitle'),
+                      subtitle: Text('게시글 내용: $postContent'),
+                      leading: postPhoto != null
+                          ? SizedBox(
+                        width: 100,
+                        height: 100,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8.0),
+                          child: Image.network(
+                            postPhoto,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      )
+                          : SizedBox(
+                        width: 100,
+                        height: 100,
+                        child: Container(
+                          color: Colors.grey[200],
+                        ),
+                      ),
+                    );
+                  } else {
+                    return Text('해당 게시물을 찾을 수 없습니다.');
+                  }
+                },
               );
             },
           );
@@ -104,10 +161,9 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
     );
   }
 
-
   Widget _buildUserFavoriteList() {
     return StreamBuilder<QuerySnapshot>(
-      stream: _getUserLikesStream(), // 사용자가 좋아요한 유저게시글 스트림 가져오기
+      stream: _getUserLikesStream(),   // 사용자가 좋아요한 유저게시글 스트림 가져오기
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return CircularProgressIndicator();
@@ -123,13 +179,33 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
           return ListView.builder(
             itemCount: documents.length,
             itemBuilder: (context, index) {
-              final postId = documents[index].id; // 좋아요한 유저 게시글의 ID
+              final postId = documents[index].id;    // 좋아요한 유저 게시글의 ID
 
-              // 각 문서에서 필요한 정보를 가져와서 화면에 표시
-              // 예: 게시글의 제목, 내용 등
-              return ListTile(
-                title: Text('유저 게시글 ID: $postId'),
-                // 추가 정보 표시 또는 탭 선택 시 상세화면으로 이동 등 필요한 기능 추가
+              return FutureBuilder<DocumentSnapshot>(
+                future: getUserPostDetails(postId),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return CircularProgressIndicator();
+                  }
+
+                  if (snapshot.hasError) {
+                    return Text('게시물을 불러올 수 없습니다.');
+                  }
+
+                  final postDocument = snapshot.data;
+
+                  if (postDocument != null && postDocument.exists) {
+                    final postTitle = postDocument['title'];
+                    final postContent = postDocument['content'];
+
+                    return ListTile(
+                      title: Text('게시글 제목: $postTitle'),
+                      subtitle: Text('게시글 내용: $postContent'),
+                    );
+                  } else {
+                    return Text('해당 게시물을 찾을 수 없습니다.');
+                  }
+                },
               );
             },
           );
@@ -140,10 +216,32 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
     );
   }
 
+
+
+// AuctionCommunity에서 경매게시글ID를 사용
+  Future<DocumentSnapshot> getAuctionPostDetails(String postId) async {
+    try {
+      final postDocument = await _firestore.collection('AuctionCommunity').doc(postId).get();
+      return postDocument;
+    } catch (e) {
+      throw Exception('게시물을 불러오는 중에 오류가 발생했습니다: $e');
+    }
+  }
+
+  // UserCommunity에서 유저게시글ID를 사용
+  Future<DocumentSnapshot> getUserPostDetails(String postId) async {
+    try {
+      final postDocument = await _firestore.collection('UserCommunity').doc(postId).get();
+      return postDocument;
+    } catch (e) {
+      throw Exception('게시물을 불러오는 중에 오류가 발생했습니다: $e');
+    }
+  }
+
   // 사용자가 좋아요한 경매게시글을 가져오는 함수
   Stream<QuerySnapshot> _getAuctionLikesStream() {
     return _firestore.collection('User').doc(_userID).collection('auctionLikes').snapshots();
-  }  // auctionLikes 라는 서브컬렉션을 만들어야함. 그리고 서브컬렉션마다 각 게시물 ID가 들어가야함.
+  }
 
   // 사용자가 좋아요한 유저게시글을 가져오는 함수
   Stream<QuerySnapshot> _getUserLikesStream() {
