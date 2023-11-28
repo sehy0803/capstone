@@ -732,15 +732,15 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
         await doc.reference.delete();
       }
 
-      var auctionLikesQuery = await _firestore
+      var auctionLikesDocument  = await _firestore
           .collection('User')
           .doc(userUID)
           .collection('auctionLikes')
-          .where('auctionId', isEqualTo: postId)
+          .doc(postId)
           .get();
 
-      for (var doc in auctionLikesQuery.docs) {
-        await doc.reference.delete();
+      if (auctionLikesDocument.exists) {
+        await auctionLikesDocument.reference.delete();
       }
 
       var chatQuery = await _firestore
@@ -835,7 +835,6 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
       'liked': isLiked
     });
 
-
     if (isLiked) {
       addPostToAuctionLikes(widget.documentId);
     } else {
@@ -854,7 +853,6 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
 
     // 사용자가 게시물에 좋아요를 누른 경우, 해당 게시물의 ID로 새로운 문서 추가
     await auctionLikesCollection.doc(postID).set({
-      'auctionId': widget.documentId,
       'liked': true,
       'postType': 'AuctionCommunity' // 경매 게시글임을 나타내는 특정 필드 추가
     });

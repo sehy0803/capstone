@@ -642,12 +642,18 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
     // 컬렉션에서 해당 게시글의 ID를 가진 문서를 찾아 삭제
     var userSnapshots = await _firestore.collection('User').get();
     for (var userSnapshot in userSnapshots.docs) {
-      await _firestore
+      String userUID = userSnapshot.id;
+
+      var userLikesDocument  = await _firestore
           .collection('User')
-          .doc(userSnapshot.id)
+          .doc(userUID)
           .collection('userLikes')
           .doc(postId)
-          .delete();
+          .get();
+
+      if (userLikesDocument.exists) {
+        await userLikesDocument.reference.delete();
+      }
     }
   }
 
@@ -760,6 +766,7 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
 
     // 사용자가 게시물에 좋아요를 누른 경우, 해당 게시물의 ID로 새로운 문서 추가
     await userLikesCollection.doc(postID).set({
+      'postId': widget.documentId,
       'liked': true,
       'postType': 'UserCommunity' // 유저 게시글임을 나타내는 특정 필드 추가
     });
