@@ -215,7 +215,9 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
                                               },
                                             ),
                                           ]
-                                      ))),
+                                      )
+                                  )
+                              ),
 
                               // 입찰가 입력
                               Stack(
@@ -308,8 +310,10 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
                         )
                     );
                   }
-              );}),
-        bottomNavigationBar: BottomAppBar());
+              );
+            }
+        )
+    );
   }
 
   //============================================================================
@@ -416,6 +420,8 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
 
   // 경매 종료시 경매 상태를 업데이트 하는 함수
   void updateAuctionEndStatus() async {
+    Map<String, dynamic> times = await getAuctionTimes();
+    DateTime endTime = times['endTime'];
     String postPath = 'AuctionCommunity/${widget.documentId}';
     final winningBidderUID = await getWinningBidderUID();
     if (winningBidderUID.isNotEmpty) {
@@ -445,7 +451,8 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
         'auctionId': widget.documentId,
         'uploaderUID': uploaderUID,
         'winningBidderUID': winningBidderUID,
-        'createdDate': Timestamp.now(),
+        'chatStatus': '진행중',
+        'createDate': endTime,
       });
 
       String chatId = chatRef.id;
