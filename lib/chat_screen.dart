@@ -24,6 +24,10 @@ class _ChatScreenState extends State<ChatScreen> {
 
   String userID = '';
 
+  String auctionPhotoURL = '';
+  String auctionTitle = '';
+  int winningBid = 0;
+
   // 현재 로그인한 유저의 UID 저장
   void getCurrentUser() async {
     final user = _authentication.currentUser;
@@ -38,6 +42,32 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     getCurrentUser();
+    fetchAuctionData();
+  }
+
+  // firestore에서 경매 정보를 가져오는 함수
+  Future<Map<String, dynamic>> getAuctionData() async {
+    final document = await _firestore.collection('AuctionCommunity').doc(widget.auctionId).get();
+    final data = document.data();
+
+    final auctionPhotoURL = data!['photoURL'] as String;
+    final auctionTitle = data!['title'] as String;
+    final winningBid = data['winningBid'] as int;
+
+    return {
+      'auctionPhotoURL': auctionPhotoURL,
+      'auctionTitle': auctionTitle,
+      'winningBid': winningBid,
+    };
+  }
+
+  Future<void> fetchAuctionData() async {
+    final auctionData = await getAuctionData();
+    setState(() {
+      auctionPhotoURL = auctionData['auctionPhotoURL'];
+      auctionTitle = auctionData['auctionTitle'];
+      winningBid = auctionData['winningBid'];
+    });
   }
 
   @override
@@ -45,15 +75,15 @@ class _ChatScreenState extends State<ChatScreen> {
     return Scaffold(
       backgroundColor: Color(0xffCEE3F6),
         appBar: PreferredSize(
-          preferredSize: Size.fromHeight(150),
+          preferredSize: Size.fromHeight(137),
           child: Container(
             decoration: BoxDecoration(
               color: Colors.white,
               boxShadow: [
                 BoxShadow(
                   color: Colors.black12,
-                  offset: Offset(0, 6),
-                  blurRadius: 7, // how blurry the shadow should be
+                  offset: Offset(0, 4),
+                  blurRadius: 4, // how blurry the shadow should be
                 )
               ]
             ),
@@ -70,6 +100,47 @@ class _ChatScreenState extends State<ChatScreen> {
                       iconSize: 30,
                       color: Colors.black,
                     ),
+                    actions: [
+                      IconButton(
+                        onPressed: () { },
+                        icon: Icon(Icons.more_vert),
+                        iconSize: 30,
+                        color: Colors.black,
+                      ),
+                    ],
+                  ),
+                  Container(
+                    color: Colors.black12,
+                    height: 1,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.photo, color: Colors.blue[100], size: 80),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(auctionTitle, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                              SizedBox(height: 5),
+                              Text('$winningBid', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue)),
+                            ],
+                          ),
+                        ],
+                      ),
+                      Container(
+                        margin: EdgeInsets.only(right: 10.0),
+                        child: SizedBox(
+                          width: 80,
+                          height: 60,
+                          child: OutlinedButton(
+                            onPressed: () {},
+                            child: Text('거래중', style: TextStyle(fontSize: 16)),
+                          ),
+                        ),
+                      )
+                    ],
                   )
                 ]),
           ),
@@ -137,6 +208,13 @@ class _ChatScreenState extends State<ChatScreen> {
                                                   ? Colors.yellow
                                                   : Colors.white,
                                               borderRadius: BorderRadius.circular(8.0),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.black12,
+                                                    offset: Offset(0, 2),
+                                                    blurRadius: 2, // how blurry the shadow should be
+                                                  )
+                                                ]
                                             ),
                                             child: Text(text, style: TextStyle(fontSize: 16.0),
                                             ),
