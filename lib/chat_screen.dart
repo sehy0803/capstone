@@ -44,18 +44,36 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xffCEE3F6),
-      appBar: AppBar(
-        title: Text('채팅', style: TextStyle(color: Colors.black, fontSize: 20)),
-        backgroundColor: Colors.white,
-        automaticallyImplyLeading: false,
-        leading: IconButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          icon: Icon(Icons.close),
-          iconSize: 30,
-          color: Colors.black,
-        ),
+        appBar: PreferredSize(
+          preferredSize: Size.fromHeight(150),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black12,
+                  offset: Offset(0, 6),
+                  blurRadius: 7, // how blurry the shadow should be
+                )
+              ]
+            ),
+            child: Column(
+                children: [
+                  AppBar(
+                    elevation: 0,
+                    backgroundColor: Colors.white,
+                    leading: IconButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      icon: Icon(Icons.arrow_back_ios_rounded),
+                      iconSize: 30,
+                      color: Colors.black,
+                    ),
+                  )
+                ]),
+          ),
+
       ),
       body: Column(
         children: [
