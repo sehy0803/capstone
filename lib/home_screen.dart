@@ -14,6 +14,20 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final _firestore = FirebaseFirestore.instance;
 
+  PageController _pageController = PageController(initialPage: 0);
+  int currentPage = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: 0);
+    _pageController.addListener(() {
+      setState(() {
+        currentPage = _pageController.page?.round() ?? 0;
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -54,8 +68,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 return Image.asset('assets/images/logo.png');
               }
 
-              PageController _pageController = PageController(initialPage: 0);
-
               // 최대 3개의 항목만 표시
               int itemCount = auctions.length > 3 ? 3 : auctions.length;
 
@@ -93,12 +105,20 @@ class _HomeScreenState extends State<HomeScreen> {
                             height: 180,
                             child: Image.network(photoURL, fit: BoxFit.contain),
                           ),
-
                           Positioned(
                             bottom: 10.0,
                             right: 10.0,
-                            child: Text('${(_pageController.page?.round() ?? 0) + 1} / ${itemCount ?? 0}',
-                              style: TextStyle(color: Colors.white, fontSize: 16),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(30.0),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(' ${currentPage + 1}/$itemCount ',
+                                  style: TextStyle(color: Colors.white, fontSize: 14),
+                                ),
+                              ),
                             ),
                           ),
                         ],
@@ -109,8 +129,18 @@ class _HomeScreenState extends State<HomeScreen> {
               );
             },
           ),
+          SizedBox(height: 10),
           Center(
-            child: Text('실시간 인기 경매', style: TextStyle(fontSize: 20)),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.favorite, size: 25, color: Colors.amber),
+                SizedBox(width: 10),
+                Text('실시간 인기 경매', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                SizedBox(width: 10),
+                Icon(Icons.favorite, size: 25, color: Colors.amber),
+              ],
+            ),
           ),
           SizedBox(height: 20),
 
