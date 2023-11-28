@@ -190,7 +190,7 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
           Timestamp endTime = Timestamp.fromDate(startTime.toDate().add(Duration(minutes: 30)));
           int remainingTime = startTime.toDate().difference(createDate.toDate()).inSeconds;
 
-          await _firestore.collection('AuctionCommunity').add({
+          DocumentReference auctionRef = await _firestore.collection('AuctionCommunity').add({
             // 유저 정보
             'uploaderUID': uploaderUID, // 업로더 uid
             'winningBidderUID': winningBidderUID, // 낙찰자 uid
@@ -212,6 +212,17 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
             'endTime': endTime, // 경매 종료 시간. 경매 시작 시간 + 30분
             'remainingTime': remainingTime, // 경매 종료까지 "남은 시간"
           });
+
+          String documentId = auctionRef.id;
+
+          // 등록한 경매 정보 추가
+          await _firestore.collection('User').doc(uploaderUID)
+              .collection('registeredAuction')
+              .add({
+            'auctionId': documentId,
+            'timestamp': Timestamp.now(),
+          });
+
         } catch (e) {
           print('데이터 저장 오류: $e');
         }
