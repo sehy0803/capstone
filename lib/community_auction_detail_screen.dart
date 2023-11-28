@@ -440,6 +440,28 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
           'timestamp': Timestamp.now()});
       }
 
+      // 채팅방 생성
+      DocumentReference chatRef = await _firestore.collection('Chat').add({
+        'auctionId': widget.documentId,
+        'uploaderUID': uploaderUID,
+        'winningBidderUID': winningBidderUID,
+        'createdDate': Timestamp.now(),
+      });
+
+      String chatId = chatRef.id;
+
+      // User 컬렉션 > chat 컬렉션에 채팅방 정보 저장
+      await _firestore.collection('User').doc(uploaderUID)
+          .collection('chat').add({
+        'chatId' : chatId,
+      });
+
+      // User 컬렉션 > chat 컬렉션에 채팅방 정보 저장
+      await _firestore.collection('User').doc(winningBidderUID)
+          .collection('chat').add({
+        'chatId' : chatId,
+      });
+
     } else {
       // 최고 입찰자가 없는 경우
       await _firestore.doc(postPath).update({
@@ -675,26 +697,62 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
     // 컬렉션에서 해당 게시글의 ID를 가진 문서를 찾아 삭제
     var userSnapshots = await _firestore.collection('User').get();
     for (var userSnapshot in userSnapshots.docs) {
-      await _firestore
+      String userUID = userSnapshot.id;
+
+      var registeredAuctionsQuery = await _firestore
           .collection('User')
-          .doc(userSnapshot.id)
+          .doc(userUID)
+          .collection('registeredAuctions')
+          .where('auctionId', isEqualTo: postId)
+          .get();
+
+      for (var doc in registeredAuctionsQuery.docs) {
+        await doc.reference.delete();
+      }
+
+      var participatedInAuctionsQuery = await _firestore
+          .collection('User')
+          .doc(userUID)
           .collection('participatedInAuctions')
-          .doc(postId)
-          .delete();
+          .where('auctionId', isEqualTo: postId)
+          .get();
 
-      await _firestore
-          .collection('User')
-          .doc(userSnapshot.id)
-          .collection('winningAuction')
-          .doc(postId)
-          .delete();
+      for (var doc in participatedInAuctionsQuery.docs) {
+        await doc.reference.delete();
+      }
 
-      await _firestore
+      var winningAuctionsQuery = await _firestore
           .collection('User')
-          .doc(userSnapshot.id)
+          .doc(userUID)
+          .collection('winningAuctions')
+          .where('auctionId', isEqualTo: postId)
+          .get();
+
+      for (var doc in winningAuctionsQuery.docs) {
+        await doc.reference.delete();
+      }
+
+      var auctionLikesQuery = await _firestore
+          .collection('User')
+          .doc(userUID)
           .collection('auctionLikes')
-          .doc(postId)
-          .delete();
+          .where('auctionId', isEqualTo: postId)
+          .get();
+
+      for (var doc in auctionLikesQuery.docs) {
+        await doc.reference.delete();
+      }
+
+      var chatQuery = await _firestore
+          .collection('User')
+          .doc(userUID)
+          .collection('chat')
+          .where('auctionId', isEqualTo: postId)
+          .get();
+
+      for (var doc in chatQuery.docs) {
+        await doc.reference.delete();
+      }
     }
   }
 
@@ -796,6 +854,7 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
 
     // 사용자가 게시물에 좋아요를 누른 경우, 해당 게시물의 ID로 새로운 문서 추가
     await auctionLikesCollection.doc(postID).set({
+      'auctionId': widget.documentId,
       'liked': true,
       'postType': 'AuctionCommunity' // 경매 게시글임을 나타내는 특정 필드 추가
     });

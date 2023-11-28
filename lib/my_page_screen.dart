@@ -3,7 +3,7 @@ import 'package:capstone/custom_widget.dart';
 import 'package:capstone/participated_in_auctions_screen.dart';
 import 'package:capstone/profile_edit_screen.dart';
 import 'package:capstone/profile_setting_screen.dart';
-import 'package:capstone/registered_auction_screen.dart';
+import 'package:capstone/registered_auctions_screen.dart';
 import 'package:capstone/winning_auctions_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -130,7 +130,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
                               context,
                               MaterialPageRoute(
                                 builder: (context) {
-                                  return RegisteredAuctionScreen(userID: userID);
+                                  return RegisteredAuctionsScreen(userID: userID);
                                 },
                               ),
                             );
@@ -140,7 +140,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
                   ),
                   // 등록한 경매
                   StreamBuilder<QuerySnapshot>(
-                    stream: _firestore.collection('User/$userID/registeredAuction')
+                    stream: _firestore.collection('User/$userID/registeredAuctions')
                         .orderBy('timestamp', descending: true).snapshots(),
                     builder: (context, snapshot) {
                       if (!snapshot.hasData) {return Center(child: CircularProgressIndicator());}

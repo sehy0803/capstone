@@ -45,7 +45,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
         backgroundColor: Colors.white,
         appBar: AppBar(
           title:
-          Text('커뮤니티', style: TextStyle(color: Colors.black, fontSize: 20)),
+          Text('관심목록', style: TextStyle(color: Colors.black, fontSize: 20)),
           backgroundColor: Colors.white,
           automaticallyImplyLeading: false,
           elevation: 0,

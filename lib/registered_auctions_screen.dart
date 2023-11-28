@@ -3,18 +3,18 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-class RegisteredAuctionScreen extends StatefulWidget {
+class RegisteredAuctionsScreen extends StatefulWidget {
   final String userID;
 
-  RegisteredAuctionScreen({
+  RegisteredAuctionsScreen({
     required this.userID,
   });
 
   @override
-  _RegisteredAuctionScreenState createState() => _RegisteredAuctionScreenState();
+  _RegisteredAuctionsScreenState createState() => _RegisteredAuctionsScreenState();
 }
 
-class _RegisteredAuctionScreenState extends State<RegisteredAuctionScreen> {
+class _RegisteredAuctionsScreenState extends State<RegisteredAuctionsScreen> {
   final _firestore = FirebaseFirestore.instance;
 
   @override
@@ -38,7 +38,7 @@ class _RegisteredAuctionScreenState extends State<RegisteredAuctionScreen> {
       body: SingleChildScrollView(
         child: // 등록한 경매
         StreamBuilder<QuerySnapshot>(
-          stream: _firestore.collection('User/${widget.userID}/registeredAuction')
+          stream: _firestore.collection('User/${widget.userID}/registeredAuctions')
               .orderBy('timestamp', descending: true).snapshots(),
           builder: (context, snapshot) {
             if (!snapshot.hasData) {return Center(child: CircularProgressIndicator());}

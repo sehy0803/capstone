@@ -186,8 +186,8 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
 
           // 시간 정보
           Timestamp createDate = Timestamp.now();
-          Timestamp startTime = Timestamp.fromDate(createDate.toDate().add(Duration(minutes: 3)));
-          Timestamp endTime = Timestamp.fromDate(startTime.toDate().add(Duration(minutes: 30)));
+          Timestamp startTime = Timestamp.fromDate(createDate.toDate().add(Duration(minutes: 2)));
+          Timestamp endTime = Timestamp.fromDate(startTime.toDate().add(Duration(minutes: 2)));
           int remainingTime = startTime.toDate().difference(createDate.toDate()).inSeconds;
 
           DocumentReference auctionRef = await _firestore.collection('AuctionCommunity').add({
@@ -217,7 +217,7 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
 
           // 등록한 경매 정보 추가
           await _firestore.collection('User').doc(uploaderUID)
-              .collection('registeredAuction')
+              .collection('registeredAuctions')
               .add({
             'auctionId': documentId,
             'timestamp': Timestamp.now(),
