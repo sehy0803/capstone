@@ -112,11 +112,12 @@ class _ChatScreenState extends State<ChatScreen> {
                                             : MainAxisAlignment.start,
                                         children: [
                                           Container(
+                                            constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width - 100),
                                             padding: EdgeInsets.all(12.0),
                                             decoration: BoxDecoration(
                                               color: isCurrentUser
-                                                  ? Colors.blue
-                                                  : Colors.grey[200],
+                                                  ? Colors.yellow
+                                                  : Colors.white,
                                               borderRadius: BorderRadius.circular(8.0),
                                             ),
                                             child: Text(text, style: TextStyle(fontSize: 16.0),
@@ -176,9 +177,13 @@ class _ChatScreenState extends State<ChatScreen> {
                               borderRadius: BorderRadius.circular(0.0),
                             ),
                           ),
-                          child: IconButton(icon: Icon(Icons.send_rounded),
-                              padding: EdgeInsets.zero,
-                              onPressed: (){})
+                          child: IconButton(
+                              onPressed: (){
+                                _sendMessage(_messageController.text);
+                              },
+                              icon: Icon(Icons.send_rounded),
+                              padding: EdgeInsets.zero
+                          )
                       )
                   )
                 ]
@@ -192,4 +197,19 @@ class _ChatScreenState extends State<ChatScreen> {
 
     );
   }
+
+  void _sendMessage(String text) async {
+    _messageController.clear();
+
+    if (text.isNotEmpty) {
+      CollectionReference messagesCollection = _firestore.collection('Chat').doc(widget.chatId).collection('messages');
+
+      await messagesCollection.add({
+        'senderUid': userID,
+        'text': text,
+        'timestamp': Timestamp.now(),
+      });
+    }
+  }
+
 }
