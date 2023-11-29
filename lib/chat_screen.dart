@@ -101,23 +101,24 @@ class _ChatScreenState extends State<ChatScreen> {
 
                     // 거래 취소하기 버튼
                     actions: [
-                      PopupMenuButton<String>(
-                        icon: Icon(Icons.more_vert, color: Colors.black, size: 30),
-                        offset: Offset(0, 60),
-                        onSelected: (value) {
-                          if (value == 'cancel') {
-                            showDialogCancel(context);
-                          }
-                        },
-                        itemBuilder: (BuildContext context) {
-                          return [
-                            PopupMenuItem<String>(
-                              value: 'cancel',
-                              child: Text('거래 취소하기'),
-                            ),
-                          ];
-                        },
-                      ),
+                      if (chatStatus == '진행중')
+                        PopupMenuButton<String>(
+                          icon: Icon(Icons.more_vert, color: Colors.black, size: 30),
+                          offset: Offset(0, 60),
+                          onSelected: (value) {
+                            if (value == 'cancel') {
+                              showDialogCancel(context);
+                            }
+                          },
+                          itemBuilder: (BuildContext context) {
+                            return [
+                              PopupMenuItem<String>(
+                                value: 'cancel',
+                                child: Text('거래 취소하기'),
+                              ),
+                            ];
+                          },
+                        ),
                     ],
                   ),
                   Container(
