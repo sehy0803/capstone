@@ -17,6 +17,7 @@ class _SearchScreenState extends State<SearchScreen> {
   List<DocumentSnapshot> _searchResults = [];
   List<String> documentIds = [];
   FocusNode _searchFocus = FocusNode();
+  bool isSearching = false;
 
   @override
   void initState() {
@@ -70,7 +71,10 @@ class _SearchScreenState extends State<SearchScreen> {
                 color: Colors.black,
               ),
             ]),
-        body: ListView.builder(
+        body:
+        (_searchResults.isEmpty && isSearching)
+            ? Center(child: Text("검색 결과가 없습니다.", style: TextStyle(fontSize: 16, color: Colors.grey)))
+            : ListView.builder(
           itemCount: _searchResults.length,
           itemBuilder: (context, index) {
             // 경매 정보
@@ -181,6 +185,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
       setState(() {
         _searchResults = querySnapshot.docs;
+        isSearching = true;
       });
     }
   }

@@ -65,7 +65,7 @@ class _HomeScreenState extends State<HomeScreen> {
               var auctions = snapshot.data!.docs;
 
               if (auctions == null || auctions.isEmpty) {
-                return Image.asset('assets/images/logo.png');
+                return Image.asset('assets/images/logo.png', height: 180);
               }
 
               // 최대 3개의 항목만 표시

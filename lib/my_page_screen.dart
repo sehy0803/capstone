@@ -147,7 +147,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
                       if (snapshot.hasError) {return Center(child: Text('데이터를 불러올 수 없습니다.'));}
                       var auctions = snapshot.data!.docs;
                       if (auctions == null || auctions.isEmpty) {
-                        return Center(child: Text('아직 경매를 등록하지 않았습니다.',
+                        return Center(child: Text('아직 등록한 경매가 없습니다.',
                             style: TextStyle(fontSize: 16, color: Colors.grey)));
                       }
                       // 최대 3개의 항목만 표시
@@ -295,7 +295,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
                       if (snapshot.hasError) {return Center(child: Text('데이터를 불러올 수 없습니다.'));}
                       var auctions = snapshot.data!.docs;
                       if (auctions == null || auctions.isEmpty) {
-                        return Center(child: Text('아직 경매에 참여하지 않았습니다.',
+                        return Center(child: Text('아직 참여한 경매가 없습니다.',
                             style: TextStyle(fontSize: 16, color: Colors.grey)));
                       }
                       // 최대 3개의 항목만 표시

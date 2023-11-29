@@ -47,7 +47,7 @@ class _ParticipatedInAuctionsScreenState extends State<ParticipatedInAuctionsScr
             if (auctions == null || auctions.isEmpty) {
               return Padding(
                 padding: const EdgeInsets.all(20.0),
-                child: Center(child: Text('아직 경매에 참여하지 않았습니다.',
+                child: Center(child: Text('아직 참여한 경매가 없습니다.',
                     style: TextStyle(fontSize: 16, color: Colors.grey))),
               );
             }
