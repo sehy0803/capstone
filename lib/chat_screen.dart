@@ -197,11 +197,11 @@ class _ChatScreenState extends State<ChatScreen> {
                       Container(
                         margin: EdgeInsets.only(right: 10.0),
                         child: SizedBox(
-                          width: 80,
-                          height: 60,
+                          width: 120,
+                          height: 65,
                           child: OutlinedButton(
                             onPressed: () {},
-                            child: Text('거래중', style: TextStyle(fontSize: 16)),
+                            child: Text('거래 완료', style: TextStyle(fontSize: 16)),
                           ),
                         ),
                       )
@@ -398,7 +398,7 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  // 게시물 삭제 확인 AlertDialog 표시
+  // 거래 취소하기 확인 AlertDialog 표시
   void showDialogCancel(BuildContext context) {
     showDialog(
       context: context,
@@ -484,6 +484,54 @@ class _ChatScreenState extends State<ChatScreen> {
         await doc.reference.delete();
       }
     }
+  }
+
+  // 거래 완료 확인 AlertDialog 표시
+  void showDialogComplete(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('거래 완료하기'),
+          content: Text('거래를 종료하시겠습니까?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text('취소'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                completeTransaction();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      '거래가 완료되었습니다.',
+                      style: TextStyle(fontSize: 16, color: Colors.white),
+                    ),
+                    dismissDirection: DismissDirection.up,
+                    duration: Duration(milliseconds: 1500),
+                    backgroundColor: Colors.black,
+                  ),
+                );
+              },
+              child: Text('확인'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // 거래 완료. chatStatus 업데이트 함수
+  Future<void> completeTransaction() async {
+    Navigator.pop(context);
+
+    await _firestore.collection('Chat').doc(widget.chatId).update({
+      'chatStatus': '완료'
+    });
   }
 
 }

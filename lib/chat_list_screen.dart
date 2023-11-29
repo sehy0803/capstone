@@ -159,39 +159,48 @@ class _ChatListScreenState extends State<ChatListScreen> {
                                     padding: const EdgeInsets.all(10.0),
                                     child: Container(
                                       child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                         children: [
                                           _buildAuctionImage(photoURL),
                                           SizedBox(width: 10),
                                           Expanded(
                                             child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
+                                              crossAxisAlignment: CrossAxisAlignment.start,
                                               children: [
                                                 Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceBetween,
+                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                   children: [
-                                                    Text(title,
-                                                        style: TextStyle(
-                                                            fontSize: 16,
-                                                            fontWeight:
-                                                                FontWeight
-                                                                    .bold)),
-                                                    Text(formattedTimestamp,
-                                                        style: TextStyle(
-                                                            fontSize: 12,
-                                                            color: Colors
-                                                                .black26)),
+                                                    Row(
+                                                      children: [
+                                                        // 경매 상태
+                                                        Container(
+                                                            decoration: BoxDecoration(
+                                                              color: _getStatusColor(chatStatus),
+                                                              borderRadius: BorderRadius.circular(10.0),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                  color: Colors.grey, // 그림자 색상
+                                                                  offset: Offset(0, 2), // 그림자의 위치 (가로, 세로)
+                                                                  blurRadius: 4.0, // 그림자의 흐림 정도
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: Padding(
+                                                              padding: const EdgeInsets.all(4.0),
+                                                              child: Text(chatStatus,
+                                                                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)
+                                                              ),
+                                                            )
+                                                        ),
+                                                        SizedBox(width: 10),
+                                                        Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                                                      ],
+                                                    ),
+                                                    Text(formattedTimestamp, style: TextStyle(fontSize: 12, color: Colors.black26)),
                                                   ],
                                                 ),
                                                 SizedBox(height: 5),
-                                                Text(lastMessageText,
-                                                    style: TextStyle(
-                                                        fontSize: 14,
-                                                        color: Colors.black45)),
+                                                Text(lastMessageText, style: TextStyle(fontSize: 14, color: Colors.black45)),
                                               ],
                                             ),
                                           )
@@ -235,5 +244,14 @@ class _ChatListScreenState extends State<ChatListScreen> {
         ),
       ),
     );
+  }
+
+  // 상태에 따라 다른 색상 적용
+  Color _getStatusColor(String chatStatus) {
+    if (chatStatus == '진행중') {
+      return Colors.green; // 녹색
+    } else {
+      return Colors.blue; // 파란색
+    }
   }
 }
