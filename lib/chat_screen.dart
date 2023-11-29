@@ -26,6 +26,10 @@ class _ChatScreenState extends State<ChatScreen> {
 
   String auctionPhotoURL = '';
   String auctionTitle = '';
+  String uploaderUID = '';
+  String uploaderNickname = '';
+  String winningBidderUID = '';
+  String winningBidderNickname = '';
   int winningBid = 0;
 
   // 현재 로그인한 유저의 UID 저장
@@ -42,31 +46,74 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     getCurrentUser();
-    fetchAuctionData();
+    fetchAuctionData().then((_) {
+      fetchUserData();
+    });
   }
 
   // firestore에서 경매 정보를 가져오는 함수
   Future<Map<String, dynamic>> getAuctionData() async {
-    final document = await _firestore.collection('AuctionCommunity').doc(widget.auctionId).get();
-    final data = document.data();
+    // 경매 정보
+    final auctionDocument = await _firestore.collection('AuctionCommunity').doc(widget.auctionId).get();
+    final auctionData = auctionDocument.data();
 
-    final auctionPhotoURL = data!['photoURL'] as String;
-    final auctionTitle = data!['title'] as String;
-    final winningBid = data['winningBid'] as int;
+    final auctionPhotoURL = auctionData!['photoURL'] as String;
+    final auctionTitle = auctionData!['title'] as String;
+    final uploaderUID = auctionData!['uploaderUID'] as String;
+    final winningBidderUID = auctionData!['winningBidderUID'] as String;
+    final winningBid = auctionData['winningBid'] as int;
 
     return {
+      // 경매 정보
       'auctionPhotoURL': auctionPhotoURL,
       'auctionTitle': auctionTitle,
+      'uploaderUID': uploaderUID,
+      'winningBidderUID': winningBidderUID,
       'winningBid': winningBid,
     };
   }
 
+  // firestore에서 유저 정보를 가져오는 함수
+  Future<Map<String, dynamic>> getUserData() async {
+    // 업로더 정보
+    final uploaderDocument = await _firestore.collection('User').doc(uploaderUID).get();
+    final uploaderData = uploaderDocument.data();
+
+    final uploaderNickname = uploaderData!['nickname'] as String;
+
+    // 낙찰자 정보
+    final winningBidderDocument = await _firestore.collection('User').doc(winningBidderUID).get();
+    final winningBidderData = winningBidderDocument.data();
+
+    final winningBidderNickname = winningBidderData!['nickname'] as String;
+
+    return {
+      // 유저 정보
+      'uploaderNickname': uploaderNickname,
+      'winningBidderNickname': winningBidderNickname,
+    };
+  }
+
+  // 정보 업데이트
   Future<void> fetchAuctionData() async {
     final auctionData = await getAuctionData();
     setState(() {
+      // 경매 정보
       auctionPhotoURL = auctionData['auctionPhotoURL'];
       auctionTitle = auctionData['auctionTitle'];
+      uploaderUID = auctionData['uploaderUID'];
+      winningBidderUID = auctionData['winningBidderUID'];
       winningBid = auctionData['winningBid'];
+    });
+  }
+
+  // 정보 업데이트
+  Future<void> fetchUserData() async {
+    final userData = await getUserData();
+    setState(() {
+      // 유저 정보
+      uploaderNickname = userData['uploaderNickname'];
+      winningBidderNickname = userData['winningBidderNickname'];
     });
   }
 
@@ -83,13 +130,15 @@ class _ChatScreenState extends State<ChatScreen> {
                 BoxShadow(
                   color: Colors.black12,
                   offset: Offset(0, 4),
-                  blurRadius: 4, // how blurry the shadow should be
+                  blurRadius: 4,
                 )
               ]
             ),
             child: Column(
                 children: [
                   AppBar(
+                    title: Text(userID == uploaderUID ? winningBidderNickname : uploaderNickname,
+                      style: TextStyle(color: Colors.black, fontSize: 20)),
                     elevation: 0,
                     backgroundColor: Colors.white,
                     leading: IconButton(
@@ -100,12 +149,25 @@ class _ChatScreenState extends State<ChatScreen> {
                       iconSize: 30,
                       color: Colors.black,
                     ),
+
+                    // 거래 취소하기 버튼
                     actions: [
-                      IconButton(
-                        onPressed: () { },
-                        icon: Icon(Icons.more_vert),
-                        iconSize: 30,
-                        color: Colors.black,
+                      PopupMenuButton<String>(
+                        icon: Icon(Icons.more_vert, color: Colors.black, size: 30),
+                        offset: Offset(0, 60),
+                        onSelected: (value) {
+                          if (value == 'cancel') {
+                            showDialogCancel(context);
+                          }
+                        },
+                        itemBuilder: (BuildContext context) {
+                          return [
+                            PopupMenuItem<String>(
+                              value: 'cancel',
+                              child: Text('거래 취소하기'),
+                            ),
+                          ];
+                        },
                       ),
                     ],
                   ),
@@ -118,11 +180,14 @@ class _ChatScreenState extends State<ChatScreen> {
                     children: [
                       Row(
                         children: [
-                          Icon(Icons.photo, color: Colors.blue[100], size: 80),
+                          _buildAuctionImage(auctionPhotoURL),
+                          SizedBox(width: 10),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(auctionTitle, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                              SizedBox(
+                                  width: 170,
+                                  child: Text(auctionTitle, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
                               SizedBox(height: 5),
                               Text('$winningBid', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue)),
                             ],
@@ -294,6 +359,8 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
+  //============================================================================
+  // 채팅 전송 함수
   void _sendMessage(String text) async {
     _messageController.clear();
 
@@ -305,6 +372,117 @@ class _ChatScreenState extends State<ChatScreen> {
         'text': text,
         'timestamp': Timestamp.now(),
       });
+    }
+  }
+
+  // 경매 상품 사진을 표시하는 함수
+  Widget _buildAuctionImage(String auctionImageURL) {
+    double _imageSize = 80.0;
+    if (auctionImageURL.isNotEmpty) {
+      return Center(
+        child: Container(
+          width: _imageSize,
+          height: _imageSize,
+          child: Image.network(
+            auctionImageURL,
+            width: _imageSize,
+            height: _imageSize,
+            fit: BoxFit.cover,
+          ),
+        ),
+      );
+    } else {
+      return Center(
+        child: Text("이미지 없음"),
+      );
+    }
+  }
+
+  // 게시물 삭제 확인 AlertDialog 표시
+  void showDialogCancel(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('거래 취소하기'),
+          content: Text('거래를 취소하시겠습니까?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text('취소'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                cancelTransaction();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      '거래가 취소되었습니다.',
+                      style: TextStyle(fontSize: 16, color: Colors.white),
+                    ),
+                    dismissDirection: DismissDirection.up,
+                    duration: Duration(milliseconds: 1500),
+                    backgroundColor: Colors.black,
+                  ),
+                );
+              },
+              child: Text('확인'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // 채팅방 삭제 함수
+  Future<void> cancelTransaction() async {
+    Navigator.pop(context);
+    try {
+      // Firestore에서 채팅방 삭제하기 전에 해당 채팅방의 DocumentSnapshot을 가져오기
+      final chatSnapshot = await _firestore
+          .collection('Chat')
+          .doc(widget.chatId)
+          .get();
+
+      if (chatSnapshot.exists) {
+        // DocumentSnapshot이 존재하는 경우에만 채팅방을 삭제
+        await _firestore
+            .collection('Chat')
+            .doc(widget.chatId)
+            .delete();
+
+        // 삭제된 채팅방과 관련된 데이터 삭제
+        await _deleteRelatedData(widget.chatId);
+
+      } else {
+        // DocumentSnapshot이 존재하지 않는 경우에 대한 처리
+        print('채팅방이 이미 삭제되었습니다.');
+      }
+    } catch (e) {
+      print('채팅방 삭제 중 오류 발생: $e');
+    }
+  }
+
+  // User 컬렉션에서 채팅방과 관련된 데이터 삭제 함수
+  Future<void> _deleteRelatedData(String chatId) async {
+    // 컬렉션에서 해당 채팅방의 chatId를 가진 문서를 찾아 삭제
+    var userSnapshots = await _firestore.collection('User').get();
+    for (var userSnapshot in userSnapshots.docs) {
+      String userUID = userSnapshot.id;
+
+      var registeredAuctionsQuery = await _firestore
+          .collection('User')
+          .doc(userUID)
+          .collection('chat')
+          .where('chatId', isEqualTo: chatId)
+          .get();
+
+      for (var doc in registeredAuctionsQuery.docs) {
+        await doc.reference.delete();
+      }
     }
   }
 
