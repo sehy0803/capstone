@@ -32,6 +32,8 @@ class _ChatScreenState extends State<ChatScreen> {
   String winningBidderNickname = '';
   int winningBid = 0;
 
+  String chatStatus = '';
+
   // 현재 로그인한 유저의 UID 저장
   void getCurrentUser() async {
     final user = _authentication.currentUser;
@@ -42,78 +44,25 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  // 현재 chatStatus의 값 가져오기
+  void getChatStatus() async {
+    var chatDocument = await _firestore
+        .collection('Chat')
+        .doc(widget.chatId)
+        .get();
+
+    setState(() {
+      chatStatus = chatDocument.data()!['chatStatus'];
+    });
+  }
+
   @override
   void initState() {
     super.initState();
     getCurrentUser();
+    getChatStatus();
     fetchAuctionData().then((_) {
       fetchUserData();
-    });
-  }
-
-  // firestore에서 경매 정보를 가져오는 함수
-  Future<Map<String, dynamic>> getAuctionData() async {
-    // 경매 정보
-    final auctionDocument = await _firestore.collection('AuctionCommunity').doc(widget.auctionId).get();
-    final auctionData = auctionDocument.data();
-
-    final auctionPhotoURL = auctionData!['photoURL'] as String;
-    final auctionTitle = auctionData!['title'] as String;
-    final uploaderUID = auctionData!['uploaderUID'] as String;
-    final winningBidderUID = auctionData!['winningBidderUID'] as String;
-    final winningBid = auctionData['winningBid'] as int;
-
-    return {
-      // 경매 정보
-      'auctionPhotoURL': auctionPhotoURL,
-      'auctionTitle': auctionTitle,
-      'uploaderUID': uploaderUID,
-      'winningBidderUID': winningBidderUID,
-      'winningBid': winningBid,
-    };
-  }
-
-  // firestore에서 유저 정보를 가져오는 함수
-  Future<Map<String, dynamic>> getUserData() async {
-    // 업로더 정보
-    final uploaderDocument = await _firestore.collection('User').doc(uploaderUID).get();
-    final uploaderData = uploaderDocument.data();
-
-    final uploaderNickname = uploaderData!['nickname'] as String;
-
-    // 낙찰자 정보
-    final winningBidderDocument = await _firestore.collection('User').doc(winningBidderUID).get();
-    final winningBidderData = winningBidderDocument.data();
-
-    final winningBidderNickname = winningBidderData!['nickname'] as String;
-
-    return {
-      // 유저 정보
-      'uploaderNickname': uploaderNickname,
-      'winningBidderNickname': winningBidderNickname,
-    };
-  }
-
-  // 정보 업데이트
-  Future<void> fetchAuctionData() async {
-    final auctionData = await getAuctionData();
-    setState(() {
-      // 경매 정보
-      auctionPhotoURL = auctionData['auctionPhotoURL'];
-      auctionTitle = auctionData['auctionTitle'];
-      uploaderUID = auctionData['uploaderUID'];
-      winningBidderUID = auctionData['winningBidderUID'];
-      winningBid = auctionData['winningBid'];
-    });
-  }
-
-  // 정보 업데이트
-  Future<void> fetchUserData() async {
-    final userData = await getUserData();
-    setState(() {
-      // 유저 정보
-      uploaderNickname = userData['uploaderNickname'];
-      winningBidderNickname = userData['winningBidderNickname'];
     });
   }
 
@@ -194,6 +143,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           ),
                         ],
                       ),
+                      (chatStatus == '완료' && !isCheckUploader(uploaderUID)) ?
                       Container(
                         margin: EdgeInsets.only(right: 10.0),
                         child: SizedBox(
@@ -201,10 +151,23 @@ class _ChatScreenState extends State<ChatScreen> {
                           height: 65,
                           child: OutlinedButton(
                             onPressed: () {},
+                            child: Text('후기 남기기', style: TextStyle(fontSize: 16)),
+                          ),
+                        )
+                      ) : (chatStatus == '진행중' && isCheckUploader(uploaderUID)) ?
+                      Container (
+                        margin: EdgeInsets.only(right: 10.0),
+                        child: SizedBox(
+                          width: 120,
+                          height: 65,
+                          child: OutlinedButton(
+                            onPressed: () {
+                              showDialogComplete(context);
+                            },
                             child: Text('거래 완료', style: TextStyle(fontSize: 16)),
                           ),
                         ),
-                      )
+                      ) : SizedBox()
                     ],
                   )
                 ]),
@@ -292,7 +255,6 @@ class _ChatScreenState extends State<ChatScreen> {
                                   }
                                 },
                               );
-
                     }
                   );
                 }
@@ -373,6 +335,79 @@ class _ChatScreenState extends State<ChatScreen> {
         'timestamp': Timestamp.now(),
       });
     }
+  }
+
+  // 업로더의 uid와 현재 로그인한 사용자의 uid 비교
+  bool isCheckUploader(String uploaderUID) {
+    return userID == uploaderUID;
+  }
+
+  // ===========================================================================
+
+  // firestore에서 경매 정보를 가져오는 함수
+  Future<Map<String, dynamic>> getAuctionData() async {
+    // 경매 정보
+    final auctionDocument = await _firestore.collection('AuctionCommunity').doc(widget.auctionId).get();
+    final auctionData = auctionDocument.data();
+
+    final auctionPhotoURL = auctionData!['photoURL'] as String;
+    final auctionTitle = auctionData!['title'] as String;
+    final uploaderUID = auctionData!['uploaderUID'] as String;
+    final winningBidderUID = auctionData!['winningBidderUID'] as String;
+    final winningBid = auctionData['winningBid'] as int;
+
+    return {
+      // 경매 정보
+      'auctionPhotoURL': auctionPhotoURL,
+      'auctionTitle': auctionTitle,
+      'uploaderUID': uploaderUID,
+      'winningBidderUID': winningBidderUID,
+      'winningBid': winningBid,
+    };
+  }
+
+  // firestore에서 유저 정보를 가져오는 함수
+  Future<Map<String, dynamic>> getUserData() async {
+    // 업로더 정보
+    final uploaderDocument = await _firestore.collection('User').doc(uploaderUID).get();
+    final uploaderData = uploaderDocument.data();
+
+    final uploaderNickname = uploaderData!['nickname'] as String;
+
+    // 낙찰자 정보
+    final winningBidderDocument = await _firestore.collection('User').doc(winningBidderUID).get();
+    final winningBidderData = winningBidderDocument.data();
+
+    final winningBidderNickname = winningBidderData!['nickname'] as String;
+
+    return {
+      // 유저 정보
+      'uploaderNickname': uploaderNickname,
+      'winningBidderNickname': winningBidderNickname,
+    };
+  }
+
+  // 정보 업데이트
+  Future<void> fetchAuctionData() async {
+    final auctionData = await getAuctionData();
+    setState(() {
+      // 경매 정보
+      auctionPhotoURL = auctionData['auctionPhotoURL'];
+      auctionTitle = auctionData['auctionTitle'];
+      uploaderUID = auctionData['uploaderUID'];
+      winningBidderUID = auctionData['winningBidderUID'];
+      winningBid = auctionData['winningBid'];
+    });
+  }
+
+  // 정보 업데이트
+  Future<void> fetchUserData() async {
+    final userData = await getUserData();
+    setState(() {
+      // 유저 정보
+      uploaderNickname = userData['uploaderNickname'];
+      winningBidderNickname = userData['winningBidderNickname'];
+    });
   }
 
   // 경매 상품 사진을 표시하는 함수
