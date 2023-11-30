@@ -41,6 +41,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
         title: Text('채팅', style: TextStyle(color: Colors.black, fontSize: 20)),
         backgroundColor: Colors.white,
         automaticallyImplyLeading: false,
+        elevation: 1,
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: _firestore

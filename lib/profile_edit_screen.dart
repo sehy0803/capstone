@@ -307,7 +307,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
             ),
           ),
         ),
-        // '+' 아이콘
+        // 카메라 아이콘
         Center(
           child: Container(
             alignment: Alignment.bottomRight,

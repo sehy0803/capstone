@@ -115,175 +115,167 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
                         Expanded(
                           child: SingleChildScrollView(
                             child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Padding(
-                                  padding: const EdgeInsets.all(20.0),
+                                  padding: const EdgeInsets.all(10.0),
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      // 게시글 제목
-                                      Text(title, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                                      SizedBox(height: 20),
+                                      Padding(
+                                        padding: const EdgeInsets.all(10.0),
+                                        child: Text(title, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                                      ),
                                       // 유저 정보
                                       Row(
-                                        children: [
-                                          // 글을 올린 유저의 프로필 사진
-                                          _buildUploaderImage(uploaderImageURL),
-                                          SizedBox(width: 10),
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                // 글을 올린 유저의 닉네임
-                                                Text(uploaderNickname, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                                                SizedBox(height: 5),
-                                                Row(
-                                                  children: [
-                                                    Text(formattedCreateDate, style: TextStyle(fontSize: 12, color: Colors.grey, height: 1.5)),
-                                                    SizedBox(width: 3),
-                                                    Text('조회', style: TextStyle(fontSize: 12, color: Colors.grey)),
-                                                    SizedBox(width: 3),
-                                                    Text('$views', style: TextStyle(fontSize: 12, color: Colors.grey, height: 1.5))
-                                                  ],
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          // 좋아요 버튼
-                                          Column(
-                                            children: [
-                                              IconButton(
-                                                onPressed: () {
-                                                  setState(() {
-                                                    isLiked = !isLiked;
-                                                  });
-                                                  saveLikeStatus(isLiked);
-                                                  updateLikeCount(isLiked);
-                                                },
-                                                icon: Icon(
-                                                  isLiked ? Icons.favorite : Icons
-                                                      .favorite_border,
-                                                  color: isLiked ? Colors.red : Colors
-                                                      .grey,
-                                                ),
-                                                iconSize: 35,
-                                                padding: EdgeInsets.zero,
-                                                constraints: BoxConstraints(),
-                                              ),
-                                              // 좋아요 수 표시
-                                              Text('$likes', style: TextStyle(fontSize: 12))
-                                            ],
-                                          ),
-                                        ],
+                                          children: [
+                                            // 글을 올린 유저의 프로필 사진
+                                            _buildUploaderImage(uploaderImageURL),
+                                            SizedBox(width: 5),
+                                            Expanded(
+                                                child: Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      // 글을 올린 유저의 닉네임
+                                                      Text(uploaderNickname,
+                                                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                                                      SizedBox(height: 2),
+                                                      Row(
+                                                          children: [
+                                                            Text(formattedCreateDate,
+                                                                style: TextStyle(fontSize: 12, color: Colors.grey)),
+                                                            SizedBox(width: 3),
+                                                            Text('조회',
+                                                                style: TextStyle(fontSize: 12, color: Colors.grey)),
+                                                            SizedBox(width: 3),
+                                                            Text('$views',
+                                                                style: TextStyle(fontSize: 12, color: Colors.grey))])])),
+
+                                            // 좋아요 버튼
+                                            Column(
+                                                children: [
+                                                  IconButton(
+                                                    onPressed: () {
+                                                      setState(() {isLiked = !isLiked;});
+                                                      saveLikeStatus(isLiked);
+                                                      updateLikeCount(isLiked);
+                                                    },
+                                                    icon: Icon(isLiked ? Icons.favorite : Icons.favorite_border,
+                                                      color: isLiked ? Colors.red : Colors.grey,
+                                                    ),
+                                                    iconSize: 30,
+                                                    padding: EdgeInsets.zero,
+                                                    constraints: BoxConstraints(),
+                                                  ),
+                                                  // 좋아요 수 표시
+                                                  Text('$likes', style: TextStyle(fontSize: 12))
+                                                ]
+                                            )
+                                          ]
                                       ),
                                     ],
                                   ),
                                 ),
                                 Container(height: 1, color: Colors.grey[300]),
-
                                 // 게시글 내용
-                                Padding(
-                                  padding: const EdgeInsets.all(20.0),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(content, style: TextStyle(fontSize: 16)),
-                                      SizedBox(height: 10),
-                                      CommentLine(),
-                                      Row(
-                                        children: [
-                                          Text('댓글', style: TextStyle(fontSize: 14)),
-                                          SizedBox(width: 3),
-                                          Text('$comments', style: TextStyle(fontSize: 14, height: 1.4))
-                                        ],
-                                      ),
-                                      SizedBox(height: 20),
-                                      // 댓글창을 표시하는 부분
-                                      StreamBuilder<QuerySnapshot>(
-                                        stream: _firestore.collection('UserCommunity/${widget.documentId}/Comment')
-                                            .orderBy('timestamp', descending: false).snapshots(),
-                                        builder: (context, snapshot) {
-                                          if (!snapshot.hasData) {return Center(child: CircularProgressIndicator());}
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.all(20.0),
+                                      child: Text(content, style: TextStyle(fontSize: 16)),
+                                    ),
+                                    Container(color: Colors.black12, height: 1),
+                                    Padding(
+                                      padding: const EdgeInsets.all(20.0),
+                                      child: Text('댓글 $comments', style: TextStyle(fontSize: 14)),
+                                    ),
+                                    // 댓글창을 표시하는 부분
+                                    StreamBuilder<QuerySnapshot>(
+                                      stream: _firestore.collection('UserCommunity/${widget.documentId}/Comment')
+                                          .orderBy('timestamp', descending: false).snapshots(),
+                                      builder: (context, snapshot) {
+                                        if (!snapshot.hasData) {return Center(child: CircularProgressIndicator());}
 
-                                          // 댓글이 있는 경우
-                                          var comments = snapshot.data!.docs;
+                                        // 댓글이 있는 경우
+                                        var comments = snapshot.data!.docs;
 
-                                          return Column(
-                                            children: comments.asMap().entries.map((entry) {
-                                              final index = entry.key;
-                                              final commentData = entry.value.data() as Map<String, dynamic>;
+                                        return Column(
+                                          children: comments.asMap().entries.map((entry) {
+                                            final index = entry.key;
+                                            final commentData = entry.value.data() as Map<String, dynamic>;
 
-                                              // 코맨터 정보
-                                              String commenterUID = commentData['commenterUID'] as String;
-                                              String text = commentData['text'] as String;
-                                              Timestamp timestamp = commentData['timestamp'] as Timestamp;
-                                              String formattedTimestamp = DateFormat('yyyy.MM.dd HH:mm').format(timestamp.toDate());
+                                            // 코맨터 정보
+                                            String commenterUID = commentData['commenterUID'] as String;
+                                            String text = commentData['text'] as String;
+                                            Timestamp timestamp = commentData['timestamp'] as Timestamp;
+                                            String formattedTimestamp = DateFormat('yyyy.MM.dd HH:mm').format(timestamp.toDate());
 
-                                              return StreamBuilder<DocumentSnapshot>(
-                                                  stream: _firestore.collection('User').doc(commenterUID).snapshots(),
-                                                  builder: (context, snapshot) {
-                                                    if (!snapshot.hasData) {return Center(child: CircularProgressIndicator());}
+                                            return StreamBuilder<DocumentSnapshot>(
+                                                stream: _firestore.collection('User').doc(commenterUID).snapshots(),
+                                                builder: (context, snapshot) {
+                                                  if (!snapshot.hasData) {return Center(child: CircularProgressIndicator());}
 
-                                                    var commenterData = snapshot.data!.data() as Map<String, dynamic>;
+                                                  var commenterData = snapshot.data!.data() as Map<String, dynamic>;
 
-                                                    // 업로더 정보
-                                                    String commenterImageURL = commenterData['imageURL'] ?? '';
-                                                    String commenterNickname = commenterData['nickname'] ?? '';
+                                                  // 업로더 정보
+                                                  String commenterImageURL = commenterData['imageURL'] ?? '';
+                                                  String commenterNickname = commenterData['nickname'] ?? '';
 
-                                                    return Column(
-                                                      children: [
-                                                        Card(
-                                                          elevation: 0,
-                                                          child: Container(
-                                                            child: Row(
-                                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                                              children: [
-                                                                Row(
-                                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                                  children: [
-                                                                    _buildCommenterImage(commenterImageURL),
-                                                                    SizedBox(width: 10),
-                                                                    Column(
-                                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                                                      children: [
-                                                                        SizedBox(
-                                                                          width: MediaQuery.of(context).size.width- 100,
-                                                                          child: Row(
-                                                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                                            children: [
-                                                                              Text(commenterNickname, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-                                                                              // 댓글 삭제 버튼
-                                                                              _buildDeleteCommenterButton(commenterUID, comments[index].id)
-                                                                            ],
-                                                                          ),
+                                                  return Column(
+                                                    children: [
+                                                      Card(
+                                                        elevation: 0,
+                                                        child: Padding(
+                                                          padding: const EdgeInsets.all(10.0),
+                                                          child: Row(
+                                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                                            children: [
+                                                              Row(
+                                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                                children: [
+                                                                  _buildCommenterImage(commenterImageURL),
+                                                                  SizedBox(width: 10),
+                                                                  Column(
+                                                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                                    children: [
+                                                                      SizedBox(
+                                                                        width: MediaQuery.of(context).size.width- 100,
+                                                                        child: Row(
+                                                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                          children: [
+                                                                            Text(commenterNickname, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                                                                            // 댓글 삭제 버튼
+                                                                            _buildDeleteCommenterButton(commenterUID, comments[index].id)
+                                                                          ],
                                                                         ),
-                                                                        SizedBox(height: 5),
-                                                                        SizedBox(
-                                                                            width: MediaQuery.of(context).size.width - 100,
-                                                                            child: Text(text, style: TextStyle(fontSize: 14), maxLines: 5, overflow: TextOverflow.ellipsis)),
-                                                                        SizedBox(height: 5),
-                                                                        Text(formattedTimestamp, style: TextStyle(fontSize: 12, color: Colors.grey)),
-                                                                      ],
-                                                                    ),
-                                                                  ],
-                                                                ),
-                                                              ],
-                                                            ),
+                                                                      ),
+                                                                      SizedBox(height: 5),
+                                                                      SizedBox(
+                                                                          width: MediaQuery.of(context).size.width - 100,
+                                                                          child: Text(text, style: TextStyle(fontSize: 14), maxLines: 5, overflow: TextOverflow.ellipsis)),
+                                                                      SizedBox(height: 5),
+                                                                      Text(formattedTimestamp, style: TextStyle(fontSize: 12, color: Colors.grey)),
+                                                                    ],
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            ],
                                                           ),
                                                         ),
-                                                        CommentLine()
-                                                      ],
-                                                    );
-                                                  }
-                                              );
-                                            }).toList(),
-                                          );
-                                        },
-                                      )
-                                    ],
-                                  ),
+                                                      ),
+                                                      Container(color: Colors.black12, height: 1)
+                                                    ],
+                                                  );
+                                                }
+                                            );
+                                          }).toList(),
+                                        );
+                                      },
+                                    )
+                                  ],
                                 ),
                               ],
                             ),
@@ -291,58 +283,56 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
                         ),
 
                         // 댓글 입력 버튼
-                        Stack(children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: TextFormField(
-                                  controller: commentController,
-                                  decoration: InputDecoration(
-                                      enabledBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(color: Colors.grey[400]!),
-                                        borderRadius: BorderRadius.all(
-                                            Radius.circular(0.0)),
-                                      ),
-                                      focusedBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(color: Colors.grey[400]!),
-                                        borderRadius: BorderRadius.all(
-                                            Radius.circular(0.0)),
-                                      ),
-                                      hintText: '댓글을 남겨보세요',
-                                      hintStyle: TextStyle(fontSize: 16, color: Colors.grey[400]!),
-                                      contentPadding: EdgeInsets.all(15)),
-                                ),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextFormField(
+                                controller: commentController,
+                                decoration: InputDecoration(
+                                    enabledBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(color: Colors.white),
+                                      borderRadius: BorderRadius.all(
+                                          Radius.circular(0.0)),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(color: Colors.white),
+                                      borderRadius: BorderRadius.all(
+                                          Radius.circular(0.0)),
+                                    ),
+                                    hintText: '댓글을 남겨보세요',
+                                    hintStyle: TextStyle(fontSize: 16, color: Colors.grey),
+                                    contentPadding: EdgeInsets.all(15)),
                               ),
-                              SizedBox(
-                                width: 80,
-                                height: 55,
-                                child: ElevatedButton(
-                                  onPressed: () {
-                                    if(commentController.text.isEmpty){
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(
-                                            content: Text('댓글을 입력해주세요.',
-                                                style: TextStyle(fontSize: 16, color: Colors.white)),
-                                            dismissDirection: DismissDirection.up,
-                                            duration: Duration(milliseconds: 1500),
-                                            backgroundColor: Colors.black,
-                                          )
-                                      );
-                                    } else {
-                                      showDialogAddComment(context);
-                                    }
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: DarkColors.basic,
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(0.0)),
-                                  ),
-                                  child: Text('등록', style: TextStyle(fontSize: 16)),
+                            ),
+                            SizedBox(
+                              width: 80,
+                              height: 55,
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  if(commentController.text.isEmpty){
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text('댓글을 입력해주세요.',
+                                              style: TextStyle(fontSize: 16, color: Colors.white)),
+                                          dismissDirection: DismissDirection.up,
+                                          duration: Duration(milliseconds: 1500),
+                                          backgroundColor: Colors.black,
+                                        )
+                                    );
+                                  } else {
+                                    showDialogAddComment(context);
+                                  }
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: DarkColors.basic,
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(0.0)),
                                 ),
+                                child: Text('등록', style: TextStyle(fontSize: 16)),
                               ),
-                            ],
-                          ),
-                        ]),
+                            ),
+                          ],
+                        ),
                       ],
                     ),
                   );
@@ -574,7 +564,7 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
 
   // 댓글 작성자의 프로필 사진을 표시하는 함수
   Widget _buildCommenterImage(String commenterImageURL) {
-    double _imageSize = 35.0;
+    double _imageSize = 30.0;
     if (commenterImageURL != null && commenterImageURL.isNotEmpty) {
       return SizedBox(
         width: _imageSize,
@@ -597,7 +587,7 @@ class _CommunityUserDetailScreenState extends State<CommunityUserDetailScreen> {
 
   // 업로더의 프로필 사진을 표시하는 함수
   Widget _buildUploaderImage(String uploaderImageURL) {
-    double _imageSize = 50.0;
+    double _imageSize = 40.0;
     if (uploaderImageURL != null && uploaderImageURL.isNotEmpty) {
       return SizedBox(
         width: _imageSize,

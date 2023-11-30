@@ -121,61 +121,65 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                             child: Row(
                               children: [
                                 _buildAuctionImage(photoURL),
-                                SizedBox(width: 10),
                                 Expanded(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
+                                  child: SizedBox(
+                                    height: 100,
+                                    child: Padding(
+                                      padding: const EdgeInsets.fromLTRB(10, 4, 6, 0),
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          // 경매 상태
-                                          Container(
-                                              decoration: BoxDecoration(
-                                                color: _getStatusColor(status),
-                                                borderRadius: BorderRadius
-                                                    .circular(10.0),
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: Colors.grey,
-                                                    offset: Offset(0, 2),
-                                                    blurRadius: 4.0,
+                                          Row(
+                                            children: [
+                                              // 경매 상태
+                                              Container(
+                                                  decoration: BoxDecoration(
+                                                    color: _getStatusColor(status),
+                                                    borderRadius: BorderRadius.circular(6.0),
+                                                    boxShadow: [
+                                                      BoxShadow(
+                                                        color: Colors.black.withOpacity(0.2), // 그림자 색상
+                                                        offset: Offset(1, 1), // 그림자의 위치 (가로, 세로)
+                                                        blurRadius: 2.0, // 그림자의 흐림 정도
+                                                      ),
+                                                    ],
                                                   ),
+                                                  child: Padding(
+                                                    padding: const EdgeInsets.fromLTRB(6, 4, 6, 4),
+                                                    child: Text(status,
+                                                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)
+                                                    ),
+                                                  )
+                                              ),
+                                              SizedBox(width: 8),
+                                              Text(title, style: TextStyle(fontSize: 16)),
+                                            ],
+                                          ),
+                                          Column(
+                                            children: [
+                                              Row(
+                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                children: [
+                                                  Text((status == '낙찰')
+                                                      ? '낙찰가'
+                                                      : (status == '경매 실패')
+                                                      ? '시작가'
+                                                      : '최소 입찰가',
+                                                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold,)),
+                                                  Text('$winningBid원', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.blue)),
                                                 ],
                                               ),
-                                              child: Padding(
-                                                padding: const EdgeInsets
-                                                    .all(6.0),
-                                                child: Text(status,
-                                                    style: TextStyle(
-                                                        fontSize: 16,
-                                                        fontWeight: FontWeight.bold,
-                                                        color: Colors.white)
-                                                ),
-                                              )
-                                          ),
-                                          SizedBox(width: 10),
-                                          Text(title, style: TextStyle(fontSize: 16)),
-                                        ],
-                                      ),
-                                      SizedBox(height: 10),
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text((status == '낙찰')
-                                              ? '낙찰가'
-                                              : (status == '경매 실패')
-                                              ? '경매 실패'
-                                              : '최소 입찰가',
-                                              style: TextStyle(fontSize: 16)),
-                                          Text('$winningBid원',
-                                              style: TextStyle(fontSize: 16, color: Colors.blue)),
-                                        ],
-                                      ),
-                                      // 남은 시간 표시
-                                      buildRemainingTime(status, endTime, remainingTime),
+                                              SizedBox(height: 2),
+                                              // 남은 시간 표시
+                                              buildRemainingTime(status, endTime, remainingTime),
+                                            ],
+                                          )
 
-                                    ],
+
+                                        ],
+                                      ),
+                                    ),
                                   ),
                                 )
                               ],
@@ -222,8 +226,6 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                     int views = postData['views'] as int;
                     int likes = postData['likes'] as int;
                     int comments = postData['comments'] as int;
-                    Timestamp createDate = postData['createDate'] as Timestamp;
-                    String formattedCreatedDate = DateFormat('yyyy.MM.dd HH:mm').format(createDate.toDate());
 
                     return StreamBuilder<DocumentSnapshot>(
                         stream: _firestore.collection('User').doc(uploaderUID).snapshots(),
@@ -235,46 +237,69 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                           // 업로더 정보
                           String uploaderNickname = uploaderData['nickname'] ?? '';
 
-                          return Column(
-                            children: [
-                              Card(
-                                elevation: 0,
-                                child: ListTile(
-                                  title: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(title, style: TextStyle(fontSize: 16)),
-                                      SizedBox(height: 10),
-                                    ],
-                                  ),
-                                  subtitle: Row(
-                                    children: [
-                                      Text(uploaderNickname, style: TextStyle(fontSize: 12)),
-                                      SizedBox(width: 5),
-                                      Text(formattedCreatedDate, style: TextStyle(fontSize: 12, height: 1.3)),
-                                      SizedBox(width: 5),
-                                      Text('조회 $views', style: TextStyle(fontSize: 12)),
-                                      SizedBox(width: 5),
-                                      Text('좋아요 $likes', style: TextStyle(fontSize: 12)),
-                                      SizedBox(width: 5),
-                                      Text('댓글 $comments', style: TextStyle(fontSize: 12)),
-                                    ],
-                                  ),
-                                  onTap: () {
-                                    increaseViews(postId, 'UserCommunity'); // 조회수 증가
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) {
-                                          return CommunityUserDetailScreen(documentId: postId,);
-                                        },
-                                      ),
+                          return GestureDetector(
+                            onTap: () {
+                              increaseViews(
+                                  postId, 'UserCommunity'); // 조회수 증가
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) {
+                                    return CommunityUserDetailScreen(
+                                      documentId: postId,
                                     );
                                   },
                                 ),
-                              ),
-                              CommentLine()
-                            ],
+                              );
+                            },
+                            child: Column(
+                              children: [
+                                Card(
+                                  elevation: 0,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(10.0),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(title, style: TextStyle(fontSize: 18)),
+                                        SizedBox(height: 10),
+                                        Row(
+                                          children: [
+                                            Text(uploaderNickname, style: TextStyle(fontSize: 14, color: Colors.grey)),
+                                            SizedBox(width: 10),
+                                            Row(
+                                              children: [
+                                                Icon(Icons.remove_red_eye_outlined, size: 18, color: Colors.grey),
+                                                SizedBox(width: 2),
+                                                Text('$views', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                                              ],
+                                            ),
+                                            SizedBox(width: 10),
+                                            Row(
+                                              children: [
+                                                Icon(Icons.favorite_border_rounded, size: 18, color: Colors.grey),
+                                                SizedBox(width: 2),
+                                                Text('$likes', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                                              ],
+                                            ),
+                                            SizedBox(width: 10),
+                                            Row(
+                                              children: [
+                                                Icon(Icons.comment_outlined, size: 18, color: Colors.grey),
+                                                SizedBox(width: 2),
+                                                Text('$comments', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                                              ],
+                                            ),
+
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                Container(height: 1, color: Colors.grey[200])
+                              ],
+                            ),
                           );
                         }
                     );
@@ -317,20 +342,20 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
 
   // 남은 시간 표시 위젯
   Widget buildRemainingTime(String status, Timestamp endTime, int remainingTime) {
-    if (status == '낙찰' || status == '경매 실패') {
+    if (status == '낙찰' || status == '실패') {
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text('경매 종료', style: TextStyle(fontSize: 16, color: Colors.grey)),
+          Text('경매 종료', style: TextStyle(fontSize: 14, color: Colors.grey)),
           Text('${DateFormat('MM월 dd일 HH시 mm분').format(endTime.toDate())}',
-              style: TextStyle(fontSize: 16, color: Colors.grey))
+              style: TextStyle(fontSize: 14, color: Colors.grey))
         ],
       );
     } else {
       return Center(
         child: Text(
           getFormattedRemainingTime(status, endTime, remainingTime),
-          style: TextStyle(fontSize: 16, color: Colors.redAccent),
+          style: TextStyle(fontSize: 14, color: Colors.redAccent),
         ),
       );
     }
@@ -363,7 +388,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
       return Colors.green; // 녹색
     } else if (status == '낙찰') {
       return Colors.blue; // 파란색
-    } else if (status == '경매 실패') {
+    } else if (status == '실패') {
       return Colors.grey; // 회색
     } else {
       return Colors.black; // 기본값 (다른 상태일 때)

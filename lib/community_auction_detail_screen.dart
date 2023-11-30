@@ -133,7 +133,7 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
                                             // 경매 상품 이미지
                                             _buildAuctionImage(photoURL),
                                             Padding(
-                                                padding: const EdgeInsets.all(20.0),
+                                                padding: const EdgeInsets.all(10.0),
                                                 child: Column(
                                                     crossAxisAlignment: CrossAxisAlignment.start,
                                                     children: [
@@ -142,7 +142,7 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
                                                           children: [
                                                             // 글을 올린 유저의 프로필 사진
                                                             _buildUploaderImage(uploaderImageURL),
-                                                            SizedBox(width: 10),
+                                                            SizedBox(width: 5),
                                                             Expanded(
                                                                 child: Column(
                                                                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -150,17 +150,17 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
                                                                       // 글을 올린 유저의 닉네임
                                                                       Text(uploaderNickname,
                                                                           style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                                                                      SizedBox(height: 5),
+                                                                      SizedBox(height: 2),
                                                                       Row(
                                                                           children: [
                                                                             Text(formattedCreateDate,
-                                                                                style: TextStyle(fontSize: 12, color: Colors.grey, height: 1.5)),
+                                                                                style: TextStyle(fontSize: 12, color: Colors.grey)),
                                                                             SizedBox(width: 3),
                                                                             Text('조회',
                                                                                 style: TextStyle(fontSize: 12, color: Colors.grey)),
                                                                             SizedBox(width: 3),
                                                                             Text('$views',
-                                                                                style: TextStyle(fontSize: 12, color: Colors.grey, height: 1.5))])])),
+                                                                                style: TextStyle(fontSize: 12, color: Colors.grey))])])),
 
                                                             // 좋아요 버튼
                                                             Column(
@@ -174,26 +174,33 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
                                                                     icon: Icon(isLiked ? Icons.favorite : Icons.favorite_border,
                                                                       color: isLiked ? Colors.red : Colors.grey,
                                                                     ),
-                                                                    iconSize: 35,
+                                                                    iconSize: 30,
                                                                     padding: EdgeInsets.zero,
                                                                     constraints: BoxConstraints(),
                                                                   ),
                                                                   // 좋아요 수 표시
-                                                                  Text('$likes', style: TextStyle(fontSize: 12))])])])),
+                                                                  Text('$likes', style: TextStyle(fontSize: 12))
+                                                                ]
+                                                            )
+                                                          ]
+                                                      )
+                                                    ]
+                                                )
+                                            ),
 
                                             Container(height: 1, color: Colors.grey[300]),
                                             Padding(
-                                                padding: const EdgeInsets.all(20.0),
+                                                padding: const EdgeInsets.all(10.0),
                                                 child: SizedBox(
                                                     width: double.infinity,
                                                     child: Column(
                                                         crossAxisAlignment: CrossAxisAlignment.start,
                                                         children: [
-                                                          Text(title,
-                                                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                                                          Text(title, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                                                          SizedBox(height: 10),
                                                           Text(content, style: TextStyle(fontSize: 14))]))),
                                             SizedBox(height: 50),
-                                            Text('최고 입찰자', style: TextStyle(fontSize: 14)),
+                                            Text('최고 입찰자', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
                                             StreamBuilder<DocumentSnapshot>(
                                               stream: winningBidderUID.isNotEmpty
                                                   ? _firestore.collection('User').doc(winningBidderUID).snapshots()
@@ -214,6 +221,7 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
                                                 );
                                               },
                                             ),
+                                            SizedBox(height: 50),
                                           ]
                                       )
                                   )
@@ -228,7 +236,8 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
                                               decoration: BoxDecoration(
                                                 color: Colors.white,
                                                 boxShadow: [
-                                                  BoxShadow(color: Color(0xffeeeeee), offset: Offset(0, -10), blurRadius: 10.0,),
+                                                  BoxShadow(color: Colors.black.withOpacity(0.1),
+                                                    offset: Offset(0, -4), blurRadius: 8.0,),
                                                 ],
                                               ),
                                               child: Padding(
@@ -238,6 +247,7 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
                                                       children: [
                                                         // 남은 시간 표시
                                                         _buildStatusText(status, remainingTimeSeconds),
+                                                        SizedBox(height: 5),
                                                         Row(
                                                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                           children: [
@@ -253,8 +263,8 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
                                                               Text((status == '낙찰') ? '낙찰가'
                                                                   : (status == '경매 실패') ? '경매 실패'
                                                                   : '최소 입찰가',
-                                                                  style: TextStyle(fontSize: 20)),
-                                                              Text('$winningBid원', style: TextStyle(fontSize: 20, color: Colors.blue))])]))),
+                                                                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                                              Text('$winningBid원', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blue))])]))),
 
                                           Visibility(
                                               visible: status == '진행중' && !isCheckUploader(uploaderUID),
@@ -295,7 +305,8 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
                                                                     ));
                                                               }
                                                             },
-                                                            style: ElevatedButton.styleFrom(backgroundColor: Colors.blue,
+                                                            style: ElevatedButton.styleFrom(
+                                                              backgroundColor: Colors.blue,
                                                               shape: RoundedRectangleBorder(
                                                                 side: BorderSide(color: Colors.blue),
                                                                 borderRadius: BorderRadius.circular(0.0),
@@ -352,7 +363,7 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
   // 타이머 업데이트 여부를 확인하는 함수
   bool _shouldUpdateTimer() {
     // 경매 상태가 '낙찰' 또는 '경매 실패'일 시 타이머 작동 X
-    if (status == '낙찰' || status == '경매 실패') {
+    if (status == '낙찰' || status == '실패') {
       return false;
     }
     return true;
@@ -472,7 +483,7 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
     } else {
       // 최고 입찰자가 없는 경우
       await _firestore.doc(postPath).update({
-        'status': '경매 실패',
+        'status': '실패',
       });
     }
   }
@@ -495,7 +506,7 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
         '낙찰되었습니다!',
         style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.redAccent),
       );
-    } else if (status == '경매 실패') {
+    } else if (status == '실패') {
       return Text(
         '입찰자가 나오지 않은 경매입니다.',
         style: TextStyle(fontSize: 16, color: Colors.grey),
@@ -639,7 +650,7 @@ class _CommunityAuctionDetailScreenState extends State<CommunityAuctionDetailScr
 
   // 업로더의 프로필 사진을 표시하는 함수
   Widget _buildUploaderImage(String uploaderImageURL) {
-    double _imageSize = 50.0;
+    double _imageSize = 40.0;
     if (uploaderImageURL != null && uploaderImageURL.isNotEmpty) {
       return SizedBox(
         width: _imageSize,

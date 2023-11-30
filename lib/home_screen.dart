@@ -150,14 +150,14 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 Row(
                   children: [
-                    Text('최근 경매 결과', style: TextStyle(fontSize: 20)),
+                    Text('최근 경매 결과', style: TextStyle(fontSize: 18)),
                   ],
                 ),
 
                 // 경매 상태(status)가 '낙찰' 또는 '경매 실패' 인 경매만 가져오는 스트림
                 StreamBuilder<QuerySnapshot>(
                     stream: _firestore.collection('AuctionCommunity')
-                        .where('status', whereIn: ['낙찰', '경매 실패'])
+                        .where('status', whereIn: ['낙찰', '실패'])
                         .snapshots(),
                     builder: (context, snapshot) {
                       if (!snapshot.hasData) {
@@ -180,8 +180,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         shrinkWrap: true,
                         itemCount: itemCount,
                         itemBuilder: (context, index) {
-                          String documentId = getDocumentId(
-                              auctions[index]); // 이건 전달해야할 정보
+                          String documentId = auctions[index].id;
 
                           // 경매 정보
                           String title = auctions[index]['title'] as String;
@@ -213,72 +212,65 @@ class _HomeScreenState extends State<HomeScreen> {
                                   child: Row(
                                     children: [
                                       _buildAuctionImage(photoURL),
-                                      SizedBox(width: 10),
                                       Expanded(
-                                        child: Column(
-                                          mainAxisAlignment: MainAxisAlignment
-                                              .spaceBetween,
-                                          crossAxisAlignment: CrossAxisAlignment
-                                              .start,
-                                          children: [
-                                            Row(
+                                        child: SizedBox(
+                                          height: 100,
+                                          child: Padding(
+                                            padding: const EdgeInsets.fromLTRB(10, 4, 6, 0),
+                                            child: Column(
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              crossAxisAlignment: CrossAxisAlignment.start,
                                               children: [
-                                                // 경매 상태
-                                                Container(
-                                                    decoration: BoxDecoration(
-                                                      color: _getStatusColor(
-                                                          status),
-                                                      borderRadius: BorderRadius
-                                                          .circular(10.0),
-                                                      boxShadow: [
-                                                        BoxShadow(
-                                                          color: Colors.grey,
-                                                          // 그림자 색상
-                                                          offset: Offset(0, 2),
-                                                          // 그림자의 위치 (가로, 세로)
-                                                          blurRadius: 4.0, // 그림자의 흐림 정도
+                                                Row(
+                                                  children: [
+                                                    // 경매 상태
+                                                    Container(
+                                                        decoration: BoxDecoration(
+                                                          color: _getStatusColor(status),
+                                                          borderRadius: BorderRadius.circular(6.0),
+                                                          boxShadow: [
+                                                            BoxShadow(
+                                                              color: Colors.black.withOpacity(0.2), // 그림자 색상
+                                                              offset: Offset(1, 1), // 그림자의 위치 (가로, 세로)
+                                                              blurRadius: 2.0, // 그림자의 흐림 정도
+                                                            ),
+                                                          ],
                                                         ),
+                                                        child: Padding(
+                                                          padding: const EdgeInsets.fromLTRB(6, 4, 6, 4),
+                                                          child: Text(status,
+                                                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)
+                                                          ),
+                                                        )
+                                                    ),
+                                                    SizedBox(width: 8),
+                                                    Text(title, style: TextStyle(fontSize: 16)),
+                                                  ],
+                                                ),
+                                                Column(
+                                                  children: [
+                                                    Row(
+                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                      children: [
+                                                        Text((status == '낙찰')
+                                                            ? '낙찰가'
+                                                            : (status == '실패')
+                                                            ? '시작가'
+                                                            : '최소 입찰가',
+                                                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold,)),
+                                                        Text('$winningBid원', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.blue)),
                                                       ],
                                                     ),
-                                                    child: Padding(
-                                                      padding: const EdgeInsets
-                                                          .all(6.0),
-                                                      child: Text(status,
-                                                          style: TextStyle(
-                                                              fontSize: 16,
-                                                              fontWeight: FontWeight
-                                                                  .bold,
-                                                              color: Colors.white)
-                                                      ),
-                                                    )
-                                                ),
-                                                SizedBox(width: 10),
-                                                Text(title, style: TextStyle(
-                                                    fontSize: 16)),
-                                              ],
-                                            ),
-                                            SizedBox(height: 10),
-                                            Row(
-                                              mainAxisAlignment: MainAxisAlignment
-                                                  .spaceBetween,
-                                              children: [
-                                                Text((status == '낙찰')
-                                                    ? '낙찰가'
-                                                    : (status == '경매 실패')
-                                                    ? '경매 실패'
-                                                    : '최소 입찰가',
-                                                    style: TextStyle(
-                                                        fontSize: 16)),
-                                                Text('$winningBid원',
-                                                    style: TextStyle(fontSize: 16,
-                                                        color: Colors.blue)),
-                                              ],
-                                            ),
-                                            // 남은 시간 표시
-                                            buildRemainingTime(
-                                                status, endTime, remainingTime),
+                                                    SizedBox(height: 2),
+                                                    // 남은 시간 표시
+                                                    buildRemainingTime(status, endTime, remainingTime),
+                                                  ],
+                                                )
 
-                                          ],
+
+                                              ],
+                                            ),
+                                          ),
                                         ),
                                       )
                                     ],
@@ -303,12 +295,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // ===========================================================================
-
-  // 게시물의 documentID를 가져오는 함수
-    String getDocumentId(QueryDocumentSnapshot document) {
-                    return document.id;
-    }
-
   // 사진 표시 위젯
   Widget _buildAuctionImage(String auctionImageURL) {
     double _imageSize = 100.0;
@@ -341,20 +327,20 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // 남은 시간 표시 위젯
   Widget buildRemainingTime(String status, Timestamp endTime, int remainingTime) {
-    if (status == '낙찰' || status == '경매 실패') {
+    if (status == '낙찰' || status == '실패') {
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text('경매 종료', style: TextStyle(fontSize: 16, color: Colors.grey)),
+          Text('경매 종료', style: TextStyle(fontSize: 14, color: Colors.grey)),
           Text('${DateFormat('MM월 dd일 HH시 mm분').format(endTime.toDate())}',
-              style: TextStyle(fontSize: 16, color: Colors.grey))
+              style: TextStyle(fontSize: 14, color: Colors.grey))
         ],
       );
     } else {
       return Center(
         child: Text(
           getFormattedRemainingTime(status, endTime, remainingTime),
-          style: TextStyle(fontSize: 16, color: Colors.redAccent),
+          style: TextStyle(fontSize: 14, color: Colors.redAccent),
         ),
       );
     }
@@ -373,7 +359,7 @@ class _HomeScreenState extends State<HomeScreen> {
       return Colors.green; // 녹색
     } else if (status == '낙찰') {
       return Colors.blue; // 파란색
-    } else if (status == '경매 실패') {
+    } else if (status == '실패') {
       return Colors.grey; // 회색
     } else {
       return Colors.black; // 기본값 (다른 상태일 때)

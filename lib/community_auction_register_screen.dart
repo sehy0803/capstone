@@ -67,11 +67,11 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
                 // 제목
                 TextField(
                   maxLength: 30,
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   decoration: InputDecoration(
                       hintText: '제목',
                       hintStyle: TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold)),
+                          fontSize: 16, fontWeight: FontWeight.bold)),
                   onChanged: (value) {
                     title = value;
                   },
@@ -80,9 +80,9 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
                 // 시작가(최소 입찰가)
                 TextField(
                   keyboardType: TextInputType.number,
-                  style: TextStyle(fontSize: 18),
+                  style: TextStyle(fontSize: 16),
                   decoration: InputDecoration(
-                      hintText: '시작가', hintStyle: TextStyle(fontSize: 18)),
+                      hintText: '시작가', hintStyle: TextStyle(fontSize: 16)),
                   onChanged: (value) {
                     startBid = int.tryParse(value) ?? 0;
                   },
@@ -90,11 +90,11 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
 
                 // 설명
                 TextField(
-                  maxLength: 200,
-                  maxLines: 7,
-                  style: TextStyle(fontSize: 18),
+                  maxLength: 400,
+                  maxLines: 10,
+                  style: TextStyle(fontSize: 16),
                   decoration: InputDecoration(
-                      hintText: '설명', hintStyle: TextStyle(fontSize: 18)),
+                      hintText: '설명', hintStyle: TextStyle(fontSize: 16)),
                   onChanged: (value) {
                     content = value;
                   },
@@ -139,6 +139,8 @@ class _AuctionRegisterScreenState extends State<AuctionRegisterScreen> {
                     ),
                   ),
                 ),
+
+                SizedBox(height: 20),
 
                 // 경매 등록 버튼
                 ElevatedButton(
