@@ -90,7 +90,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
 
               if (chatDocuments == null || chatDocuments.isEmpty) {
                 return Center(
-                    child: Text('데이터가 없습니다.',
+                    child: Text('Chat 데이터가 없습니다.',
                         textAlign: TextAlign.center,
                         style: TextStyle(fontSize: 16, color: Colors.grey)));
               }
@@ -103,6 +103,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                       chatDocuments[index]['auctionId'] as String;
                   String chatStatus =
                       chatDocuments[index]['chatStatus'] as String;
+                  print(auctionId);
 
                   return StreamBuilder<DocumentSnapshot>(
                     stream: _firestore
@@ -212,7 +213,75 @@ class _ChatListScreenState extends State<ChatListScreen> {
                                 ),
                               );
                             } else {
-                              return SizedBox();
+                              return GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) {
+                                        return ChatScreen(
+                                            chatId: documentId,
+                                            auctionId: auctionId,
+                                            chatStatus: chatStatus);
+                                      },
+                                    ),
+                                  );
+                                },
+                                child: Card(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(10.0),
+                                    child: Container(
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          _buildAuctionImage(photoURL),
+                                          SizedBox(width: 10),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Row(
+                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                  children: [
+                                                    Row(
+                                                      children: [
+                                                        // 경매 상태
+                                                        Container(
+                                                            decoration: BoxDecoration(
+                                                              color: _getStatusColor(chatStatus),
+                                                              borderRadius: BorderRadius.circular(10.0),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                  color: Colors.grey, // 그림자 색상
+                                                                  offset: Offset(0, 2), // 그림자의 위치 (가로, 세로)
+                                                                  blurRadius: 4.0, // 그림자의 흐림 정도
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: Padding(
+                                                              padding: const EdgeInsets.all(4.0),
+                                                              child: Text(chatStatus,
+                                                                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)
+                                                              ),
+                                                            )
+                                                        ),
+                                                        SizedBox(width: 10),
+                                                        Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                                                      ],
+                                                    ),
+                                                  ],
+                                                ),
+                                                SizedBox(height: 5),
+                                                Text('아직 채팅이 없습니다', style: TextStyle(fontSize: 14, color: Colors.black45)),
+                                              ],
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
                             }
                           });
                     },
