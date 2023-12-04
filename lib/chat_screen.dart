@@ -136,7 +136,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               SizedBox(
-                                  width: 170,
+                                width: 160,
                                   child: Text(auctionTitle, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
                               SizedBox(height: 5),
                               Text('$winningBid', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue)),
@@ -144,31 +144,28 @@ class _ChatScreenState extends State<ChatScreen> {
                           ),
                         ],
                       ),
-                      (chatStatus == '완료' && !isCheckUploader(uploaderUID)) ?
                       Container(
-                        margin: EdgeInsets.only(right: 10.0),
-                        child: SizedBox(
-                          width: 120,
+                        margin: EdgeInsets.only(right: 10),
+                        child: (chatStatus == '완료' && !isCheckUploader(uploaderUID)) ?
+                        SizedBox(
+                          width: 100,
                           height: 65,
                           child: OutlinedButton(
                             onPressed: () {},
-                            child: Text('후기 남기기', style: TextStyle(fontSize: 16)),
+                            child: Text('후기 남기기', style: TextStyle(fontSize: 14)),
                           ),
-                        )
-                      ) : (chatStatus == '진행중' && isCheckUploader(uploaderUID)) ?
-                      Container (
-                        margin: EdgeInsets.only(right: 10.0),
-                        child: SizedBox(
-                          width: 120,
+                        ) : (chatStatus == '진행중' && isCheckUploader(uploaderUID)) ?
+                        SizedBox(
+                          width: 100,
                           height: 65,
                           child: OutlinedButton(
                             onPressed: () {
                               showDialogComplete(context);
                             },
-                            child: Text('거래 완료', style: TextStyle(fontSize: 16)),
+                            child: Text('거래 완료', style: TextStyle(fontSize: 14)),
                           ),
-                        ),
-                      ) : SizedBox()
+                        ) : SizedBox(),
+                      )
                     ],
                   )
                 ]),
